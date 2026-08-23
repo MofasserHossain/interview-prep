@@ -1,0 +1,10 @@
+.DS_Store
+.env*.local
+.next/
+node_modules/
+out/
+dist/
+coverage/
+*.log
+*.tsbuildinfo
+config.bat
