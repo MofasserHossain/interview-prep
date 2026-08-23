@@ -65,10 +65,18 @@ const keywordTags = [
 
 export function getInterviewData(): InterviewData {
   const questions = topics.flatMap((topic) => parseTopic(topic));
-  const summaries = topics.map((topic) => ({
-    ...topic,
-    questionCount: questions.filter((question) => question.topicSlug === topic.slug).length,
-  }));
+  const summaries = topics.map((topic) => {
+    const topicQuestions = questions.filter((question) => question.topicSlug === topic.slug);
+
+    return {
+      ...topic,
+      questionCount: topicQuestions.length,
+      readingMinutes: topicQuestions.reduce(
+        (total, question) => total + question.readingMinutes,
+        0,
+      ),
+    };
+  });
 
   return {
     topics: summaries,

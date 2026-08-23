@@ -30,6 +30,7 @@ export type Question = {
 
 type TopicSummary = Topic & {
   questionCount: number;
+  readingMinutes: number;
 };
 
 export type InterviewData = {
