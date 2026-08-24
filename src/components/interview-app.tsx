@@ -116,7 +116,7 @@ const languageLabels: Record<string, string> = {
 const outputLanguages = new Set(["console", "output", "text", "txt"]);
 
 const markdownComponents: Components = {
-  code({ children, className, ...props }) {
+  code({ children, className, node: _node, ...props }) {
     return (
       <code className={className} {...props}>
         {children}
@@ -126,7 +126,20 @@ const markdownComponents: Components = {
   pre({ children }) {
     return <CodeBlock>{children}</CodeBlock>;
   },
-  table({ children, ...props }) {
+  p({ children, node: _node, ...props }) {
+    const label = getStudySectionLabel(children);
+
+    if (label) {
+      return (
+        <p className={`study-section-label ${label.kind}`} {...props}>
+          {label.title}
+        </p>
+      );
+    }
+
+    return <p {...props}>{children}</p>;
+  },
+  table({ children, node: _node, ...props }) {
     return (
       <div className="markdown-table-wrap">
         <table {...props}>{children}</table>
@@ -758,4 +771,45 @@ function getCodeText(value: ReactNode): string {
   }
 
   return "";
+}
+
+function getStudySectionLabel(value: ReactNode) {
+  const text = getCodeText(value).trim();
+  const normalized = text.replace(/:$/, "").toLowerCase();
+  const labels: Record<string, { kind: string; title: string }> = {
+    benefits: { kind: "benefit", title: "Benefits" },
+    "benefit over traditional callbacks": {
+      kind: "benefit",
+      title: "Benefit Over Traditional Callbacks",
+    },
+    "benefit over promise.all()": {
+      kind: "benefit",
+      title: "Benefit Over Promise.all",
+    },
+    "benefits over .then() chains": {
+      kind: "benefit",
+      title: "Benefits Over .then() Chains",
+    },
+    "callback style": { kind: "example", title: "Callback Style" },
+    concurrent: { kind: "example", title: "Concurrent" },
+    example: { kind: "example", title: "Example" },
+    important: { kind: "important", title: "Important" },
+    "interview notes": { kind: "interview", title: "Interview Notes" },
+    "promise chain": { kind: "example", title: "Promise Chain" },
+    "promise style": { kind: "example", title: "Promise Style" },
+    sequential: { kind: "example", title: "Sequential" },
+    "strong answer": { kind: "interview", title: "Strong Interview Answer" },
+    "use cases": { kind: "benefit", title: "Use Cases" },
+    "when .then() is still fine": {
+      kind: "important",
+      title: "When .then() Is Still Fine",
+    },
+    "when not to use promise.all()": {
+      kind: "important",
+      title: "When Not To Use Promise.all",
+    },
+    "why this is good": { kind: "benefit", title: "Why This Is Good" },
+  };
+
+  return labels[normalized] ?? null;
 }

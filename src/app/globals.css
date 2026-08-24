@@ -788,6 +788,61 @@ h2 {
   margin: 0 0 1em;
 }
 
+.answer-body .study-section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 860px;
+  min-height: 30px;
+  margin: 1.25rem 0 0.55rem;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface-muted);
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.study-section-label::before {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--text);
+  content: "";
+}
+
+.study-section-label.benefit::before {
+  background: oklch(0.42 0 0);
+}
+
+.study-section-label.example::before {
+  background: oklch(0.34 0 0);
+}
+
+.study-section-label.important::before {
+  background: oklch(0.24 0 0);
+}
+
+.study-section-label.interview {
+  border-color: var(--border-strong);
+  background: var(--surface);
+}
+
+.study-section-label.interview::before {
+  background: var(--surface-strong);
+}
+
+.study-section-label + .markdown-table-wrap,
+.study-section-label + .code-panel,
+.study-section-label + blockquote,
+.study-section-label + ul,
+.study-section-label + ol,
+.study-section-label + p {
+  margin-top: 0;
+}
+
 .answer-body strong {
   font-weight: 590;
 }
@@ -826,9 +881,13 @@ h2 {
 }
 
 .answer-body blockquote {
-  margin: 1rem 0;
-  border-left: 4px solid var(--border-strong);
-  padding-left: 14px;
+  max-width: 860px;
+  margin: 0.85rem 0 1.35rem;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--surface-strong);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 14px 16px;
   color: var(--text-subtle);
 }
 
@@ -1626,9 +1685,7 @@ h2 {
 }
 
 .answer-body p:has(+ .code-panel.output-code) {
-  margin-bottom: 0.45rem;
-  color: var(--text-subtle);
-  font-weight: 590;
+  display: none;
 }
 
 .answer-body .code-panel {
