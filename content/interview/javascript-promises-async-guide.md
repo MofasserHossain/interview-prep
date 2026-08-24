@@ -11,9 +11,11 @@ with a value or fail with a reason.
 
 It has three practical states:
 
-- `pending`: not finished yet
-- `fulfilled`: completed successfully
-- `rejected`: failed
+| State | Meaning | What handlers can run |
+| --- | --- | --- |
+| `pending` | The operation has started but has not finished yet. | None yet |
+| `fulfilled` | The operation completed successfully with a value. | `.then()` / `await` continuation |
+| `rejected` | The operation failed with a reason. | `.catch()` / `try...catch` |
 
 ```js
 const promise = new Promise((resolve) => {
@@ -37,8 +39,11 @@ done
 
 Benefit over traditional callbacks:
 
-Promises give async work a standard return value. That means it can be chained,
-returned, awaited, combined, retried, and handled with one error path.
+| Promise capability | Why it helps over callbacks |
+| --- | --- |
+| Standard return value | Async work can be returned from functions instead of only calling another function later. |
+| Composition | Work can be chained, awaited, combined, retried, or raced. |
+| Central error path | Rejections can flow through `.catch()` or `try...catch` instead of repeated nested error checks. |
 
 Strong answer:
 
@@ -76,11 +81,12 @@ getUser(7)
 
 Benefits:
 
-- flatter control flow
-- one `.catch()` can handle errors from the chain
-- the async operation can be returned from a function
-- the same promise can be used with `.then()` or `await`
-- concurrency helpers such as `Promise.all()` become available
+| Problem with nested callbacks | Promise improvement |
+| --- | --- |
+| Deep indentation makes the success path hard to read. | `.then()` chains or `await` keep the main flow flatter. |
+| Each level needs its own error branch. | One `.catch()` can handle errors from the chain. |
+| Async work is hard to return and compose. | A promise can be returned from a function and reused by callers. |
+| Parallel work needs manual coordination. | Helpers such as `Promise.all()` and `Promise.allSettled()` handle coordination. |
 
 ## 3. How do `.then`, `.catch`, and `.finally` work?
 
@@ -154,16 +160,20 @@ async function loadProfile(userId) {
 
 Benefits over `.then()` chains:
 
-- reads top-to-bottom
-- uses `try/catch/finally`
-- easier conditional logic
-- easier to debug in many codebases
+| `async`/`await` benefit | Why it matters |
+| --- | --- |
+| Reads top-to-bottom | Sequential async code looks close to synchronous control flow. |
+| Uses `try/catch/finally` | Error and cleanup logic can use normal language constructs. |
+| Handles branching naturally | `if`, `switch`, loops, and early returns stay easy to follow. |
+| Debugs cleanly | Many codebases and debuggers show async functions clearly in stack traces. |
 
 When `.then()` is still fine:
 
-- short one-line transformations
-- returning a promise without making the parent function `async`
-- functional composition pipelines
+| `.then()` use case | Why it can still be appropriate |
+| --- | --- |
+| Short one-line transformations | Avoids adding an `async` wrapper for simple mapping. |
+| Returning an existing promise | Keeps the parent function from becoming `async` unnecessarily. |
+| Functional composition pipelines | Chaining can be expressive when each step is a small transformation. |
 
 Important:
 
@@ -175,6 +185,11 @@ main thread.
 Use sequential `await` when one step depends on the previous result. Use
 `Promise.all()` when independent tasks can run at the same time and all are
 required.
+
+| Pattern | Use when | Tradeoff |
+| --- | --- | --- |
+| Sequential `await` | Later work needs the result of earlier work. | Easier dependency flow, but slower for independent tasks. |
+| `Promise.all()` | Independent tasks can run at the same time and all are required. | Faster total time, but one rejection rejects the whole group. |
 
 Sequential:
 
@@ -231,15 +246,22 @@ Even though `settings` finishes first, `Promise.all()` preserves input order.
 
 When not to use `Promise.all()`:
 
-- the second task needs the first result
-- one failure should not fail the whole operation
-- too many concurrent requests could overload an API
-- each item needs independent retry or fallback behavior
+| Avoid `Promise.all()` when | Better approach |
+| --- | --- |
+| The second task needs the first result. | Use sequential `await`. |
+| One failure should not fail the whole operation. | Use `Promise.allSettled()`. |
+| Too many concurrent requests could overload an API. | Use batching or a concurrency limit. |
+| Each item needs independent retry or fallback behavior. | Handle each item separately or wrap each promise. |
 
 ## 6. `Promise.all` vs `Promise.allSettled`
 
 Use `Promise.all()` when every task is required. Use `Promise.allSettled()` when
 partial success is useful.
+
+| Method | Success behavior | Failure behavior | Best fit |
+| --- | --- | --- | --- |
+| `Promise.all()` | Resolves when every input fulfills. | Rejects as soon as one input rejects. | Required data where one failure should stop the flow. |
+| `Promise.allSettled()` | Resolves after every input settles. | Never rejects because of an input rejection. | Optional or batch work where partial results matter. |
 
 ```js
 const ok = (value) => Promise.resolve(value);
@@ -264,15 +286,22 @@ fulfilled or rejected.
 
 Use cases:
 
-- loading optional dashboard widgets
-- batch upload result summaries
-- showing partial data with per-item errors
-- analytics calls where one failure should not hide all results
+| Use case | Why `allSettled()` fits |
+| --- | --- |
+| Optional dashboard widgets | Failed widgets can show per-widget errors while others render. |
+| Batch uploads | The UI can show which files succeeded and which failed. |
+| Partial data screens | Available data can render without hiding everything. |
+| Analytics calls | One failed analytics event should not hide all results. |
 
 ## 7. `Promise.any` vs `Promise.race`
 
 `Promise.any()` returns the first fulfilled value. `Promise.race()` returns the
 first settled result, whether success or failure.
+
+| Method | Resolves with | Rejects when | Common use |
+| --- | --- | --- | --- |
+| `Promise.any()` | First fulfilled value. | Every input rejects. | Fallback providers where any success is enough. |
+| `Promise.race()` | First settled result, fulfilled or rejected. | The first settled input is rejected. | Timeouts and first-response flows. |
 
 ```js
 const ok = (value, ms) =>
@@ -352,9 +381,11 @@ async function loadPage(userId) {
 
 Why this is good:
 
-- `getUser` is sequential because later calls need `user.id`
-- `getOrders` and `getRecommendations` are concurrent
-- `Promise.all()` is appropriate because both are required
+| Step | Pattern | Reason |
+| --- | --- | --- |
+| `getUser` | Sequential `await` | Later calls need `user.id`. |
+| `getOrders` + `getRecommendations` | `Promise.all()` | They are independent after the user is loaded. |
+| Return combined data | Required result object | Both orders and recommendations are required for this version. |
 
 If recommendations are optional:
 

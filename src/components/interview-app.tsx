@@ -43,6 +43,7 @@ type TrackSummary = {
 };
 
 const trackOrder = [
+  "role-prep",
   "backend",
   "javascript",
   "react",
@@ -56,6 +57,7 @@ const trackOrder = [
 
 const trackIcons = {
   all: Library,
+  "role-prep": FileText,
   backend: Server,
   javascript: Braces,
   react: Component,
@@ -68,7 +70,9 @@ const trackIcons = {
 };
 
 const topicIcons = {
+  "senior-full-stack-saas-job-prep": FileText,
   backend: Server,
+  "senior-api-database-performance": Server,
   "nodejs-backend": Terminal,
   javascript: Braces,
   "javascript-promises-async": Workflow,
@@ -79,10 +83,12 @@ const topicIcons = {
   "javascript-scope-hoisting-closures": Layers3,
   "javascript-types-equality-copying": CodeXml,
   "frontend-react-next": Component,
+  "typescript-react-architecture": Braces,
   "react-performance": Zap,
   "machine-coding": CodeXml,
   "system-design-microservices": Workflow,
   "devops-docker-kubernetes": Container,
+  "aws-saas-observability": Workflow,
   "nginx-web-infrastructure": Router,
   "dotnet-csharp": Blocks,
   "python-backend-frameworks": Terminal,
@@ -114,9 +120,21 @@ const languageLabels: Record<string, string> = {
 };
 
 const outputLanguages = new Set(["console", "output", "text", "txt"]);
+const jsLikeLanguages = new Set(["js", "javascript", "jsx", "ts", "tsx"]);
+const shellLanguages = new Set(["bash", "sh", "shell"]);
+const dataLanguages = new Set(["json", "yaml", "yml"]);
+
+const jsTokenPattern =
+  /\/\/.*|\/\*.*?\*\/|(["'`])(?:\\.|(?!\1).)*\1|\b(?:async|await|break|case|catch|class|const|continue|default|delete|else|export|extends|finally|for|from|function|if|import|in|instanceof|let|new|of|return|switch|throw|try|typeof|var|void|while|yield)\b|\b(?:false|Infinity|NaN|null|true|undefined)\b|\b\d+(?:\.\d+)?\b|\b[A-Z][A-Za-z0-9_$]*(?=[\s.(])|\b[A-Za-z_$][\w$]*(?=\s*\()|[{}()[\].,;:?]/g;
+
+const shellTokenPattern =
+  /#.*|\$[A-Za-z_][\w]*|--?[A-Za-z0-9][\w-]*|(["'])(?:\\.|(?!\1).)*\1|\b\d+(?:\.\d+)?\b/g;
+
+const dataTokenPattern =
+  /(["'])(?:\\.|(?!\1).)*\1|\b(?:false|null|true)\b|\b\d+(?:\.\d+)?\b|[{}[\]:,]/g;
 
 const markdownComponents: Components = {
-  code({ children, className, ...props }) {
+  code({ children, className, node: _node, ...props }) {
     return (
       <code className={className} {...props}>
         {children}
@@ -125,6 +143,26 @@ const markdownComponents: Components = {
   },
   pre({ children }) {
     return <CodeBlock>{children}</CodeBlock>;
+  },
+  p({ children, node: _node, ...props }) {
+    const label = getStudySectionLabel(children);
+
+    if (label) {
+      return (
+        <p className={`study-section-label ${label.kind}`} {...props}>
+          {label.title}
+        </p>
+      );
+    }
+
+    return <p {...props}>{children}</p>;
+  },
+  table({ children, node: _node, ...props }) {
+    return (
+      <div className="markdown-table-wrap">
+        <table {...props}>{children}</table>
+      </div>
+    );
   },
 };
 
@@ -692,7 +730,7 @@ function CodeBlock({ children }: { children: ReactNode }) {
                   {String(index + 1).padStart(lineNumberWidth, " ")}
                 </span>
               ) : null}
-              <span className="code-line-content">{line || " "}</span>
+              <span className="code-line-content">{renderCodeLine(line, language, isOutput)}</span>
             </span>
           ))}
         </code>
@@ -751,4 +789,130 @@ function getCodeText(value: ReactNode): string {
   }
 
   return "";
+}
+
+function renderCodeLine(line: string, language: string, isOutput: boolean) {
+  if (!line || isOutput) {
+    return line || " ";
+  }
+
+  if (jsLikeLanguages.has(language)) {
+    return highlightCodeLine(line, jsTokenPattern, getJsTokenClass);
+  }
+
+  if (shellLanguages.has(language)) {
+    return highlightCodeLine(line, shellTokenPattern, getShellTokenClass);
+  }
+
+  if (dataLanguages.has(language)) {
+    return highlightCodeLine(line, dataTokenPattern, getDataTokenClass);
+  }
+
+  return line;
+}
+
+function highlightCodeLine(line: string, pattern: RegExp, getClassName: (token: string) => string) {
+  const nodes: ReactNode[] = [];
+  let cursor = 0;
+  let tokenIndex = 0;
+
+  for (const match of line.matchAll(pattern)) {
+    const token = match[0];
+    const index = match.index ?? 0;
+
+    if (index > cursor) {
+      nodes.push(line.slice(cursor, index));
+    }
+
+    nodes.push(
+      <span className={getClassName(token)} key={`${tokenIndex}-${index}`}>
+        {token}
+      </span>,
+    );
+    cursor = index + token.length;
+    tokenIndex += 1;
+  }
+
+  if (cursor < line.length) {
+    nodes.push(line.slice(cursor));
+  }
+
+  return nodes.length ? nodes : line;
+}
+
+function getJsTokenClass(token: string) {
+  if (token.startsWith("//") || token.startsWith("/*")) return "syntax-comment";
+  if (/^["'`]/.test(token)) return "syntax-string";
+  if (/^\d/.test(token)) return "syntax-number";
+  if (/^(false|Infinity|NaN|null|true|undefined)$/.test(token)) return "syntax-literal";
+  if (/^[A-Z]/.test(token)) return "syntax-class";
+  if (/^[A-Za-z_$]/.test(token) && !isJsKeyword(token)) return "syntax-function";
+  if (/^[{}()[\].,;:?]$/.test(token)) return "syntax-punctuation";
+
+  return "syntax-keyword";
+}
+
+function getShellTokenClass(token: string) {
+  if (token.startsWith("#")) return "syntax-comment";
+  if (/^["']/.test(token)) return "syntax-string";
+  if (token.startsWith("$")) return "syntax-variable";
+  if (token.startsWith("-")) return "syntax-attr";
+  if (/^\d/.test(token)) return "syntax-number";
+
+  return "syntax-keyword";
+}
+
+function getDataTokenClass(token: string) {
+  if (/^["']/.test(token)) return "syntax-string";
+  if (/^\d/.test(token)) return "syntax-number";
+  if (/^(false|null|true)$/.test(token)) return "syntax-literal";
+
+  return "syntax-punctuation";
+}
+
+function isJsKeyword(token: string) {
+  return /^(async|await|break|case|catch|class|const|continue|default|delete|else|export|extends|finally|for|from|function|if|import|in|instanceof|let|new|of|return|switch|throw|try|typeof|var|void|while|yield)$/.test(
+    token,
+  );
+}
+
+function getStudySectionLabel(value: ReactNode) {
+  const text = getCodeText(value).trim();
+  const normalized = text.replace(/:$/, "").toLowerCase();
+  const labels: Record<string, { kind: string; title: string }> = {
+    benefits: { kind: "benefit", title: "Benefits" },
+    "benefit over traditional callbacks": {
+      kind: "benefit",
+      title: "Benefit Over Traditional Callbacks",
+    },
+    "benefit over promise.all()": {
+      kind: "benefit",
+      title: "Benefit Over Promise.all",
+    },
+    "benefits over .then() chains": {
+      kind: "benefit",
+      title: "Benefits Over .then() Chains",
+    },
+    "callback style": { kind: "example", title: "Callback Style" },
+    concurrent: { kind: "example", title: "Concurrent" },
+    example: { kind: "example", title: "Example" },
+    important: { kind: "important", title: "Important" },
+    "interview notes": { kind: "interview", title: "Interview Notes" },
+    "promise chain": { kind: "example", title: "Promise Chain" },
+    "promise style": { kind: "example", title: "Promise Style" },
+    sequential: { kind: "example", title: "Sequential" },
+    "strong answer": { kind: "interview", title: "Strong Interview Answer" },
+    "use cases": { kind: "benefit", title: "Use Cases" },
+    "when .then() is still fine": {
+      kind: "important",
+      title: "When .then() Is Still Fine",
+    },
+    "when not to use promise.all()": {
+      kind: "important",
+      title: "When Not To Use Promise.all",
+    },
+    "why this is good": { kind: "benefit", title: "Why This Is Good" },
+  };
+
+  return labels[normalized] ?? null;
 }

@@ -2,6 +2,17 @@ import type { Difficulty, Topic } from "@/lib/types";
 
 export const topics: Topic[] = [
   {
+    slug: "senior-full-stack-saas-job-prep",
+    title: "Senior Full Stack SaaS Job Prep",
+    category: "Job Prep",
+    trackSlug: "role-prep",
+    trackTitle: "Job Prep",
+    subtopicTitle: "Senior Full Stack SaaS",
+    description:
+      "Focused preparation for the posted Senior Full Stack and Field Nation-style SaaS roles: React, TypeScript, APIs, AWS, SQL, Docker, queues, and observability.",
+    file: "senior-full-stack-saas-job-prep-guide.md",
+  },
+  {
     slug: "backend",
     title: "Backend",
     category: "Backend",
@@ -11,6 +22,17 @@ export const topics: Topic[] = [
     description:
       "HTTP, REST, databases, authentication, caching, scaling, queues, deployments, and distributed-system fundamentals.",
     file: "backend-interview-guide.md",
+  },
+  {
+    slug: "senior-api-database-performance",
+    title: "Senior API & Database Performance",
+    category: "Backend",
+    trackSlug: "backend",
+    trackTitle: "Backend",
+    subtopicTitle: "API & Database Performance",
+    description:
+      "Senior REST API contracts, pagination, idempotency, security, SQL modeling, indexes, EXPLAIN, transactions, and latency troubleshooting.",
+    file: "senior-api-database-performance-guide.md",
   },
   {
     slug: "nodejs-backend",
@@ -123,6 +145,17 @@ export const topics: Topic[] = [
     file: "frontend-react-next-interview-guide.md",
   },
   {
+    slug: "typescript-react-architecture",
+    title: "TypeScript & React Architecture",
+    category: "TypeScript",
+    trackSlug: "react",
+    trackTitle: "React",
+    subtopicTitle: "TypeScript Architecture",
+    description:
+      "Advanced TypeScript for React: DTOs, generics, discriminated unions, utility types, Redux Toolkit, component boundaries, and tests.",
+    file: "typescript-react-architecture-guide.md",
+  },
+  {
     slug: "react-performance",
     title: "React Performance",
     category: "React Performance",
@@ -165,6 +198,17 @@ export const topics: Topic[] = [
     description:
       "Containers, images, orchestration, CI/CD, rolling deployments, and production operations.",
     file: "devops-docker-kubernetes-guide.md",
+  },
+  {
+    slug: "aws-saas-observability",
+    title: "AWS SaaS & Observability",
+    category: "AWS",
+    trackSlug: "devops",
+    trackTitle: "DevOps & Infrastructure",
+    subtopicTitle: "AWS SaaS & Observability",
+    description:
+      "AWS-hosted SaaS architecture, ECS/EKS/Lambda choices, CI/CD, Docker/Kubernetes runtime concerns, logs, metrics, traces, SLI/SLO, alerts, and incidents.",
+    file: "aws-saas-observability-guide.md",
   },
   {
     slug: "nginx-web-infrastructure",
@@ -267,6 +311,19 @@ export function getDifficulty(topicSlug: string, number: number): Difficulty {
   if (topicSlug === "react-performance") {
     if (number <= 7) return "beginner";
     if (number <= 22) return "intermediate";
+    return "senior";
+  }
+
+  const seniorJobTopics = new Set([
+    "senior-full-stack-saas-job-prep",
+    "senior-api-database-performance",
+    "typescript-react-architecture",
+    "aws-saas-observability",
+  ]);
+
+  if (seniorJobTopics.has(topicSlug)) {
+    if (number <= 2) return "beginner";
+    if (number <= 7) return "intermediate";
     return "senior";
   }
 
