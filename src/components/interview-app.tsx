@@ -114,6 +114,18 @@ const languageLabels: Record<string, string> = {
 };
 
 const outputLanguages = new Set(["console", "output", "text", "txt"]);
+const jsLikeLanguages = new Set(["js", "javascript", "jsx", "ts", "tsx"]);
+const shellLanguages = new Set(["bash", "sh", "shell"]);
+const dataLanguages = new Set(["json", "yaml", "yml"]);
+
+const jsTokenPattern =
+  /\/\/.*|\/\*.*?\*\/|(["'`])(?:\\.|(?!\1).)*\1|\b(?:async|await|break|case|catch|class|const|continue|default|delete|else|export|extends|finally|for|from|function|if|import|in|instanceof|let|new|of|return|switch|throw|try|typeof|var|void|while|yield)\b|\b(?:false|Infinity|NaN|null|true|undefined)\b|\b\d+(?:\.\d+)?\b|\b[A-Z][A-Za-z0-9_$]*(?=[\s.(])|\b[A-Za-z_$][\w$]*(?=\s*\()|[{}()[\].,;:?]/g;
+
+const shellTokenPattern =
+  /#.*|\$[A-Za-z_][\w]*|--?[A-Za-z0-9][\w-]*|(["'])(?:\\.|(?!\1).)*\1|\b\d+(?:\.\d+)?\b/g;
+
+const dataTokenPattern =
+  /(["'])(?:\\.|(?!\1).)*\1|\b(?:false|null|true)\b|\b\d+(?:\.\d+)?\b|[{}[\]:,]/g;
 
 const markdownComponents: Components = {
   code({ children, className, node: _node, ...props }) {
@@ -712,7 +724,7 @@ function CodeBlock({ children }: { children: ReactNode }) {
                   {String(index + 1).padStart(lineNumberWidth, " ")}
                 </span>
               ) : null}
-              <span className="code-line-content">{line || " "}</span>
+              <span className="code-line-content">{renderCodeLine(line, language, isOutput)}</span>
             </span>
           ))}
         </code>
@@ -771,6 +783,91 @@ function getCodeText(value: ReactNode): string {
   }
 
   return "";
+}
+
+function renderCodeLine(line: string, language: string, isOutput: boolean) {
+  if (!line || isOutput) {
+    return line || " ";
+  }
+
+  if (jsLikeLanguages.has(language)) {
+    return highlightCodeLine(line, jsTokenPattern, getJsTokenClass);
+  }
+
+  if (shellLanguages.has(language)) {
+    return highlightCodeLine(line, shellTokenPattern, getShellTokenClass);
+  }
+
+  if (dataLanguages.has(language)) {
+    return highlightCodeLine(line, dataTokenPattern, getDataTokenClass);
+  }
+
+  return line;
+}
+
+function highlightCodeLine(line: string, pattern: RegExp, getClassName: (token: string) => string) {
+  const nodes: ReactNode[] = [];
+  let cursor = 0;
+  let tokenIndex = 0;
+
+  for (const match of line.matchAll(pattern)) {
+    const token = match[0];
+    const index = match.index ?? 0;
+
+    if (index > cursor) {
+      nodes.push(line.slice(cursor, index));
+    }
+
+    nodes.push(
+      <span className={getClassName(token)} key={`${tokenIndex}-${index}`}>
+        {token}
+      </span>,
+    );
+    cursor = index + token.length;
+    tokenIndex += 1;
+  }
+
+  if (cursor < line.length) {
+    nodes.push(line.slice(cursor));
+  }
+
+  return nodes.length ? nodes : line;
+}
+
+function getJsTokenClass(token: string) {
+  if (token.startsWith("//") || token.startsWith("/*")) return "syntax-comment";
+  if (/^["'`]/.test(token)) return "syntax-string";
+  if (/^\d/.test(token)) return "syntax-number";
+  if (/^(false|Infinity|NaN|null|true|undefined)$/.test(token)) return "syntax-literal";
+  if (/^[A-Z]/.test(token)) return "syntax-class";
+  if (/^[A-Za-z_$]/.test(token) && !isJsKeyword(token)) return "syntax-function";
+  if (/^[{}()[\].,;:?]$/.test(token)) return "syntax-punctuation";
+
+  return "syntax-keyword";
+}
+
+function getShellTokenClass(token: string) {
+  if (token.startsWith("#")) return "syntax-comment";
+  if (/^["']/.test(token)) return "syntax-string";
+  if (token.startsWith("$")) return "syntax-variable";
+  if (token.startsWith("-")) return "syntax-attr";
+  if (/^\d/.test(token)) return "syntax-number";
+
+  return "syntax-keyword";
+}
+
+function getDataTokenClass(token: string) {
+  if (/^["']/.test(token)) return "syntax-string";
+  if (/^\d/.test(token)) return "syntax-number";
+  if (/^(false|null|true)$/.test(token)) return "syntax-literal";
+
+  return "syntax-punctuation";
+}
+
+function isJsKeyword(token: string) {
+  return /^(async|await|break|case|catch|class|const|continue|default|delete|else|export|extends|finally|for|from|function|if|import|in|instanceof|let|new|of|return|switch|throw|try|typeof|var|void|while|yield)$/.test(
+    token,
+  );
 }
 
 function getStudySectionLabel(value: ReactNode) {
