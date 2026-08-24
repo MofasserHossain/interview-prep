@@ -43,6 +43,7 @@ type TrackSummary = {
 };
 
 const trackOrder = [
+  "role-prep",
   "backend",
   "javascript",
   "react",
@@ -56,6 +57,7 @@ const trackOrder = [
 
 const trackIcons = {
   all: Library,
+  "role-prep": FileText,
   backend: Server,
   javascript: Braces,
   react: Component,
@@ -68,7 +70,9 @@ const trackIcons = {
 };
 
 const topicIcons = {
+  "senior-full-stack-saas-job-prep": FileText,
   backend: Server,
+  "senior-api-database-performance": Server,
   "nodejs-backend": Terminal,
   javascript: Braces,
   "javascript-promises-async": Workflow,
@@ -79,10 +83,12 @@ const topicIcons = {
   "javascript-scope-hoisting-closures": Layers3,
   "javascript-types-equality-copying": CodeXml,
   "frontend-react-next": Component,
+  "typescript-react-architecture": Braces,
   "react-performance": Zap,
   "machine-coding": CodeXml,
   "system-design-microservices": Workflow,
   "devops-docker-kubernetes": Container,
+  "aws-saas-observability": Workflow,
   "nginx-web-infrastructure": Router,
   "dotnet-csharp": Blocks,
   "python-backend-frameworks": Terminal,
