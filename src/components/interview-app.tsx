@@ -126,6 +126,13 @@ const markdownComponents: Components = {
   pre({ children }) {
     return <CodeBlock>{children}</CodeBlock>;
   },
+  table({ children, ...props }) {
+    return (
+      <div className="markdown-table-wrap">
+        <table {...props}>{children}</table>
+      </div>
+    );
+  },
 };
 
 type InterviewAppProps = {

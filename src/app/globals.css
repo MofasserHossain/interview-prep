@@ -1564,6 +1564,55 @@ h2 {
   max-width: 860px;
 }
 
+.markdown-table-wrap {
+  max-width: 860px;
+  margin: 1rem 0 1.35rem;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.answer-body table {
+  width: 100%;
+  min-width: 620px;
+  border-collapse: collapse;
+  color: var(--text);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.answer-body thead {
+  background: var(--surface-muted);
+}
+
+.answer-body th,
+.answer-body td {
+  padding: 11px 13px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  text-align: left;
+}
+
+.answer-body th {
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 650;
+  text-transform: uppercase;
+}
+
+.answer-body td {
+  color: var(--text-subtle);
+}
+
+.answer-body tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.answer-body tbody tr:hover {
+  background: color-mix(in srgb, var(--surface-muted), transparent 40%);
+}
+
 .answer-body :not(pre) > code {
   border: 1px solid var(--border);
   border-radius: 5px;
