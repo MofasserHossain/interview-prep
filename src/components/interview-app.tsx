@@ -93,6 +93,7 @@ const topicIcons = {
   "javascript-this-functions": Braces,
   "javascript-prototypes-objects": Blocks,
   "javascript-collections-iteration": Library,
+  "javascript-loops-array-methods": Workflow,
   "javascript-scope-hoisting-closures": Layers3,
   "javascript-types-equality-copying": CodeXml,
   "frontend-react-next": Component,
@@ -264,6 +265,59 @@ export function InterviewApp({ activeTopicSlug = "", initialData }: InterviewApp
 
     setSelectedQuestionId(filteredQuestions[0].id);
   }, [filteredQuestions, selectedQuestionId]);
+
+  useEffect(() => {
+    if (!filteredQuestions.length || showOverview) return;
+
+    const workspace = document.querySelector<HTMLElement>(".workspace");
+    let animationFrame = 0;
+
+    function updateActiveSection() {
+      animationFrame = 0;
+
+      const sections = filteredQuestions
+        .map((question) => document.getElementById(question.id))
+        .filter((section): section is HTMLElement => Boolean(section));
+
+      if (!sections.length) return;
+
+      const workspaceTop = workspace?.getBoundingClientRect().top ?? 0;
+      const readingAnchor = workspaceTop + 130;
+      let activeSection = sections[0];
+
+      for (const section of sections) {
+        if (section.getBoundingClientRect().top <= readingAnchor) {
+          activeSection = section;
+        } else {
+          break;
+        }
+      }
+
+      setSelectedQuestionId((current) =>
+        current === activeSection.id ? current : activeSection.id,
+      );
+    }
+
+    function scheduleUpdate() {
+      if (animationFrame) return;
+      animationFrame = window.requestAnimationFrame(updateActiveSection);
+    }
+
+    scheduleUpdate();
+    workspace?.addEventListener("scroll", scheduleUpdate, { passive: true });
+    window.addEventListener("scroll", scheduleUpdate, { passive: true });
+    window.addEventListener("resize", scheduleUpdate);
+
+    return () => {
+      if (animationFrame) {
+        window.cancelAnimationFrame(animationFrame);
+      }
+
+      workspace?.removeEventListener("scroll", scheduleUpdate);
+      window.removeEventListener("scroll", scheduleUpdate);
+      window.removeEventListener("resize", scheduleUpdate);
+    };
+  }, [filteredQuestions, showOverview]);
 
   function toggleTrack(trackSlug: string) {
     setExpandedTracks((current) => {
@@ -599,6 +653,7 @@ function QuestionToc({
           {questions.map((question) => (
             <button
               className={selectedQuestionId === question.id ? "active" : ""}
+              data-question-id={question.id}
               key={question.id}
               onClick={() => onSelectQuestion(question.id)}
               type="button"

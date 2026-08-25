@@ -1,8 +1,8 @@
-# JavaScript Collections And Iteration Interview Guide
+# JavaScript Map, Object & Set Interview Guide
 
-JavaScript comparison questions covering `Map`, plain objects, `WeakMap`, `Set`,
-array iteration methods, object iteration, immutability helpers, and common
-interview traps.
+Focused JavaScript comparison questions for choosing between plain objects,
+`Map`, `WeakMap`, `Set`, `WeakSet`, object key helpers, immutability guards, and
+object merge patterns.
 
 ## 1. Difference Between Map And Object In JavaScript
 
@@ -49,17 +49,17 @@ Main differences:
 
 Use object when:
 
-- representing a known data shape
-- sending or receiving JSON
-- modeling entities such as user, order, product
+- Representing a known data shape
+- Sending or receiving JSON
+- Modeling entities such as user, order, or product
 
 Use `Map` when:
 
-- keys are objects or functions
-- entries are added and removed frequently
-- insertion order matters
-- collection size is checked often
-- user-provided keys should not touch object prototypes
+- Keys are objects or functions
+- Entries are added and removed frequently
+- Insertion order matters
+- Collection size is checked often
+- User-provided keys should not touch object prototypes
 
 Strong answer:
 
@@ -99,9 +99,9 @@ A normal object inherits keys such as `constructor` and methods such as
 
 Use it when:
 
-- building a dictionary from untrusted keys
-- avoiding accidental prototype collisions
-- implementing low-level lookup tables
+- Building a dictionary from untrusted keys
+- Avoiding accidental prototype collisions
+- Implementing low-level lookup tables
 
 Tradeoff:
 
@@ -136,16 +136,16 @@ references it. The related `WeakMap` entry can disappear too.
 
 Use `Map` when:
 
-- you need iteration
-- you need `.size`
-- keys may be primitives
-- entries must remain until explicitly deleted
+- You need iteration
+- You need `.size`
+- Keys may be primitives
+- Entries must remain until explicitly deleted
 
 Use `WeakMap` when:
 
-- keys are objects
-- data should be associated privately with an object
-- cache entries should disappear when object keys are no longer reachable
+- Keys are objects
+- Data should be associated privately with an object
+- Cache entries should disappear when object keys are no longer reachable
 
 Common use:
 
@@ -189,15 +189,15 @@ true
 
 Use array when:
 
-- duplicates are meaningful
-- index position matters
-- you need array methods such as `map`, `filter`, or `reduce`
+- Duplicates are meaningful
+- Index position matters
+- You need array methods such as `map`, `filter`, or `reduce`
 
 Use `Set` when:
 
-- values must be unique
-- membership checks are frequent
-- you want simple deduplication
+- Values must be unique
+- Membership checks are frequent
+- You want simple deduplication
 
 Example membership check:
 
@@ -238,15 +238,15 @@ true
 
 Use `Set` when:
 
-- you need to list values
-- you need size
-- values include primitives
+- You need to list values
+- You need size
+- Values include primitives
 
 Use `WeakSet` when:
 
-- values are objects
-- you only need to track whether an object was seen
-- you do not want tracking to keep objects alive in memory
+- Values are objects
+- You only need to track whether an object was seen
+- You do not want tracking to keep objects alive in memory
 
 Interview example:
 
@@ -261,130 +261,7 @@ function hasCycle(node, seen = new WeakSet()) {
 }
 ```
 
-## 6. `map` vs `forEach`
-
-Use `map` when you need a new transformed array. Use `forEach` when you only
-need side effects.
-
-```js
-const prices = [10, 20, 30];
-
-const withTax = prices.map((price) => price * 1.1);
-const result = prices.forEach((price) => price * 1.1);
-
-console.log(withTax);
-console.log(result);
-```
-
-Output:
-
-```txt
-[ 11, 22, 33 ]
-undefined
-```
-
-Common trap:
-
-```js
-const users = [{ name: "Asha" }, { name: "Rafi" }];
-
-const names = users.forEach((user) => user.name);
-
-console.log(names);
-```
-
-Output:
-
-```txt
-undefined
-```
-
-Fix:
-
-```js
-const names = users.map((user) => user.name);
-```
-
-Interview answer:
-
-> `map` returns a new array and should be used for transformation. `forEach`
-> returns `undefined` and should be used for side effects such as logging,
-> metrics, or pushing into an external collection.
-
-## 7. `filter` vs `find`
-
-`filter` returns all matching items. `find` returns the first matching item or
-`undefined`.
-
-```js
-const users = [
-  { id: 1, role: "admin" },
-  { id: 2, role: "user" },
-  { id: 3, role: "admin" },
-];
-
-console.log(users.filter((user) => user.role === "admin"));
-console.log(users.find((user) => user.role === "admin"));
-```
-
-Output:
-
-```txt
-[ { id: 1, role: 'admin' }, { id: 3, role: 'admin' } ]
-{ id: 1, role: 'admin' }
-```
-
-Use `filter` when:
-
-- you need every match
-- the result should always be an array
-
-Use `find` when:
-
-- only one result matters
-- you want to stop once the first match is found
-- absence should be represented by `undefined`
-
-## 8. `reduce` vs A Normal Loop
-
-`reduce` combines an array into one value. A normal loop is often clearer for
-complex logic.
-
-```js
-const orders = [
-  { userId: 1, total: 40 },
-  { userId: 2, total: 25 },
-  { userId: 1, total: 10 },
-];
-
-const totalsByUser = orders.reduce((acc, order) => {
-  acc[order.userId] = (acc[order.userId] ?? 0) + order.total;
-  return acc;
-}, {});
-
-console.log(totalsByUser);
-```
-
-Output:
-
-```txt
-{ '1': 50, '2': 25 }
-```
-
-Equivalent loop:
-
-```js
-const totals = {};
-
-for (const order of orders) {
-  totals[order.userId] = (totals[order.userId] ?? 0) + order.total;
-}
-```
-
-Use `reduce` when the accumulator pattern is obvious. Use a loop when the logic
-has multiple branches, early exits, or side effects.
-
-## 9. `Object.keys` vs `Object.values` vs `Object.entries`
+## 6. `Object.keys` vs `Object.values` vs `Object.entries`
 
 These methods turn an object's own enumerable properties into arrays.
 
@@ -429,54 +306,7 @@ Output:
 { theme: 'dark' }
 ```
 
-## 10. `for...of` vs `for...in`
-
-`for...of` iterates values from an iterable. `for...in` iterates enumerable
-property keys.
-
-```js
-const numbers = [10, 20, 30];
-
-for (const value of numbers) {
-  console.log("of", value);
-}
-
-for (const key in numbers) {
-  console.log("in", key);
-}
-```
-
-Output:
-
-```txt
-of 10
-of 20
-of 30
-in 0
-in 1
-in 2
-```
-
-Use `for...of` for:
-
-- arrays
-- strings
-- maps
-- sets
-- other iterables
-
-Use `for...in` mainly for object keys, and usually combine it with
-`Object.hasOwn()` if inherited properties matter.
-
-```js
-for (const key in object) {
-  if (Object.hasOwn(object, key)) {
-    console.log(key, object[key]);
-  }
-}
-```
-
-## 11. `Object.freeze` vs `Object.seal` vs `Object.preventExtensions`
+## 7. `Object.freeze` vs `Object.seal` vs `Object.preventExtensions`
 
 These methods restrict object changes at different levels.
 
@@ -517,7 +347,7 @@ Important trap:
 `Object.freeze` is shallow. Nested objects can still change unless they are
 also frozen.
 
-## 12. Spread vs `Object.assign`
+## 8. Spread vs `Object.assign`
 
 Object spread and `Object.assign` both make shallow copies and merge objects.
 
@@ -575,6 +405,5 @@ need compatibility with older object-spread support.
 - <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map>
 - <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap>
 - <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set>
-- <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map>
-- <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach>
+- <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys>
 - <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze>
