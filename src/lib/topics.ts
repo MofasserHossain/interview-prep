@@ -42,7 +42,7 @@ export const topics: Topic[] = [
     trackTitle: "Backend",
     subtopicTitle: "Node.js Interview Set",
     description:
-      "Callbacks, promises, async/await, Redis, WebSocket, microservices, middleware, Docker, RabbitMQ, security, reuse, and MVC.",
+      "Runtime fundamentals, setup, modules, built-in APIs, async patterns, Redis, WebSocket, middleware, Docker, RabbitMQ, security, reuse, and MVC.",
     file: "nodejs-backend-interview-guide.md",
   },
   {
@@ -275,8 +275,8 @@ export function getDifficulty(topicSlug: string, number: number): Difficulty {
   }
 
   if (topicSlug === "nodejs-backend") {
-    if (number <= 4) return "beginner";
-    if (number <= 9) return "intermediate";
+    if (number <= 18) return "beginner";
+    if (number <= 40) return "intermediate";
     return "senior";
   }
 
