@@ -93,6 +93,7 @@ const topicIcons = {
   "javascript-this-functions": Braces,
   "javascript-prototypes-objects": Blocks,
   "javascript-collections-iteration": Library,
+  "javascript-loops-array-methods": Workflow,
   "javascript-scope-hoisting-closures": Layers3,
   "javascript-types-equality-copying": CodeXml,
   "frontend-react-next": Component,

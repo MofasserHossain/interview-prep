@@ -8,6 +8,7 @@ const contentDirectory = path.join(process.cwd(), "content", "interview");
 const keywordTags = [
   "api",
   "apply",
+  "array",
   "async",
   "auth",
   "aws",
@@ -34,6 +35,7 @@ const keywordTags = [
   "iam",
   "indexing",
   "iteration",
+  "loop",
   "jwt",
   "kafka",
   "kubernetes",

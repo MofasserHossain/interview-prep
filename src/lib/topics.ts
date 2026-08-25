@@ -113,14 +113,25 @@ export const topics: Topic[] = [
   },
   {
     slug: "javascript-collections-iteration",
-    title: "JavaScript Collections & Iteration",
+    title: "JavaScript Map, Object & Set",
     category: "JavaScript",
     trackSlug: "javascript",
     trackTitle: "JavaScript",
-    subtopicTitle: "Collections & Iteration",
+    subtopicTitle: "Map, Object & Set",
     description:
-      "Map vs Object, Object.create(null), WeakMap, Set, array methods, object iteration, freeze/seal, and object merging.",
+      "Map vs Object, Object.create(null), WeakMap, Set, WeakSet, object key helpers, freeze/seal, and object merging.",
     file: "javascript-collections-iteration-guide.md",
+  },
+  {
+    slug: "javascript-loops-array-methods",
+    title: "JavaScript Loops & Array Methods",
+    category: "JavaScript",
+    trackSlug: "javascript",
+    trackTitle: "JavaScript",
+    subtopicTitle: "Loops & Array Methods",
+    description:
+      "for loops, for...of, for...in, forEach, map, filter, find, reduce, some/every, sort, slice/splice, flat/flatMap, and mutation behavior.",
+    file: "javascript-loops-array-methods-guide.md",
   },
   {
     slug: "javascript-scope-hoisting-closures",
@@ -308,6 +319,7 @@ export function getDifficulty(topicSlug: string, number: number): Difficulty {
     "javascript-this-functions",
     "javascript-prototypes-objects",
     "javascript-collections-iteration",
+    "javascript-loops-array-methods",
     "javascript-scope-hoisting-closures",
     "javascript-types-equality-copying",
   ]);
