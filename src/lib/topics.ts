@@ -25,25 +25,36 @@ export const topics: Topic[] = [
   },
   {
     slug: "senior-api-database-performance",
-    title: "Senior API & Database Performance",
+    title: "API Optimization & Database Performance",
     category: "Backend",
     trackSlug: "backend",
     trackTitle: "Backend",
-    subtopicTitle: "API & Database Performance",
+    subtopicTitle: "API Optimization & Database Performance",
     description:
-      "Senior REST API contracts, pagination, idempotency, security, SQL modeling, indexes, EXPLAIN, transactions, and latency troubleshooting.",
+      "API optimization, payload design, pagination, caching, query performance, N+1 prevention, REST contracts, database modeling, transactions, and latency troubleshooting.",
     file: "senior-api-database-performance-guide.md",
   },
   {
     slug: "nodejs-backend",
-    title: "Node.js Backend",
+    title: "Node.js Fundamentals",
     category: "Node.js",
-    trackSlug: "backend",
-    trackTitle: "Backend",
-    subtopicTitle: "Node.js Interview Set",
+    trackSlug: "nodejs",
+    trackTitle: "Node.js",
+    subtopicTitle: "Fundamentals, Modules & APIs",
     description:
-      "Runtime fundamentals, setup, modules, built-in APIs, async patterns, Redis, WebSocket, middleware, Docker, RabbitMQ, security, reuse, and MVC.",
+      "Node.js runtime basics, project setup, npm, modules, built-in APIs, events, HTTP, Express, and backend usage patterns.",
     file: "nodejs-backend-interview-guide.md",
+  },
+  {
+    slug: "nodejs-event-loop-runtime",
+    title: "Node.js Event Loop",
+    category: "Node.js",
+    trackSlug: "nodejs",
+    trackTitle: "Node.js",
+    subtopicTitle: "Event Loop & Async Runtime",
+    description:
+      "Node.js event loop phases, non-blocking I/O, callbacks, promises, microtasks, timers, EventEmitter, CPU-heavy work, streams, and runtime debugging.",
+    file: "nodejs-event-loop-runtime-guide.md",
   },
   {
     slug: "javascript",
@@ -75,7 +86,7 @@ export const topics: Topic[] = [
     trackTitle: "JavaScript",
     subtopicTitle: "Event Loop & Runtime",
     description:
-      "Runtime model, call stack, Web APIs, task queue, microtask queue, rendering, and output-order questions.",
+      "Runtime model, call stack, Web APIs, task queue, microtask queue, rendering priority, async/await timing, and output-order questions.",
     file: "javascript-event-loop-runtime-guide.md",
   },
   {
@@ -280,6 +291,12 @@ export function getDifficulty(topicSlug: string, number: number): Difficulty {
     return "senior";
   }
 
+  if (topicSlug === "nodejs-event-loop-runtime") {
+    if (number <= 6) return "beginner";
+    if (number <= 14) return "intermediate";
+    return "senior";
+  }
+
   if (topicSlug === "javascript") {
     if (number <= 5) return "beginner";
     if (number <= 9) return "intermediate";
@@ -288,7 +305,6 @@ export function getDifficulty(topicSlug: string, number: number): Difficulty {
 
   const javascriptCoreTopics = new Set([
     "javascript-promises-async",
-    "javascript-event-loop-runtime",
     "javascript-this-functions",
     "javascript-prototypes-objects",
     "javascript-collections-iteration",
@@ -299,6 +315,12 @@ export function getDifficulty(topicSlug: string, number: number): Difficulty {
   if (javascriptCoreTopics.has(topicSlug)) {
     if (number <= 3) return "beginner";
     if (number <= 6) return "intermediate";
+    return "senior";
+  }
+
+  if (topicSlug === "javascript-event-loop-runtime") {
+    if (number <= 5) return "beginner";
+    if (number <= 12) return "intermediate";
     return "senior";
   }
 
@@ -316,7 +338,6 @@ export function getDifficulty(topicSlug: string, number: number): Difficulty {
 
   const seniorJobTopics = new Set([
     "senior-full-stack-saas-job-prep",
-    "senior-api-database-performance",
     "typescript-react-architecture",
     "aws-saas-observability",
   ]);
@@ -324,6 +345,12 @@ export function getDifficulty(topicSlug: string, number: number): Difficulty {
   if (seniorJobTopics.has(topicSlug)) {
     if (number <= 2) return "beginner";
     if (number <= 7) return "intermediate";
+    return "senior";
+  }
+
+  if (topicSlug === "senior-api-database-performance") {
+    if (number <= 4) return "beginner";
+    if (number <= 10) return "intermediate";
     return "senior";
   }
 

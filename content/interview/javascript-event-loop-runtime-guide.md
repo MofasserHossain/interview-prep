@@ -315,6 +315,291 @@ Explanation:
 `2`, then creates a microtask that logs `3`. The timer created inside the
 microtask logs `5` later.
 
+## 10. What Is The Browser Event Loop Priority Order?
+
+For most frontend interview questions, use this priority model:
+
+1. run the current synchronous JavaScript to completion
+2. drain all microtasks
+3. let the browser update rendering if needed
+4. run the next task
+5. drain microtasks created by that task
+6. repeat
+
+Important queues:
+
+| Queue or step | Examples | Priority |
+| --- | --- | --- |
+| Call stack | current function, current script | first |
+| Microtask queue | promise handlers, `queueMicrotask` | before next task |
+| Rendering opportunity | style, layout, paint | after microtasks, before next task when browser chooses |
+| Task queue | timers, DOM events, message events | one task per loop turn |
+
+Example:
+
+```js
+console.log("script");
+
+setTimeout(() => console.log("timeout"), 0);
+
+queueMicrotask(() => console.log("microtask"));
+
+requestAnimationFrame(() => console.log("frame"));
+
+console.log("end");
+```
+
+Typical order:
+
+```txt
+script
+end
+microtask
+frame
+timeout
+```
+
+Why:
+
+Synchronous code runs first. Microtasks drain before the browser gets a chance
+to render. `requestAnimationFrame` callbacks run before a paint. Timer tasks run
+in a later task turn.
+
+Interview caveat:
+
+`requestAnimationFrame` depends on the browser's rendering schedule. In hidden
+tabs or throttled environments, frame callbacks can be delayed.
+
+## 11. What Does Run-To-Completion Mean?
+
+Run-to-completion means JavaScript does not interrupt a running function to run
+another callback in the middle. The current job finishes before the next queued
+task or microtask can run.
+
+Example:
+
+```js
+let value = 0;
+
+setTimeout(() => {
+  console.log(value);
+}, 0);
+
+for (let index = 0; index < 3; index += 1) {
+  value += 1;
+}
+
+console.log("done");
+```
+
+Output:
+
+```txt
+done
+3
+```
+
+Why:
+
+The timer callback cannot run during the loop. It waits until the current script
+finishes and the event loop reaches a later task.
+
+Why it matters:
+
+- shared local state is easier to reason about inside one synchronous job
+- long loops freeze UI because nothing else can run
+- timers do not preempt currently running JavaScript
+
+Strong answer:
+
+> JavaScript jobs run to completion. Async callbacks wait until the current
+> stack is empty, which is why long synchronous work blocks input, timers,
+> promises, and rendering.
+
+## 12. What Are Task Sources In The Browser?
+
+Tasks come from different browser systems, often called task sources. They all
+represent work that should run later on the main thread.
+
+Common task sources:
+
+- initial script execution
+- `setTimeout` and `setInterval`
+- user events such as click, keydown, input, scroll
+- network callbacks
+- `postMessage`
+- `MessageChannel`
+- history navigation events
+
+Example:
+
+```js
+button.addEventListener("click", () => {
+  console.log("click task");
+});
+
+setTimeout(() => {
+  console.log("timer task");
+}, 0);
+
+Promise.resolve().then(() => {
+  console.log("microtask");
+});
+```
+
+If the click and timer are both pending, the browser chooses tasks according to
+its event loop rules and task sources. Do not write business logic that depends
+on a race between unrelated task sources.
+
+Reliable rule:
+
+Inside a single task, all microtasks created by that task drain before the next
+task starts.
+
+## 13. How Does async/await Use The Microtask Queue?
+
+`await` pauses the current async function and schedules the continuation as a
+promise microtask when the awaited value is ready.
+
+Example:
+
+```js
+async function run() {
+  console.log("A");
+  await Promise.resolve();
+  console.log("B");
+}
+
+console.log("C");
+run();
+console.log("D");
+```
+
+Output:
+
+```txt
+C
+A
+D
+B
+```
+
+Why:
+
+`run()` starts synchronously and logs `A`. At `await`, the rest of `run` becomes
+a microtask. The outer script continues and logs `D`. Then the async function
+continues and logs `B`.
+
+Interview trap:
+
+Every unnecessary `await` can split execution into another microtask. That can
+make ordering more complex and add overhead inside hot code.
+
+## 14. What Is The Difference Between Microtasks And Rendering?
+
+Microtasks run before the browser returns to the event loop and before the
+browser gets a normal chance to render. That makes microtasks useful for
+finishing small consistency work, but dangerous for heavy work.
+
+Bad example:
+
+```js
+button.textContent = "Saving...";
+
+Promise.resolve().then(() => {
+  expensiveWork();
+});
+```
+
+The browser may still not paint `"Saving..."` before `expensiveWork()` because
+the microtask runs before rendering.
+
+Better when you want to yield to paint:
+
+```js
+button.textContent = "Saving...";
+
+requestAnimationFrame(() => {
+  expensiveWork();
+});
+```
+
+Or yield to a later task:
+
+```js
+button.textContent = "Saving...";
+
+setTimeout(() => {
+  expensiveWork();
+}, 0);
+```
+
+Strong answer:
+
+> Microtasks are higher priority than rendering. If I need the browser to paint
+> first, I should yield to a frame or a later task instead of putting heavy work
+> in a promise callback.
+
+## 15. How Do You Solve A Deep Event Loop Output Question?
+
+Use a table and write down each queue.
+
+Question:
+
+```js
+console.log("1");
+
+setTimeout(() => {
+  console.log("2");
+  Promise.resolve().then(() => console.log("3"));
+}, 0);
+
+Promise.resolve().then(() => {
+  console.log("4");
+  queueMicrotask(() => console.log("5"));
+});
+
+queueMicrotask(() => {
+  console.log("6");
+  setTimeout(() => console.log("7"), 0);
+});
+
+console.log("8");
+```
+
+Output:
+
+```txt
+1
+8
+4
+6
+5
+2
+3
+7
+```
+
+Walkthrough:
+
+| Step | What runs | Why |
+| --- | --- | --- |
+| 1 | `1`, `8` | synchronous script runs to completion |
+| 2 | `4` | first promise microtask |
+| 3 | `6` | queued microtask runs next |
+| 4 | `5` | microtask created by `4` drains before tasks |
+| 5 | `2` | first timer task |
+| 6 | `3` | microtask created inside timer drains immediately after that timer |
+| 7 | `7` | timer created by microtask runs in a later task turn |
+
+Interview method:
+
+1. write synchronous output first
+2. list microtasks in enqueue order
+3. run one task
+4. drain new microtasks
+5. repeat until all queues are empty
+
 ## Sources Used
 
 - <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Execution_model>

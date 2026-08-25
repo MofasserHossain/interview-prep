@@ -786,4 +786,3 @@ SELECT * FROM products WHERE id = 1 FOR UPDATE;
 Use optimistic locking for high-read, low-conflict systems. Use pessimistic locking when conflicts are common or correctness is critical.
 
 ---
-
