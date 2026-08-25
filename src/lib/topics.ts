@@ -108,7 +108,7 @@ export const topics: Topic[] = [
     trackTitle: "JavaScript",
     subtopicTitle: "Prototypes & Objects",
     description:
-      "Prototype chains, shared methods, classes, own vs inherited properties, and prototype pollution.",
+      "Objects, prototype chains, constructor prototypes, classes, property checks, shadowing, and prototype pollution.",
     file: "javascript-prototypes-objects-guide.md",
   },
   {
