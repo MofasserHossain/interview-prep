@@ -179,9 +179,8 @@ function normalizeQuestionTitle(value: string) {
 
   return value
     .split(/(\s+)/)
-    .map((part, index) => {
+    .map((part) => {
       if (!part.trim()) return part;
-      if (index === 0) return capitalizeFirst(part.toLowerCase());
 
       return normalizeQuestionWord(part);
     })
@@ -194,60 +193,85 @@ function normalizeQuestionWord(value: string) {
 
   const [, prefix, word, suffix] = match;
   if (!word) return value.toLowerCase();
+  const preservedWord = getPreservedWord(word);
+
+  if (preservedWord) {
+    return `${prefix}${preservedWord}${suffix}`;
+  }
+
   if (shouldPreserveWord(word)) return value;
 
-  return `${prefix}${word.toLowerCase()}${suffix}`;
+  return `${prefix}${capitalizeFirst(word.toLowerCase())}${suffix}`;
+}
+
+function getPreservedWord(word: string) {
+  const preservedWords = new Map(
+    [
+      ".NET",
+      "API",
+      "ASP.NET",
+      "AWS",
+      "CDN",
+      "CPU",
+      "CSS",
+      "C#",
+      "CPython",
+      "Core",
+      "DOM",
+      "Django",
+      "Docker",
+      "Entity",
+      "FastAPI",
+      "Flask",
+      "Framework",
+      "GIL",
+      "GraphQL",
+      "HTML",
+      "HTTP",
+      "ISR",
+      "JSON",
+      "JWT",
+      "Kafka",
+      "JavaScript",
+      "Kubernetes",
+      "LINQ",
+      "Module",
+      "N+1",
+      "Native",
+      "Next.js",
+      "Nginx",
+      "NoSQL",
+      "Node.js",
+      "ORM",
+      "OAuth",
+      "Python",
+      "React",
+      "Redis",
+      "Redux",
+      "REST",
+      "SQL",
+      "SLI",
+      "SLO",
+      "SSG",
+      "SSR",
+      "TypeScript",
+      "UI",
+      "URL",
+      "URLs",
+      "UX",
+      "Vite",
+      "Webpack",
+      "WebSocket",
+      "p95",
+      "p99",
+    ].map((value) => [value.toLowerCase(), value]),
+  );
+
+  return preservedWords.get(word.toLowerCase());
 }
 
 function shouldPreserveWord(word: string) {
-  const preservedWords = new Set([
-    ".NET",
-    "API",
-    "ASP.NET",
-    "CSS",
-    "C#",
-    "CPython",
-    "Core",
-    "DOM",
-    "Django",
-    "Docker",
-    "Entity",
-    "FastAPI",
-    "Flask",
-    "Framework",
-    "GIL",
-    "HTML",
-    "HTTP",
-    "ISR",
-    "JWT",
-    "Kafka",
-    "JavaScript",
-    "Kubernetes",
-    "LINQ",
-    "Module",
-    "Native",
-    "Next.js",
-    "Nginx",
-    "Node.js",
-    "ORM",
-    "Python",
-    "React",
-    "Redis",
-    "Redux",
-    "REST",
-    "SQL",
-    "SLI",
-    "SLO",
-    "SSG",
-    "SSR",
-    "TypeScript",
-    "Vite",
-    "webpack",
-    "WebSocket",
-  ]);
-
   return (
-    preservedWords.has(word) ||
     word.includes("`") ||
     word.includes("/") ||
     /[.#]/.test(word) ||

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  AlertTriangle,
   ArrowLeft,
   ArrowRight,
   BookOpen,
@@ -21,12 +22,21 @@ import {
   Server,
   Smartphone,
   Terminal,
+  RefreshCcw,
   Workflow,
   X,
   Zap,
 } from "lucide-react";
 import Link from "next/link";
-import { Children, isValidElement, useEffect, useMemo, useState } from "react";
+import {
+  Children,
+  cloneElement,
+  Component as ReactComponent,
+  isValidElement,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import type { ReactElement, ReactNode } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -45,6 +55,7 @@ type TrackSummary = {
 const trackOrder = [
   "role-prep",
   "backend",
+  "nodejs",
   "javascript",
   "react",
   "system-design",
@@ -59,6 +70,7 @@ const trackIcons = {
   all: Library,
   "role-prep": FileText,
   backend: Server,
+  nodejs: Terminal,
   javascript: Braces,
   react: Component,
   "system-design": Workflow,
@@ -72,8 +84,9 @@ const trackIcons = {
 const topicIcons = {
   "senior-full-stack-saas-job-prep": FileText,
   backend: Server,
-  "senior-api-database-performance": Server,
+  "senior-api-database-performance": Zap,
   "nodejs-backend": Terminal,
+  "nodejs-event-loop-runtime": Router,
   javascript: Braces,
   "javascript-promises-async": Workflow,
   "javascript-event-loop-runtime": Router,
@@ -141,6 +154,9 @@ const markdownComponents: Components = {
       </code>
     );
   },
+  li({ children, node: _node, ...props }) {
+    return <li {...props}>{capitalizeFirstReadableText(children)}</li>;
+  },
   pre({ children }) {
     return <CodeBlock>{children}</CodeBlock>;
   },
@@ -177,7 +193,6 @@ export function InterviewApp({ activeTopicSlug = "", initialData }: InterviewApp
   const orderedTopics = useMemo(() => tracks.flatMap((track) => track.topics), [tracks]);
   const activeTopicSummary = initialData.topics.find((topic) => topic.slug === activeTopicSlug);
   const activeTrack = activeTopicSummary?.trackSlug ?? "";
-  const activeTrackSummary = tracks.find((track) => track.slug === activeTrack);
   const activeTopicIndex = orderedTopics.findIndex((topic) => topic.slug === activeTopicSlug);
   const previousTopic = activeTopicIndex > 0 ? orderedTopics[activeTopicIndex - 1] : undefined;
   const nextTopic =
@@ -192,12 +207,6 @@ export function InterviewApp({ activeTopicSlug = "", initialData }: InterviewApp
       ? getFirstQuestionId(initialData.questions, activeTopicSlug)
       : (initialData.questions[0]?.id ?? ""),
   );
-
-  const visibleTopics = useMemo(() => {
-    if (!activeTrack) return initialData.topics;
-
-    return initialData.topics.filter((topic) => topic.trackSlug === activeTrack);
-  }, [activeTrack, initialData.topics]);
 
   const filteredQuestions = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -224,15 +233,9 @@ export function InterviewApp({ activeTopicSlug = "", initialData }: InterviewApp
     });
   }, [activeTrack, activeTopicSlug, initialData.questions, query]);
 
-  const totalReadingMinutes = filteredQuestions.reduce(
-    (total, question) => total + question.readingMinutes,
-    0,
-  );
-  const visibleDocumentCount = activeTopicSlug ? 1 : visibleTopics.length;
-
-  const activeScopeLabel = activeTopicSummary
-    ? `${activeTopicSummary.trackTitle} / ${activeTopicSummary.subtopicTitle}`
-    : (activeTrackSummary?.title ?? "Interview topics");
+  const headerPath = activeTopicSummary
+    ? ["Docs", activeTopicSummary.trackTitle, activeTopicSummary.subtopicTitle]
+    : ["Docs"];
   const showOverview = !activeTopicSlug && !query.trim();
 
   useEffect(() => {
@@ -357,15 +360,19 @@ export function InterviewApp({ activeTopicSlug = "", initialData }: InterviewApp
       <section className="workspace">
         <header className="workspace-header">
           <div className="topbar">
-            <div className="workspace-title">
-              <p className="eyebrow">Docs</p>
-              <h2>{activeScopeLabel}</h2>
-              <div className="workspace-summary" aria-label="Current library scope">
-                <span>{filteredQuestions.length} sections</span>
-                <span>{visibleDocumentCount} documents</span>
-                <span>{totalReadingMinutes} min read</span>
-              </div>
-            </div>
+            <nav className="workspace-path" aria-label="Current docs path">
+              {headerPath.map((segment, index) => (
+                <span className="workspace-path-segment" key={`${index}-${segment}`}>
+                  {index === 0 ? (
+                    <Link href="/" onClick={resetSearch}>
+                      {segment}
+                    </Link>
+                  ) : (
+                    segment
+                  )}
+                </span>
+              ))}
+            </nav>
 
             <div className="search-field">
               <Search size={18} />
@@ -389,25 +396,27 @@ export function InterviewApp({ activeTopicSlug = "", initialData }: InterviewApp
           </div>
         </header>
 
-        {showOverview ? (
-          <TopicOverview tracks={tracks} onNavigate={resetSearch} />
-        ) : (
-          <section className="doc-layout">
-            <DocumentDetail
-              activeTopic={activeTopicSummary}
-              nextTopic={nextTopic}
-              onNavigate={resetSearch}
-              previousTopic={previousTopic}
-              query={query}
-              questions={filteredQuestions}
-            />
-            <QuestionToc
-              onSelectQuestion={selectQuestion}
-              questions={filteredQuestions}
-              selectedQuestionId={selectedQuestionId}
-            />
-          </section>
-        )}
+        <WorkspaceErrorBoundary resetKey={`${activeTopicSlug}:${query}:${showOverview}`}>
+          {showOverview ? (
+            <TopicOverview tracks={tracks} onNavigate={resetSearch} />
+          ) : (
+            <section className="doc-layout">
+              <DocumentDetail
+                activeTopic={activeTopicSummary}
+                nextTopic={nextTopic}
+                onNavigate={resetSearch}
+                previousTopic={previousTopic}
+                query={query}
+                questions={filteredQuestions}
+              />
+              <QuestionToc
+                onSelectQuestion={selectQuestion}
+                questions={filteredQuestions}
+                selectedQuestionId={selectedQuestionId}
+              />
+            </section>
+          )}
+        </WorkspaceErrorBoundary>
       </section>
     </main>
   );
@@ -440,6 +449,74 @@ function getFirstQuestionId(questions: Question[], topicSlug: string) {
   return questions.find((question) => question.topicSlug === topicSlug)?.id ?? "";
 }
 
+type WorkspaceErrorBoundaryProps = {
+  children: ReactNode;
+  resetKey: string;
+};
+
+type WorkspaceErrorBoundaryState = {
+  error: Error | null;
+};
+
+class WorkspaceErrorBoundary extends ReactComponent<
+  WorkspaceErrorBoundaryProps,
+  WorkspaceErrorBoundaryState
+> {
+  state: WorkspaceErrorBoundaryState = {
+    error: null,
+  };
+
+  static getDerivedStateFromError(error: Error): WorkspaceErrorBoundaryState {
+    return { error };
+  }
+
+  componentDidCatch(error: Error) {
+    console.error(error);
+  }
+
+  componentDidUpdate(previousProps: WorkspaceErrorBoundaryProps) {
+    if (previousProps.resetKey !== this.props.resetKey && this.state.error) {
+      this.setState({ error: null });
+    }
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <section className="doc-layout">
+          <DocumentErrorPanel
+            error={this.state.error}
+            onRetry={() => this.setState({ error: null })}
+          />
+        </section>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+function DocumentErrorPanel({ error, onRetry }: { error: Error; onRetry: () => void }) {
+  return (
+    <article className="detail-panel detail-error-state">
+      <div className="system-state-icon" aria-hidden="true">
+        <AlertTriangle size={24} />
+      </div>
+      <p className="eyebrow">Document Error</p>
+      <h2>Unable to render this document</h2>
+      <p>
+        The docs layout is still available. Try rendering this panel again, or choose another topic
+        from the sidebar.
+      </p>
+      {error.message ? <code>{error.message}</code> : null}
+      <button className="state-primary-action" onClick={onRetry} type="button">
+        <RefreshCcw size={16} />
+        Try Again
+      </button>
+    </article>
+  );
+}
+
 function TopicOverview({ onNavigate, tracks }: { onNavigate: () => void; tracks: TrackSummary[] }) {
   const totalTopics = tracks.reduce((total, track) => total + track.topics.length, 0);
   const totalSections = tracks.reduce((total, track) => total + track.questionCount, 0);
@@ -448,10 +525,6 @@ function TopicOverview({ onNavigate, tracks }: { onNavigate: () => void; tracks:
   return (
     <section className="topic-overview" aria-label="Interview topic overview">
       <article className="docs-index-page">
-        <nav className="docs-breadcrumb" aria-label="Breadcrumb">
-          <span>Docs</span>
-        </nav>
-
         <header className="docs-article-header docs-index-header">
           <p className="eyebrow">Interview Prep Documentation</p>
           <h1>Interview Prep Docs</h1>
@@ -521,11 +594,6 @@ function QuestionToc({
 }) {
   return (
     <aside className="toc-panel" aria-label="Sections in this document">
-      <div className="toc-heading">
-        <p className="eyebrow">On this page</p>
-        <h2>{questions.length} sections</h2>
-      </div>
-
       {questions.length ? (
         <div className="toc-list">
           {questions.map((question) => (
@@ -535,7 +603,6 @@ function QuestionToc({
               onClick={() => onSelectQuestion(question.id)}
               type="button"
             >
-              <span>{question.number}</span>
               <strong>{question.question}</strong>
             </button>
           ))}
@@ -577,38 +644,16 @@ function DocumentDetail({
     : query.trim()
       ? "Search results"
       : firstQuestion.subtopicTitle;
-  const subtitle = activeTopic
-    ? `${activeTopic.trackTitle} / ${activeTopic.subtopicTitle}`
-    : "Interview Prep Docs";
   const description = activeTopic?.description ?? "Sections matching the current search query.";
-  const readingMinutes = questions.reduce((total, question) => total + question.readingMinutes, 0);
-  const topicSlug = activeTopic?.slug ?? firstQuestion.topicSlug;
 
   return (
     <article className="detail-panel">
       <header className="docs-article-header">
-        <nav className="docs-breadcrumb" aria-label="Breadcrumb">
-          <Link href="/" onClick={onNavigate}>
-            Docs
-          </Link>
-          <ChevronRight size={14} />
-          <span>{activeTopic?.trackTitle ?? firstQuestion.trackTitle}</span>
-          <ChevronRight size={14} />
-          <span>{title}</span>
-        </nav>
-
         <div className="detail-heading">
-          <TopicIcon className="detail-topic-icon" slug={topicSlug} />
           <div className="detail-copy">
-            <p className="eyebrow">{subtitle}</p>
             <h1>{title}</h1>
             <p className="article-description">{description}</p>
-            <div className="article-meta" aria-label="Selected document context">
-              <span>{questions.length} sections</span>
-              <span>{readingMinutes} min read</span>
-              {activeTopic ? <span>{activeTopic.file}</span> : null}
-              {query.trim() ? <span>Search: {query.trim()}</span> : null}
-            </div>
+            {query.trim() ? <p className="article-search-context">Search: {query.trim()}</p> : null}
           </div>
         </div>
       </header>
@@ -616,22 +661,17 @@ function DocumentDetail({
       <div className="answer-body document-body">
         {questions.map((question) => (
           <section className="document-section" id={question.id} key={question.id}>
-            <p className="eyebrow">
-              {question.trackTitle} / {question.subtopicTitle}
-            </p>
-            <h2>
-              {question.number}. {question.question}
-            </h2>
-            <div className="section-context" aria-label="Section context">
-              <span>{capitalize(question.difficulty)}</span>
-              <span>{question.readingMinutes} min</span>
-              {question.tags.slice(0, 4).map((tag) => (
-                <span key={tag}>{tag}</span>
-              ))}
+            <div className="question-title-row">
+              <span className="question-number" aria-label={`Question ${question.number}`}>
+                {question.number}
+              </span>
+              <h2>{question.question}</h2>
             </div>
-            <ReactMarkdown components={markdownComponents} remarkPlugins={[remarkGfm]}>
-              {question.answer}
-            </ReactMarkdown>
+            <div className="question-answer">
+              <ReactMarkdown components={markdownComponents} remarkPlugins={[remarkGfm]}>
+                {question.answer}
+              </ReactMarkdown>
+            </div>
           </section>
         ))}
       </div>
@@ -767,8 +807,63 @@ function TopicIcon({
   );
 }
 
-function capitalize(value: string) {
-  return value.charAt(0).toUpperCase() + value.slice(1);
+function capitalizeFirstReadableText(value: ReactNode) {
+  return capitalizeFirstReadableTextOnce(value)[0];
+}
+
+function capitalizeFirstReadableTextOnce(value: ReactNode): [ReactNode, boolean] {
+  if (typeof value === "string") {
+    return capitalizeTextStart(value);
+  }
+
+  if (Array.isArray(value)) {
+    let changed = false;
+    const children = value.map((child) => {
+      if (changed) return child;
+
+      const [nextChild, didChange] = capitalizeFirstReadableTextOnce(child);
+      changed = didChange;
+
+      return nextChild;
+    });
+
+    return [children, changed];
+  }
+
+  if (isValidElement<{ children?: ReactNode }>(value)) {
+    if (isCodeLikeElement(value)) {
+      return [value, false];
+    }
+
+    const [children, changed] = capitalizeFirstReadableTextOnce(value.props.children);
+
+    if (!changed) {
+      return [value, false];
+    }
+
+    return [cloneElement(value, undefined, children), true];
+  }
+
+  return [value, false];
+}
+
+function capitalizeTextStart(value: string): [string, boolean] {
+  const match = value.match(/^(\s*["'([{]*)([a-z])/);
+
+  if (!match) {
+    return [value, false];
+  }
+
+  const index = match[1].length;
+
+  return [
+    `${value.slice(0, index)}${value.charAt(index).toUpperCase()}${value.slice(index + 1)}`,
+    true,
+  ];
+}
+
+function isCodeLikeElement(value: ReactElement) {
+  return typeof value.type === "string" && ["code", "kbd", "pre", "samp"].includes(value.type);
 }
 
 function getCodeLanguage(className?: string) {
@@ -897,12 +992,20 @@ function getStudySectionLabel(value: ReactNode) {
     concurrent: { kind: "example", title: "Concurrent" },
     example: { kind: "example", title: "Example" },
     important: { kind: "important", title: "Important" },
+    "interview note": { kind: "interview", title: "Interview Note" },
     "interview notes": { kind: "interview", title: "Interview Notes" },
+    "interview caveat": { kind: "important", title: "Interview Caveat" },
+    "interview method": { kind: "interview", title: "Interview Method" },
+    "key reasoning": { kind: "important", title: "Key Reasoning" },
+    "mental model": { kind: "example", title: "Mental Model" },
     "promise chain": { kind: "example", title: "Promise Chain" },
     "promise style": { kind: "example", title: "Promise Style" },
+    "priority order": { kind: "important", title: "Priority Order" },
+    "reliable rule": { kind: "important", title: "Reliable Rule" },
     sequential: { kind: "example", title: "Sequential" },
     "strong answer": { kind: "interview", title: "Strong Interview Answer" },
     "use cases": { kind: "benefit", title: "Use Cases" },
+    walkthrough: { kind: "example", title: "Walkthrough" },
     "when .then() is still fine": {
       kind: "important",
       title: "When .then() Is Still Fine",
@@ -911,7 +1014,9 @@ function getStudySectionLabel(value: ReactNode) {
       kind: "important",
       title: "When Not To Use Promise.all",
     },
+    why: { kind: "important", title: "Why" },
     "why this is good": { kind: "benefit", title: "Why This Is Good" },
+    "why it matters": { kind: "benefit", title: "Why It Matters" },
   };
 
   return labels[normalized] ?? null;
