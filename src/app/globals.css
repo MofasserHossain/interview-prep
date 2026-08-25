@@ -2053,9 +2053,9 @@ h2 {
 .toc-panel {
   position: sticky;
   top: 86px;
-  max-height: calc(100vh - 112px);
+  max-height: none;
   min-width: 0;
-  overflow: auto;
+  overflow: visible;
   padding: 0 0 20px 20px;
   border-left: 1px solid var(--border);
 }
@@ -2077,6 +2077,11 @@ h2 {
   background: transparent;
   color: color-mix(in srgb, var(--text-muted), transparent 9%);
   text-align: left;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
 }
 
 .toc-list button:hover {
@@ -2088,6 +2093,7 @@ h2 {
   border-left-color: var(--surface-strong);
   background: color-mix(in srgb, var(--surface-muted), transparent 18%);
   color: var(--text);
+  transform: translateX(2px);
 }
 
 .toc-list button strong {
@@ -2103,6 +2109,12 @@ h2 {
 
 .toc-list button.active strong {
   font-weight: 540;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toc-list button {
+    transition: none;
+  }
 }
 
 .toc-empty {
