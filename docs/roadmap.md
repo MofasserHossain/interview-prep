@@ -7,9 +7,10 @@
 - Difficulty filters
 - Full-text search over questions and answers
 - Reading-focused answer view with code-block rendering
-- Backend submenus for fundamentals and a Node.js interview set
+- Backend submenus for fundamentals and API/database performance
+- Node.js submenus for fundamentals/modules/APIs and event loop/runtime details
 - React topics grouped under multiple subtopics, including basics, performance optimization, and machine-coding practice
-- JavaScript submenus split into language fundamentals, promises and async, event loop/runtime, `this` and functions, prototypes and objects, collections and iteration, scope/hoisting/closures, and types/equality/copying
+- JavaScript submenus split into language fundamentals, modules/import/export, promises and async, event loop/runtime, `this` and functions, prototypes and objects, map/object/set, loops/array methods, scope/hoisting/closures, and types/equality/copying
 
 ## Next Content Areas
 

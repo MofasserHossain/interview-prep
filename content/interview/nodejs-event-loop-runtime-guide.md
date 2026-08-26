@@ -253,7 +253,66 @@ Why:
 Synchronous code runs first. Microtasks run after the current call stack. Timer
 callbacks run later in the timers phase.
 
-## 7. What Are Events And EventEmitter In Node.js?
+## 7. What Is The Big Idea Behind process.nextTick, setImmediate, And setTimeout?
+
+The big idea is that these APIs do not mean "run later" in the same way. They
+place work into different queues, and Node.js checks those queues at different
+times.
+
+Practical priority model:
+
+1. current synchronous JavaScript runs first
+2. `process.nextTick()` runs immediately after the current operation
+3. promise microtasks and `queueMicrotask()` run next
+4. event loop phases continue
+5. `setTimeout()` runs in the timers phase after its delay threshold
+6. `setImmediate()` runs in the check phase after poll
+
+Example:
+
+```js
+console.log("A");
+
+setTimeout(() => console.log("timeout"), 0);
+setImmediate(() => console.log("immediate"));
+Promise.resolve().then(() => console.log("promise"));
+process.nextTick(() => console.log("nextTick"));
+
+console.log("B");
+```
+
+Typical output shape:
+
+```txt
+A
+B
+nextTick
+promise
+timeout and immediate in environment-dependent top-level order
+```
+
+How to remember it:
+
+| API | Queue or phase | Big idea |
+| --- | --- | --- |
+| `process.nextTick()` | next tick queue | run before normal microtasks and before I/O continues |
+| `Promise.then()` | microtask queue | run after current stack before event-loop phases continue |
+| `setTimeout(fn, 0)` | timers phase | run when the timer threshold has passed |
+| `setImmediate()` | check phase | run after poll, often before timers when scheduled inside I/O |
+
+Important caution:
+
+`process.nextTick()` has the highest priority among these, so recursively
+scheduling it can starve promises, timers, and I/O callbacks.
+
+Interview note:
+
+> `nextTick` is Node-specific and runs before promise microtasks. Promises run
+> before the event loop continues. `setTimeout` belongs to timers.
+> `setImmediate` belongs to check. At top level, timer vs immediate order is not
+> a guarantee, but inside I/O `setImmediate` usually wins.
+
+## 8. What Are Events And EventEmitter In Node.js?
 
 Events are named signals that something happened. The `events` module provides
 `EventEmitter`, which lets code subscribe to and emit events.
@@ -290,7 +349,7 @@ Tradeoff:
 Events can make code decoupled, but they can also hide control flow. For
 important business processes, keep event contracts clear and test the listeners.
 
-## 8. What Can Block The Event Loop?
+## 9. What Can Block The Event Loop?
 
 Any long-running synchronous JavaScript can block the event loop.
 
@@ -325,7 +384,7 @@ Better:
 - precompute expensive data
 - split work into smaller chunks
 
-## 9. How Do You Handle CPU-Heavy Work In Node.js?
+## 10. How Do You Handle CPU-Heavy Work In Node.js?
 
 Do not run CPU-heavy work on the request path of the main event loop unless it
 is very small.
@@ -357,7 +416,74 @@ Tradeoff:
 Workers add coordination overhead. Use them for real CPU pressure, not for
 normal database or HTTP I/O.
 
-## 10. What Are Streams In Node.js?
+## 11. Cluster vs Worker Threads
+
+`cluster` and `worker_threads` both help Node.js use more CPU capacity, but
+they solve different problems.
+
+`cluster` starts multiple Node.js processes. Each process has its own memory,
+event loop, module cache, and server instance.
+
+Worker threads run JavaScript in additional threads inside one Node.js process.
+They are useful for CPU-heavy computation that should not block the main event
+loop.
+
+Comparison:
+
+| Area | Cluster | Worker Threads |
+| --- | --- | --- |
+| Unit | multiple processes | multiple threads in one process |
+| Memory | separate memory per process | can share memory intentionally |
+| Main use | scale HTTP/API traffic across CPU cores | offload CPU-heavy JavaScript |
+| Isolation | stronger process isolation | lighter but shared-process risk |
+| State | not shared automatically | messages or shared memory |
+| Crash impact | one worker process can restart | a worker thread failure affects the process boundary differently |
+
+Cluster shape:
+
+```js
+const cluster = require("node:cluster");
+const http = require("node:http");
+const os = require("node:os");
+
+if (cluster.isPrimary) {
+  for (let i = 0; i < os.cpus().length; i += 1) {
+    cluster.fork();
+  }
+} else {
+  http.createServer((req, res) => res.end("ok")).listen(3000);
+}
+```
+
+Worker thread shape:
+
+```js
+const { Worker } = require("node:worker_threads");
+
+const worker = new Worker("./calculate-score.js", {
+  workerData: { userId: "usr_1" },
+});
+
+worker.on("message", (score) => {
+  console.log(score);
+});
+```
+
+When to use:
+
+- use cluster or multiple processes to serve more concurrent HTTP traffic
+- use worker threads for CPU-heavy JavaScript like parsing, scoring, image
+  transforms, compression, or reports
+- use a queue and separate worker service when work should survive restarts or
+  retry independently
+
+Interview note:
+
+> Cluster scales the application across processes. Worker threads move
+> expensive JavaScript computation off the main event loop. For normal database
+> or HTTP I/O, async APIs are usually enough.
+
+## 12. What Are Streams In Node.js?
 
 Streams process data in chunks instead of loading everything into memory at
 once.
@@ -387,7 +513,7 @@ Interview phrasing:
 > Streams are useful when data is too large or continuous to handle as one
 > complete value. They let Node.js process data incrementally.
 
-## 11. How Do You Debug Event Loop Delay?
+## 13. How Do You Debug Event Loop Delay?
 
 Event loop delay means the loop is busy and callbacks run later than expected.
 
@@ -427,7 +553,7 @@ Strong answer:
 > look for blocking JavaScript, CPU-heavy handlers, huge JSON work, or sync APIs
 > running in hot paths.
 
-## 12. When Should You Use Node.js For Runtime-Heavy Work?
+## 14. When Should You Use Node.js For Runtime-Heavy Work?
 
 Node.js is strongest when the runtime-heavy part is I/O orchestration rather
 than raw CPU computation.
@@ -454,7 +580,7 @@ Strong answer:
 > For CPU-heavy work, I move the expensive part to worker threads, a queue, or a
 > specialized service so the event loop stays responsive.
 
-## 13. What Is The Node.js Priority Order?
+## 15. What Is The Node.js Priority Order?
 
 For most Node.js interview questions, use this practical order:
 
@@ -506,7 +632,53 @@ not a portable guarantee. It can vary with environment and event loop state.
 Inside an I/O callback, `setImmediate()` usually runs before a timer scheduled
 from that same I/O callback.
 
-## 14. How Do process.nextTick, Promises, And queueMicrotask Differ?
+## 16. Browser Event Loop vs Node.js Event Loop
+
+Browsers and Node.js both run JavaScript with an event loop, but the surrounding
+runtime is different.
+
+Browser event loop:
+
+- built around UI, DOM events, networking, timers, and rendering
+- has task queues for things like timers, user input, and network callbacks
+- drains microtasks before rendering opportunities
+- rendering and painting are part of the browser scheduling model
+
+Node.js event loop:
+
+- built around server-side I/O, sockets, files, timers, streams, and processes
+- uses libuv phases such as timers, pending callbacks, poll, check, and close
+- has Node-specific `process.nextTick`
+- has a libuv thread pool for some filesystem, DNS, crypto, and compression
+  work
+- does not have a browser rendering step
+
+Comparison:
+
+| Area | Browser | Node.js |
+| --- | --- | --- |
+| Primary job | UI and web APIs | server-side I/O and processes |
+| Extra APIs | DOM, Web APIs, rendering | fs, http, net, streams, process |
+| Microtasks | promises and `queueMicrotask` | promises, `queueMicrotask`, plus `process.nextTick` |
+| Task/phase model | browser task queues | libuv phases |
+| Rendering | rendering can happen between turns | no render phase |
+| I/O focus | browser network and UI events | files, sockets, servers, child processes |
+
+Example interview answer:
+
+> Both browser and Node.js JavaScript are single-threaded at the call-stack
+> level and both use microtasks. The browser event loop coordinates UI, Web
+> APIs, and rendering. Node.js uses libuv phases for server-side I/O and adds
+> Node-specific behavior such as `process.nextTick`, `setImmediate`, and a
+> thread pool for some native work.
+
+Study path:
+
+For browser details, study the JavaScript Event Loop & Runtime guide. For Node
+details, focus on libuv phases, `process.nextTick`, promises, timers, poll,
+check, and close callbacks.
+
+## 17. How Do process.nextTick, Promises, And queueMicrotask Differ?
 
 Node.js has a special next-tick queue in addition to the normal microtask queue.
 
@@ -551,7 +723,7 @@ Use `process.nextTick` only when you need Node-specific ordering. For normal
 "run after this stack clears" behavior, `queueMicrotask` or a promise is often
 easier to reason about.
 
-## 15. How Do setTimeout(0) And setImmediate Differ In Node.js?
+## 18. How Do setTimeout(0) And setImmediate Differ In Node.js?
 
 `setTimeout(fn, 0)` schedules a timer callback after a minimum delay. It does
 not mean "run immediately."
@@ -613,7 +785,7 @@ Starting with libuv 1.45.0, used by Node.js 20 and later, timer handling changed
 so timers run after the poll phase in each event loop iteration. This can affect
 some edge cases involving timers and `setImmediate`.
 
-## 16. What Happens In The Poll Phase?
+## 19. What Happens In The Poll Phase?
 
 The poll phase is where Node.js retrieves new I/O events and runs many I/O
 callbacks.
@@ -647,7 +819,7 @@ Why it matters:
 Most useful Node.js server work is I/O-driven. Understanding poll helps explain
 why `setImmediate` scheduled inside I/O often runs before `setTimeout(0)`.
 
-## 17. What Is The libuv Thread Pool?
+## 20. What Is The libuv Thread Pool?
 
 libuv is the library Node.js uses for the event loop and many asynchronous I/O
 features. Some operations use a thread pool because the operating system cannot
@@ -690,7 +862,7 @@ Tradeoff:
 The thread pool is limited. If many expensive crypto or filesystem tasks are
 queued, they can delay each other.
 
-## 18. How Do You Solve A Node.js Event Loop Output Question?
+## 21. How Do You Solve A Node.js Event Loop Output Question?
 
 Use this checklist:
 
@@ -764,5 +936,8 @@ Strong answer:
 - <https://nodejs.org/en/learn/asynchronous-work/event-loop-timers-and-nexttick>
 - <https://nodejs.org/api/events.html>
 - <https://nodejs.org/api/worker_threads.html>
+- <https://nodejs.org/api/cluster.html>
+- <https://nodejs.org/api/process.html>
 - <https://nodejs.org/api/stream.html>
 - <https://nodejs.org/api/perf_hooks.html>
+- <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Event_loop>

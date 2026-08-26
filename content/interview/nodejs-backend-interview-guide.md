@@ -251,6 +251,13 @@ Why these features matter:
 - npm speeds up development with mature libraries
 - built-in modules cover many backend basics without extra dependencies
 
+Study path:
+
+This guide explains the event loop at a beginner level. For detailed priority
+rules such as `process.nextTick`, promise microtasks, `setTimeout(0)`,
+`setImmediate`, poll, check, and close callbacks, study the dedicated
+[Node.js Event Loop & Async Runtime](/topics/nodejs-event-loop-runtime) guide.
+
 ## 7. What Is Single-Threaded Programming?
 
 Single-threaded programming means one main thread executes the application code
@@ -820,7 +827,411 @@ Important details:
 - ES module relative imports usually include the file extension in Node.js
 - named imports must match exported names
 
-## 21. What Is The Module Wrapper Function?
+## 21. CommonJS vs ES Modules In Node.js
+
+CommonJS and ES modules are the two main module systems you will see in Node.js.
+They solve the same high-level problem, but they use different syntax and have
+different loading behavior.
+
+When interviewers say "ES6 modules", they usually mean ES modules or ESM:
+JavaScript's standard `import` and `export` module system.
+
+CommonJS:
+
+```js
+const path = require("node:path");
+
+function buildUploadPath(fileName) {
+  return path.join(process.cwd(), "uploads", fileName);
+}
+
+module.exports = { buildUploadPath };
+```
+
+ES modules:
+
+```js
+import path from "node:path";
+
+export function buildUploadPath(fileName) {
+  return path.join(process.cwd(), "uploads", fileName);
+}
+```
+
+Comparison:
+
+| Area | CommonJS | ES Modules |
+| --- | --- | --- |
+| Import syntax | `require()` | `import` |
+| Export syntax | `module.exports` and `exports` | `export` and `export default` |
+| Typical file mode | `.cjs` or `.js` in CommonJS package | `.mjs` or `.js` in `"type": "module"` package |
+| Loading | synchronous `require()` | static imports and async-capable module loading |
+| Tooling | common in older Node.js apps | standard JavaScript and modern tooling |
+
+Interview note:
+
+> CommonJS is the older Node.js module system. ES modules are the JavaScript
+> standard. In new Node.js projects I usually prefer ES modules, but I still
+> understand CommonJS because many existing packages and codebases use it.
+
+## 22. When Should You Use `require` And When Should You Use `import`?
+
+Use `import` when the project is using ES modules or modern frontend/backend
+tooling. Use `require()` when maintaining CommonJS code or when a tool expects
+CommonJS configuration.
+
+Use `import` for:
+
+- new Node.js projects configured with `"type": "module"`
+- frontend code and browser modules
+- TypeScript projects that compile to ESM
+- codebases that benefit from static analysis and tree-shaking
+- shared libraries meant for modern JavaScript tooling
+
+Use `require()` for:
+
+- older Node.js applications
+- CommonJS config files such as some legacy build configs
+- quick scripts in CommonJS packages
+- packages that still document CommonJS usage first
+- cases where synchronous conditional loading is useful
+
+Example conditional CommonJS loading:
+
+```js
+if (process.env.DEBUG === "true") {
+  const debug = require("debug")("api");
+  debug("debug enabled");
+}
+```
+
+ES module alternative:
+
+```js
+if (process.env.DEBUG === "true") {
+  const { default: createDebug } = await import("debug");
+  createDebug("api")("debug enabled");
+}
+```
+
+Strong answer:
+
+> I choose one module system per project and keep it consistent. For new
+> projects I prefer ES modules. For older Node.js services, I work with
+> CommonJS and migrate gradually only when tooling and dependencies support it.
+
+## 23. How Do `.cjs`, `.mjs`, And `"type": "module"` Work?
+
+Node.js needs to know whether a `.js` file should be treated as CommonJS or as
+an ES module. It decides from file extensions and `package.json`.
+
+Rules:
+
+- `.cjs` is always CommonJS
+- `.mjs` is always an ES module
+- `.js` depends on the nearest `package.json`
+- `"type": "module"` makes `.js` use ES module syntax
+- `"type": "commonjs"` or no `type` makes `.js` use CommonJS by default
+
+Example:
+
+```json
+{
+  "type": "module"
+}
+```
+
+With that package setting:
+
+```js
+// app.js
+import express from "express";
+```
+
+Without that package setting, the same `.js` file would normally be CommonJS:
+
+```js
+// app.js
+const express = require("express");
+```
+
+Practical guidance:
+
+Use `.cjs` for a CommonJS file inside an ESM package. Use `.mjs` when you want a
+file to be ESM regardless of the package default.
+
+## 24. What Is The Difference Between `module.exports` And `exports`?
+
+In CommonJS, `module.exports` is the actual value returned by `require()`.
+`exports` is only a convenient reference to `module.exports` at the beginning of
+the module.
+
+This works:
+
+```js
+exports.add = function add(a, b) {
+  return a + b;
+};
+
+exports.subtract = function subtract(a, b) {
+  return a - b;
+};
+```
+
+It is equivalent to:
+
+```js
+module.exports.add = function add(a, b) {
+  return a + b;
+};
+```
+
+This replaces the whole export object:
+
+```js
+module.exports = function logger(message) {
+  console.log(message);
+};
+```
+
+Common mistake:
+
+```js
+exports = function logger(message) {
+  console.log(message);
+};
+```
+
+That only reassigns the local `exports` variable. It does not replace
+`module.exports`.
+
+Interview note:
+
+> Mutating `exports.name` is fine. Replacing the export must use
+> `module.exports = value`.
+
+## 25. Default Export vs Named Export
+
+A named export exposes values by their exported names. A default export exposes
+one main value from a module.
+
+ES module named exports:
+
+```js
+export function createUser(input) {
+  return { id: "usr_1", ...input };
+}
+
+export function deleteUser(id) {
+  return { deleted: id };
+}
+```
+
+Importing named exports:
+
+```js
+import { createUser, deleteUser } from "./user-service.js";
+```
+
+ES module default export:
+
+```js
+export default function logger(message) {
+  console.log(message);
+}
+```
+
+Importing the default export:
+
+```js
+import logger from "./logger.js";
+```
+
+When to use:
+
+- use named exports for utility modules and services with several functions
+- use default exports for one obvious primary class, function, or component
+- prefer consistency inside a codebase
+- avoid unclear default names in large shared modules
+
+Strong answer:
+
+> Named exports make module APIs explicit. Default exports are useful when the
+> module has one primary thing, but named exports are usually easier to
+> refactor and auto-import safely.
+
+## 26. What Is Dynamic `import()` In Node.js?
+
+Dynamic `import()` loads a module at runtime and returns a promise. It works in
+ES modules and can also be used from CommonJS when a CommonJS file needs to load
+an ES module.
+
+Example:
+
+```js
+async function loadMarkdownParser() {
+  const { marked } = await import("marked");
+  return marked;
+}
+```
+
+Use dynamic import for:
+
+- optional dependencies
+- large modules needed only in rare code paths
+- environment-specific modules
+- loading an ES module from CommonJS
+- delaying work until after startup
+
+Tradeoff:
+
+Dynamic imports make control flow asynchronous. For normal required
+dependencies, static `import` is easier to read and easier for tools to analyze.
+
+## 27. How Does ES Module And CommonJS Interop Work?
+
+Interop means using CommonJS and ES modules together. It is possible, but there
+are rules and edge cases.
+
+Common patterns:
+
+- ES modules can usually import CommonJS packages
+- CommonJS can load ES modules with dynamic `import()`
+- default import from CommonJS often represents `module.exports`
+- named imports from CommonJS are not always reliable
+- `__filename` and `__dirname` do not exist automatically in ES modules
+
+CommonJS package:
+
+```js
+// logger.cjs
+module.exports = function logger(message) {
+  console.log(message);
+};
+```
+
+ES module importing it:
+
+```js
+import logger from "./logger.cjs";
+
+logger("started");
+```
+
+CommonJS loading an ES module:
+
+```js
+async function main() {
+  const math = await import("./math.mjs");
+  console.log(math.add(2, 3));
+}
+
+main();
+```
+
+Interview note:
+
+> Interop works, but I avoid mixing module systems casually. It is better to
+> keep each package consistent and use interop only at boundaries.
+
+## 28. How Does Node.js Resolve Modules?
+
+Module resolution is how Node.js finds the file or package behind an import or
+require call.
+
+Common resolution categories:
+
+- built-in modules, such as `node:fs`
+- relative files, such as `./user-service.js`
+- absolute paths
+- packages installed in `node_modules`
+- package entry points defined by `main` or `exports`
+
+Examples:
+
+```js
+const fs = require("node:fs");
+const express = require("express");
+const userService = require("./user-service");
+```
+
+For packages, `package.json` can define entry points:
+
+```json
+{
+  "main": "./dist/index.cjs",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./logger": "./dist/logger.js"
+  }
+}
+```
+
+`main` is the older single entry point. `exports` is the modern package entry
+map and can restrict which internal files consumers are allowed to import.
+
+Tradeoff:
+
+`exports` makes package APIs clearer, but it can break consumers that import
+private internal files such as `some-package/lib/internal.js`.
+
+## 29. What Is Module Caching In Node.js?
+
+In CommonJS, Node.js caches a module after it is loaded the first time. Later
+`require()` calls usually return the same exported object instead of executing
+the file again.
+
+Example:
+
+```js
+// counter.js
+let count = 0;
+
+count += 1;
+
+module.exports = { count };
+```
+
+```js
+const first = require("./counter");
+const second = require("./counter");
+
+console.log(first.count);
+console.log(second.count);
+console.log(first === second);
+```
+
+Output:
+
+```txt
+1
+1
+true
+```
+
+Why it matters:
+
+- modules can behave like singletons
+- repeated imports are faster after first load
+- shared mutable module state can leak across callers
+- tests may need to clear module cache carefully
+
+Node exposes the cache through `require.cache`:
+
+```js
+delete require.cache[require.resolve("./counter")];
+```
+
+Tradeoff:
+
+Do not use module cache as a hidden application database. It is useful for
+loading efficiency and process-local singletons, but it is not shared across
+multiple processes, containers, or servers.
+
+## 30. What Is The Module Wrapper Function?
 
 In CommonJS, Node.js wraps each module in a function before executing it. That
 wrapper provides module-specific variables such as `exports`, `require`,
@@ -853,7 +1264,7 @@ Interview phrasing:
 > The module wrapper is why CommonJS files have private scope and access to
 > `require`, `module`, `exports`, `__filename`, and `__dirname`.
 
-## 22. What Are The Types Of Modules In Node.js?
+## 31. What Are The Types Of Modules In Node.js?
 
 Node.js modules can be described in a few practical ways.
 
@@ -888,7 +1299,7 @@ Strong answer:
 > third-party. Then I mention CommonJS and ES modules as the two main syntax
 > systems.
 
-## 23. What Are The Top Five Frequently Used Built-In Modules In Node.js?
+## 32. What Are The Top Five Frequently Used Built-In Modules In Node.js?
 
 Five commonly used built-in modules are:
 
@@ -918,7 +1329,7 @@ Why built-in modules matter:
 Other common built-ins include `node:crypto`, `node:stream`, `node:url`,
 `node:process`, and `node:child_process`.
 
-## 24. What Is The Role Of The fs Module?
+## 33. What Is The Role Of The fs Module?
 
 The `fs` module provides file system APIs. It can read, write, append, delete,
 rename, and inspect files and directories.
@@ -954,7 +1365,7 @@ Prefer promise-based or callback-based async APIs in servers. Synchronous file
 APIs are fine for startup configuration or scripts, but they can block request
 handling when used inside hot paths.
 
-## 25. What Is The Role Of The path Module?
+## 34. What Is The Role Of The path Module?
 
 The `path` module helps build, parse, normalize, and inspect file paths in a
 cross-platform way.
@@ -994,7 +1405,7 @@ Why it matters:
 String concatenation can create broken paths across operating systems. `path`
 handles separators and normalization more safely.
 
-## 26. What Is The Role Of The os Module?
+## 35. What Is The Role Of The os Module?
 
 The `os` module provides information about the operating system where the Node.js
 process is running.
@@ -1035,7 +1446,7 @@ Do not build business logic that depends too heavily on one local machine's
 state. Production systems often run inside containers where CPU and memory views
 may need careful interpretation.
 
-## 27. What Is The Role Of The events Module, And How Do You Handle Events?
+## 36. What Is The Role Of The events Module, And How Do You Handle Events?
 
 The `events` module provides the `EventEmitter` class. It lets code register
 listeners for named events and emit those events later.
@@ -1069,7 +1480,7 @@ Important rule:
 Handle the `error` event when using event emitters that can fail. An unhandled
 `error` event can crash the process.
 
-## 28. What Are Event Arguments?
+## 37. What Are Event Arguments?
 
 Event arguments are values passed from the emitter to the event listener when an
 event is emitted.
@@ -1112,7 +1523,7 @@ users.emit("registered", {
 });
 ```
 
-## 29. What Is The Difference Between A Function And An Event?
+## 38. What Is The Difference Between A Function And An Event?
 
 A function is called directly to perform work. An event is emitted to announce
 that something happened, and one or more listeners may react.
@@ -1153,7 +1564,7 @@ Events are useful when multiple parts of the system should react independently.
 For critical sequential business rules, direct function calls or explicit
 workflow orchestration can be easier to reason about.
 
-## 30. What Is The Role Of The http Module In Node.js?
+## 39. What Is The Role Of The http Module In Node.js?
 
 The `http` module provides low-level APIs for creating HTTP servers and making
 HTTP requests. Frameworks like Express build on top of Node's HTTP primitives.
@@ -1184,7 +1595,7 @@ For production APIs, most teams use a framework such as Express, Fastify, or
 NestJS because routing, middleware, validation, and error handling are easier to
 organize.
 
-## 31. What Is The Role Of createServer() In The http Module?
+## 40. What Is The Role Of createServer() In The http Module?
 
 `createServer()` creates an HTTP server instance. It accepts a request listener
 function that runs whenever the server receives a request.
@@ -1226,7 +1637,7 @@ Important details:
 - `server.listen()` starts accepting connections
 - Express-style frameworks hide much of this low-level handling
 
-## 32. Difference Between Callback And Promise
+## 41. Difference Between Callback And Promise
 
 A callback is a function passed into another function and called later when work
 finishes. A promise is an object that represents a future success or failure.
@@ -1277,7 +1688,7 @@ Strong answer:
 > first-class object for an async result. In modern Node.js I prefer promises
 > and async/await because they compose better and make error handling cleaner.
 
-## 33. What Issues Can Callback-Based Code Create?
+## 42. What Issues Can Callback-Based Code Create?
 
 Callbacks are not bad by themselves. The issue starts when many dependent async
 steps are nested inside each other.
@@ -1338,7 +1749,7 @@ Interview note:
 > flow, scattered error handling, and poor composability. Promises and
 > async/await reduce those problems.
 
-## 34. Is Async/Await Synchronous Or Asynchronous?
+## 43. Is Async/Await Synchronous Or Asynchronous?
 
 `async` and `await` are asynchronous, but they make the code look synchronous.
 `await` pauses only the current async function. It does not block the Node.js
@@ -1408,7 +1819,98 @@ Strong answer:
 > Async/await is asynchronous. It gives synchronous-looking control flow, but it
 > does not block the process. Only that async function pauses at `await`.
 
-## 35. Why Do We Use Redis?
+## 44. How Do You Handle Errors In Node.js?
+
+Node.js error handling depends on the async style being used. Callback-based
+APIs usually use the error-first callback pattern. Promise-based APIs use
+`.catch()` or `try/catch` with `await`.
+
+Error-first callback:
+
+```js
+const fs = require("node:fs");
+
+fs.readFile("user.json", "utf8", (error, data) => {
+  if (error) {
+    console.error("read failed", error.message);
+    return;
+  }
+
+  console.log(JSON.parse(data));
+});
+```
+
+The first callback argument is reserved for an error. If it is `null` or
+`undefined`, the operation succeeded.
+
+Promise `.catch()`:
+
+```js
+const fs = require("node:fs/promises");
+
+fs.readFile("user.json", "utf8")
+  .then((data) => JSON.parse(data))
+  .catch((error) => {
+    console.error("read failed", error.message);
+  });
+```
+
+`async` and `await` with `try/catch`:
+
+```js
+async function loadUser() {
+  try {
+    const data = await fs.readFile("user.json", "utf8");
+    return JSON.parse(data);
+  } catch (error) {
+    throw new Error(`Could not load user: ${error.message}`);
+  }
+}
+```
+
+Express-style route handling:
+
+```js
+app.get("/users/:id", async (req, res, next) => {
+  try {
+    const user = await userService.findById(req.params.id);
+    res.json(user);
+  } catch (error) {
+    next(error);
+  }
+});
+```
+
+Process-level events:
+
+```js
+process.on("unhandledRejection", (reason) => {
+  logger.error({ reason }, "Unhandled promise rejection");
+});
+
+process.on("uncaughtException", (error) => {
+  logger.fatal({ error }, "Uncaught exception");
+  process.exit(1);
+});
+```
+
+Important rules:
+
+- handle expected operational errors close to the request or job
+- use central middleware for HTTP error responses
+- never expose stack traces or secrets to clients
+- unhandled promise rejections should be treated as serious bugs
+- after `uncaughtException`, prefer graceful shutdown and process restart
+- use monitoring so production errors are visible
+
+Interview note:
+
+> For callbacks I check the first `error` argument. For promises I use
+> `.catch()` or `try/catch` with `await`. At the process level,
+> `unhandledRejection` and `uncaughtException` are last-resort safety nets, not
+> normal business error handling.
+
+## 45. Why Do We Use Redis?
 
 Redis is an in-memory data store commonly used in backend systems for fast
 reads, caching, sessions, rate limiting, queues, pub/sub, and temporary data.
@@ -1463,7 +1965,7 @@ Strong answer:
 > data. In a Node.js backend I commonly use it for caching, sessions,
 > distributed rate limiting, queue state, and pub/sub.
 
-## 36. Difference Between HTTP And WebSocket
+## 46. Difference Between HTTP And WebSocket
 
 HTTP is request-response. The client sends a request and the server returns a
 response. WebSocket creates a persistent bidirectional connection so both client
@@ -1529,7 +2031,7 @@ Tradeoffs:
 - scaling WebSocket usually needs Redis pub/sub or another broker
 - HTTP is simpler to cache, debug, and operate
 
-## 37. What Is Microservice And Why Do We Need It?
+## 47. What Is Microservice And Why Do We Need It?
 
 A microservice is a small, independently deployable service focused on one
 business capability. Instead of one application containing everything, the
@@ -1578,7 +2080,7 @@ Strong answer:
 > monolith first, then extract services when scaling, ownership, or deployment
 > independence becomes a real problem.
 
-## 38. What Is Middleware?
+## 48. What Is Middleware?
 
 Middleware is code that runs between the incoming request and the final route
 handler. It can inspect, modify, allow, reject, or log the request.
@@ -1638,7 +2140,7 @@ Strong answer:
 > like auth, validation, logging, and error handling in middleware so
 > controllers stay focused on business logic.
 
-## 39. How Do You Work With Docker In A Node.js Backend?
+## 49. How Do You Work With Docker In A Node.js Backend?
 
 Docker packages the Node.js app, dependencies, runtime, and startup command into
 an image so the app runs consistently on any machine or server.
@@ -1691,7 +2193,7 @@ Interview phrasing:
 > reproducibly, avoid baking secrets into the image, and pass configuration
 > through the environment.
 
-## 40. How Do You Work With RabbitMQ?
+## 50. How Do You Work With RabbitMQ?
 
 RabbitMQ is a message broker. A Node.js API can publish a message to RabbitMQ,
 and a worker can consume it later. This helps with background work, retries, and
@@ -1767,7 +2269,7 @@ RabbitMQ vs Kafka:
 - RabbitMQ is often used for work queues and routing jobs
 - Kafka is often used for event streaming and replayable event logs
 
-## 41. What Is Your Approach To Create A Secure Backend Application?
+## 51. What Is Your Approach To Create A Secure Backend Application?
 
 Secure backend design starts at the request boundary and continues through code,
 data, infrastructure, and monitoring.
@@ -1821,7 +2323,7 @@ Strong answer:
 > dependency hygiene, logging, and safe error responses. I do not rely on only
 > one control.
 
-## 42. How Do You Improve Code Reusability In A Backend?
+## 52. How Do You Improve Code Reusability In A Backend?
 
 Code reusability means shared logic is extracted into clear modules without
 making everything too generic.
@@ -1877,7 +2379,7 @@ Tradeoff:
 Too much abstraction can make code harder to understand. Reuse should remove
 real duplication or protect important business rules.
 
-## 43. What Is MVC Architecture?
+## 53. What Is MVC Architecture?
 
 MVC stands for Model, View, Controller. In backend APIs, the "view" is often the
 JSON response instead of an HTML page.
@@ -1948,6 +2450,8 @@ Strong answer:
 - <https://nodejs.org/api/modules.html>
 - <https://nodejs.org/api/esm.html>
 - <https://nodejs.org/api/packages.html>
+- <https://nodejs.org/api/process.html>
+- <https://nodejs.org/api/errors.html>
 - <https://nodejs.org/api/fs.html>
 - <https://nodejs.org/api/path.html>
 - <https://nodejs.org/api/os.html>

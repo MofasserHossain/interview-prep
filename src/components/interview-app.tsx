@@ -88,6 +88,7 @@ const topicIcons = {
   "nodejs-backend": Terminal,
   "nodejs-event-loop-runtime": Router,
   javascript: Braces,
+  "javascript-modules-import-export": CodeXml,
   "javascript-promises-async": Workflow,
   "javascript-event-loop-runtime": Router,
   "javascript-this-functions": Braces,
