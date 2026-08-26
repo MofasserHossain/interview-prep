@@ -42,7 +42,7 @@ export const topics: Topic[] = [
     trackTitle: "Node.js",
     subtopicTitle: "Fundamentals, Modules & APIs",
     description:
-      "Node.js runtime basics, project setup, npm, modules, built-in APIs, events, HTTP, Express, and backend usage patterns.",
+      "Node.js runtime basics, project setup, npm, CommonJS vs ES modules, module caching, built-in APIs, errors, events, HTTP, Express, and backend usage patterns.",
     file: "nodejs-backend-interview-guide.md",
   },
   {
@@ -53,7 +53,7 @@ export const topics: Topic[] = [
     trackTitle: "Node.js",
     subtopicTitle: "Event Loop & Async Runtime",
     description:
-      "Node.js event loop phases, non-blocking I/O, callbacks, promises, microtasks, timers, EventEmitter, CPU-heavy work, streams, and runtime debugging.",
+      "Node.js event loop phases, nextTick, promises, timers, setImmediate, browser differences, cluster vs workers, CPU-heavy work, streams, and runtime debugging.",
     file: "nodejs-event-loop-runtime-guide.md",
   },
   {
@@ -66,6 +66,17 @@ export const topics: Topic[] = [
     description:
       "Core language questions, utilities, polyfills, async basics, and coding problems.",
     file: "javascript-interview-guide.md",
+  },
+  {
+    slug: "javascript-modules-import-export",
+    title: "JavaScript Modules",
+    category: "JavaScript",
+    trackSlug: "javascript",
+    trackTitle: "JavaScript",
+    subtopicTitle: "Modules, Import & Export",
+    description:
+      "ES modules, CommonJS comparison, import/export syntax, named and default exports, dynamic imports, module scope, and practical module decisions.",
+    file: "javascript-modules-import-export-guide.md",
   },
   {
     slug: "javascript-promises-async",
@@ -297,14 +308,20 @@ export function getDifficulty(topicSlug: string, number: number): Difficulty {
   }
 
   if (topicSlug === "nodejs-backend") {
-    if (number <= 18) return "beginner";
-    if (number <= 40) return "intermediate";
+    if (number <= 20) return "beginner";
+    if (number <= 48) return "intermediate";
     return "senior";
   }
 
   if (topicSlug === "nodejs-event-loop-runtime") {
-    if (number <= 6) return "beginner";
-    if (number <= 14) return "intermediate";
+    if (number <= 7) return "beginner";
+    if (number <= 17) return "intermediate";
+    return "senior";
+  }
+
+  if (topicSlug === "javascript-modules-import-export") {
+    if (number <= 4) return "beginner";
+    if (number <= 8) return "intermediate";
     return "senior";
   }
 

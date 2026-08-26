@@ -38,8 +38,9 @@ CLAUDE.md                Symlink to AGENTS.md
 
 ## Current Tracks And Subtopics
 
-- Backend: Fundamentals & APIs, Node.js Interview Set
-- JavaScript: Language Fundamentals, Promises & Async, Event Loop & Runtime, this & Functions, Prototypes & Objects, Collections & Iteration, Scope, Hoisting & Closures, Types, Equality & Copying
+- Backend: Fundamentals & APIs, API Optimization & Database Performance
+- Node.js: Fundamentals, Modules & APIs, Event Loop & Async Runtime
+- JavaScript: Language Fundamentals, Modules, Import & Export, Promises & Async, Event Loop & Runtime, this & Functions, Prototypes & Objects, Map, Object & Set, Loops & Array Methods, Scope, Hoisting & Closures, Types, Equality & Copying
 - React: Basics & Next.js, Performance Optimization, Machine Coding Practice
 - System Design: Microservices & Scalability
 - DevOps & Infrastructure: Docker & Kubernetes, Nginx & Web
