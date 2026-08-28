@@ -189,6 +189,50 @@ export const topics: Topic[] = [
     file: "typescript-react-architecture-guide.md",
   },
   {
+    slug: "react-core-through-17",
+    title: "React Core Concepts",
+    category: "React Core",
+    trackSlug: "react",
+    trackTitle: "React",
+    subtopicTitle: "Core Concepts Through 17",
+    description:
+      "Components, JSX, props, state, forms, lifecycle, composition, Context, refs, portals, error boundaries, HOCs, render props, and hooks.",
+    file: "react-core-through-17-guide.md",
+  },
+  {
+    slug: "react-18-features",
+    title: "React 18 Features",
+    category: "React 18",
+    trackSlug: "react",
+    trackTitle: "React",
+    subtopicTitle: "React 18 Features",
+    description:
+      "Concurrent rendering, automatic batching, transitions, deferred values, Suspense streaming, and new root APIs.",
+    file: "react-18-features-guide.md",
+  },
+  {
+    slug: "react-19-features",
+    title: "React 19 Features",
+    category: "React 19",
+    trackSlug: "react",
+    trackTitle: "React",
+    subtopicTitle: "React 19 Features",
+    description:
+      "Actions, form hooks, use, optimistic UI, Server Components, Server Functions, refs, metadata, assets, and React 19.2.",
+    file: "react-19-features-guide.md",
+  },
+  {
+    slug: "react-compiler",
+    title: "React Compiler",
+    category: "React Compiler",
+    trackSlug: "react",
+    trackTitle: "React",
+    subtopicTitle: "React Compiler",
+    description:
+      "Automatic memoization, compiler-friendly code, lint feedback, Next.js setup, annotations, and gradual adoption.",
+    file: "react-compiler-guide.md",
+  },
+  {
     slug: "react-performance",
     title: "React Performance",
     category: "React Performance",
@@ -356,6 +400,30 @@ export function getDifficulty(topicSlug: string, number: number): Difficulty {
   if (topicSlug === "frontend-react-next") {
     if (number <= 6) return "beginner";
     if (number <= 14) return "intermediate";
+    return "senior";
+  }
+
+  if (topicSlug === "react-core-through-17") {
+    if (number <= 12) return "beginner";
+    if (number <= 27) return "intermediate";
+    return "senior";
+  }
+
+  if (topicSlug === "react-18-features") {
+    if (number <= 4) return "beginner";
+    if (number <= 10) return "intermediate";
+    return "senior";
+  }
+
+  if (topicSlug === "react-19-features") {
+    if (number <= 5) return "beginner";
+    if (number <= 14) return "intermediate";
+    return "senior";
+  }
+
+  if (topicSlug === "react-compiler") {
+    if (number <= 3) return "beginner";
+    if (number <= 8) return "intermediate";
     return "senior";
   }
 
