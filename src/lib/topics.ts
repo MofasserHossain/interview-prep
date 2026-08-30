@@ -244,6 +244,17 @@ export const topics: Topic[] = [
     file: "react-performance-interview-guide.md",
   },
   {
+    slug: "senior-frontend-react-scenarios",
+    title: "Senior Frontend Scenarios",
+    category: "Senior Frontend",
+    trackSlug: "react",
+    trackTitle: "React",
+    subtopicTitle: "Senior Frontend Scenarios",
+    description:
+      "Scenario-driven senior frontend practice for React performance, architecture, micro frontends, CI/CD, migration, and production ownership.",
+    file: "senior-frontend-react-scenarios-guide.md",
+  },
+  {
     slug: "machine-coding",
     title: "Machine Coding",
     category: "Machine Coding",
@@ -430,6 +441,10 @@ export function getDifficulty(topicSlug: string, number: number): Difficulty {
   if (topicSlug === "react-performance") {
     if (number <= 7) return "beginner";
     if (number <= 22) return "intermediate";
+    return "senior";
+  }
+
+  if (topicSlug === "senior-frontend-react-scenarios") {
     return "senior";
   }
 

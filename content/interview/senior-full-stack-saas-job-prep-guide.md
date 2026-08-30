@@ -335,6 +335,32 @@ Strong closing answer:
 > typed React features, reliable REST APIs, SQL performance, AWS deployment,
 > event-driven workflows, and observability.
 
+## 13. Which Tricky Senior Frontend Scenarios Should You Practice For This Job?
+
+Practice scenario questions that test judgment, not only API memory.
+
+Use the dedicated [Senior Frontend Scenarios](/topics/senior-frontend-react-scenarios)
+guide for detailed answers.
+
+High-value prompts:
+
+| Scenario | What it tests |
+| --- | --- |
+| A long React list updates one item. How do you avoid re-rendering every row? | Reconciliation, stable keys, immutable updates, memoized rows, virtualization. |
+| A page becomes slow after adding API-driven components. How do you find the bottleneck? | Profiling, network waterfall, React Profiler, Web Vitals, evidence-based debugging. |
+| `useMemo` and `useCallback` are used everywhere but the app is still slow. What do you do? | Memoization tradeoffs, state ownership, measuring before optimizing. |
+| Multiple teams want different frontend architectures. How do you decide? | Tradeoff analysis, ADRs, proof of concept, team alignment. |
+| A micro frontend fails to load in production. What should the shell do? | Fallback UX, runtime contracts, monitoring, rollback. |
+| A frontend release hurts Core Web Vitals. What is your incident response? | User impact, rollback, feature flags, telemetry, root-cause follow-up. |
+| A legacy React app must migrate while features continue. What is the plan? | Incremental migration, adapters, vertical slices, risk control. |
+| Five to ten teams work in the same product. How do you keep quality consistent? | Design system governance, CI/CD, ownership boundaries, standards. |
+
+Strong answer:
+
+> I would prepare senior frontend scenarios the same way I prepare system
+> design: start with impact, gather evidence, explain tradeoffs, choose a safe
+> rollout, and define how success will be measured.
+
 ## Sources Used
 
 - <https://docs.aws.amazon.com/wellarchitected/latest/operational-excellence-pillar/welcome.html>

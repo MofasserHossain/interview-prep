@@ -104,6 +104,7 @@ const topicIcons = {
   "react-18-features": Workflow,
   "react-19-features": Component,
   "react-compiler": Zap,
+  "senior-frontend-react-scenarios": Workflow,
   "machine-coding": CodeXml,
   "system-design-microservices": Workflow,
   "devops-docker-kubernetes": Container,
