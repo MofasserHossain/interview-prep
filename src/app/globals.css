@@ -2059,8 +2059,12 @@ h2 {
   overscroll-behavior: contain;
   padding: 0 8px 20px 20px;
   border-left: 1px solid var(--border);
-  scrollbar-gutter: stable;
-  scrollbar-width: thin;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.toc-panel::-webkit-scrollbar {
+  display: none;
 }
 
 .toc-list {
