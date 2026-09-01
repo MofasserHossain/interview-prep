@@ -52,6 +52,17 @@ type TrackSummary = {
   topics: TopicSummary[];
 };
 
+type TocGroup = {
+  children: Question[];
+  overview?: Question;
+  title: string;
+};
+
+type GroupedToc = {
+  groups: TocGroup[];
+  standalone: Question[];
+};
+
 const trackOrder = [
   "role-prep",
   "backend",
@@ -107,6 +118,7 @@ const topicIcons = {
   "senior-frontend-react-scenarios": Workflow,
   "machine-coding": CodeXml,
   "system-design-microservices": Workflow,
+  "design-patterns": Blocks,
   "devops-docker-kubernetes": Container,
   "aws-saas-observability": Workflow,
   "nginx-web-infrastructure": Router,
@@ -652,20 +664,73 @@ function QuestionToc({
   questions: Question[];
   selectedQuestionId?: string;
 }) {
+  const groupedToc = getGroupedToc(questions);
+
   return (
     <aside className="toc-panel" aria-label="Sections in this document">
-      {questions.length ? (
+      {groupedToc ? (
+        <div className="toc-list grouped">
+          {groupedToc.standalone.map((question) => (
+            <TocButton
+              key={question.id}
+              onSelectQuestion={onSelectQuestion}
+              question={question}
+              selected={selectedQuestionId === question.id}
+            />
+          ))}
+
+          {groupedToc.groups.map((group) => {
+            const groupActive =
+              group.overview?.id === selectedQuestionId ||
+              group.children.some((question) => question.id === selectedQuestionId);
+
+            return (
+              <div className={groupActive ? "toc-group active" : "toc-group"} key={group.title}>
+                {group.overview ? (
+                  <button
+                    className={
+                      selectedQuestionId === group.overview.id
+                        ? "toc-group-button active"
+                        : "toc-group-button"
+                    }
+                    data-question-id={group.overview.id}
+                    onClick={() => onSelectQuestion(group.overview!.id)}
+                    type="button"
+                  >
+                    <strong>{group.title}</strong>
+                    <small>{group.children.length} patterns</small>
+                  </button>
+                ) : (
+                  <div className="toc-group-label">
+                    <strong>{group.title}</strong>
+                    <small>{group.children.length} patterns</small>
+                  </div>
+                )}
+
+                <div className="toc-sublist">
+                  {group.children.map((question) => (
+                    <TocButton
+                      child
+                      key={question.id}
+                      onSelectQuestion={onSelectQuestion}
+                      question={question}
+                      selected={selectedQuestionId === question.id}
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : questions.length ? (
         <div className="toc-list">
           {questions.map((question) => (
-            <button
-              className={selectedQuestionId === question.id ? "active" : ""}
-              data-question-id={question.id}
+            <TocButton
               key={question.id}
-              onClick={() => onSelectQuestion(question.id)}
-              type="button"
-            >
-              <strong>{question.question}</strong>
-            </button>
+              onSelectQuestion={onSelectQuestion}
+              question={question}
+              selected={selectedQuestionId === question.id}
+            />
           ))}
         </div>
       ) : (
@@ -673,6 +738,72 @@ function QuestionToc({
       )}
     </aside>
   );
+}
+
+function TocButton({
+  child = false,
+  onSelectQuestion,
+  question,
+  selected,
+}: {
+  child?: boolean;
+  onSelectQuestion: (questionId: string) => void;
+  question: Question;
+  selected: boolean;
+}) {
+  return (
+    <button
+      className={[selected ? "active" : "", child ? "toc-child-button" : ""]
+        .filter(Boolean)
+        .join(" ")}
+      data-question-id={question.id}
+      onClick={() => onSelectQuestion(question.id)}
+      type="button"
+    >
+      <strong>{question.question}</strong>
+    </button>
+  );
+}
+
+function getGroupedToc(questions: Question[]): GroupedToc | undefined {
+  if (
+    !questions.length ||
+    !questions.every((question) => question.topicSlug === "design-patterns")
+  ) {
+    return undefined;
+  }
+
+  const byNumber = new Map(questions.map((question) => [question.number, question]));
+  const groups = [
+    {
+      numbers: [3, 4, 5, 6, 7],
+      overviewNumber: 2,
+      title: "Creational Patterns",
+    },
+    {
+      numbers: [9, 10, 11, 12, 13, 14, 15],
+      overviewNumber: 8,
+      title: "Structural Patterns",
+    },
+    {
+      numbers: [17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27],
+      overviewNumber: 16,
+      title: "Behavioral Patterns",
+    },
+  ]
+    .map((group) => ({
+      children: group.numbers
+        .map((number) => byNumber.get(number))
+        .filter((question): question is Question => Boolean(question)),
+      overview: byNumber.get(group.overviewNumber),
+      title: group.title,
+    }))
+    .filter((group) => group.overview || group.children.length);
+
+  return {
+    groups,
+    standalone: questions.filter((question) => question.number === 1),
+  };
 }
 
 function DocumentDetail({

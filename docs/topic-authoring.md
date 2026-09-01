@@ -76,6 +76,7 @@ For example, a Promise topic should cover:
 ## Suggested Future Topic Files
 
 - `system-design-microservices-guide.md`
+- `design-patterns-guide.md`
 - `devops-docker-kubernetes-guide.md`
 - `nginx-web-infrastructure-guide.md`
 - `dotnet-csharp-interview-guide.md`

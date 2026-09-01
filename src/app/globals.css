@@ -2066,6 +2066,10 @@ h2 {
   margin-top: 0;
 }
 
+.toc-list.grouped {
+  gap: 8px;
+}
+
 .toc-list button {
   display: block;
   width: 100%;
@@ -2109,6 +2113,63 @@ h2 {
 
 .toc-list button.active strong {
   font-weight: 540;
+}
+
+.toc-group {
+  display: grid;
+  gap: 1px;
+}
+
+.toc-group-button,
+.toc-group-label {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.toc-group-button small,
+.toc-group-label small {
+  flex: 0 0 auto;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 520;
+}
+
+.toc-group-label {
+  padding: 7px 9px;
+  color: var(--text-muted);
+}
+
+.toc-group-label strong {
+  overflow: hidden;
+  font-size: 0.76rem;
+  font-weight: 560;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.toc-group.active .toc-group-button,
+.toc-group.active .toc-group-label {
+  color: var(--text);
+}
+
+.toc-sublist {
+  display: grid;
+  gap: 1px;
+  margin-left: 10px;
+  padding-left: 10px;
+  border-left: 1px solid var(--border);
+}
+
+.toc-list button.toc-child-button {
+  padding-block: 6px;
+  padding-left: 10px;
+}
+
+.toc-list button.toc-child-button strong {
+  font-size: 0.73rem;
 }
 
 @media (prefers-reduced-motion: reduce) {

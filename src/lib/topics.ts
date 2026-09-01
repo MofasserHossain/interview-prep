@@ -277,6 +277,17 @@ export const topics: Topic[] = [
     file: "system-design-microservices-guide.md",
   },
   {
+    slug: "design-patterns",
+    title: "Design Patterns",
+    category: "System Design",
+    trackSlug: "system-design",
+    trackTitle: "System Design",
+    subtopicTitle: "Design Patterns",
+    description:
+      "Classic creational, structural, and behavioral design patterns with bad and good class examples, problems, fixes, and tradeoffs.",
+    file: "design-patterns-guide.md",
+  },
+  {
     slug: "devops-docker-kubernetes",
     title: "DevOps, Docker, Kubernetes",
     category: "DevOps",
@@ -479,6 +490,12 @@ export function getDifficulty(topicSlug: string, number: number): Difficulty {
   if (expansionTopics.has(topicSlug)) {
     if (number <= 2) return "beginner";
     if (number <= 4) return "intermediate";
+    return "senior";
+  }
+
+  if (topicSlug === "design-patterns") {
+    if (number <= 7) return "beginner";
+    if (number <= 15) return "intermediate";
     return "senior";
   }
 
