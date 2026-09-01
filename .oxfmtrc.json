@@ -1,4 +1,11 @@
 {
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
-  "ignorePatterns": ["content/interview/**", ".next/**", "node_modules/**"]
+  "bracketSpacing": true,
+  "endOfLine": "lf",
+  "ignorePatterns": [".next/**", "**/dist/**", "**/node_modules/**", "content/interview/**"],
+  "insertFinalNewline": true,
+  "printWidth": 100,
+  "semi": true,
+  "singleQuote": false,
+  "trailingComma": "all"
 }

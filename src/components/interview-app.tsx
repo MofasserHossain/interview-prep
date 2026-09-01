@@ -218,14 +218,8 @@ export function InterviewApp({ activeTopicSlug = "", initialData }: InterviewApp
     activeTopicIndex >= 0 && activeTopicIndex < orderedTopics.length - 1
       ? orderedTopics[activeTopicIndex + 1]
       : undefined;
-  const [expandedTracks, setExpandedTracks] = useState<Set<string>>(
-    () => new Set(activeTrack ? [activeTrack] : []),
-  );
-  const [selectedQuestionId, setSelectedQuestionId] = useState(
-    activeTopicSlug
-      ? getFirstQuestionId(initialData.questions, activeTopicSlug)
-      : (initialData.questions[0]?.id ?? ""),
-  );
+  const [expandedTracks, setExpandedTracks] = useState<Set<string>>(() => new Set());
+  const [selectedQuestionId, setSelectedQuestionId] = useState("");
 
   const filteredQuestions = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -256,33 +250,11 @@ export function InterviewApp({ activeTopicSlug = "", initialData }: InterviewApp
     ? ["Docs", activeTopicSummary.trackTitle, activeTopicSummary.subtopicTitle]
     : ["Docs"];
   const showOverview = !activeTopicSlug && !query.trim();
-
-  useEffect(() => {
-    if (!activeTrack) {
-      setExpandedTracks(new Set());
-      return;
-    }
-
-    setExpandedTracks((current) => new Set(current).add(activeTrack));
-  }, [activeTrack]);
-
-  useEffect(() => {
-    setSelectedQuestionId(
-      activeTopicSlug
-        ? getFirstQuestionId(initialData.questions, activeTopicSlug)
-        : (initialData.questions[0]?.id ?? ""),
-    );
-    document.querySelector<HTMLElement>(".workspace")?.scrollTo({ top: 0 });
-  }, [activeTopicSlug, initialData.questions]);
-
-  useEffect(() => {
-    if (!filteredQuestions.length) return;
-    if (filteredQuestions.some((question) => question.id === selectedQuestionId)) {
-      return;
-    }
-
-    setSelectedQuestionId(filteredQuestions[0].id);
-  }, [filteredQuestions, selectedQuestionId]);
+  const visibleSelectedQuestionId = filteredQuestions.some(
+    (question) => question.id === selectedQuestionId,
+  )
+    ? selectedQuestionId
+    : (filteredQuestions[0]?.id ?? "");
 
   useEffect(() => {
     if (!filteredQuestions.length || showOverview) return;
@@ -381,7 +353,7 @@ export function InterviewApp({ activeTopicSlug = "", initialData }: InterviewApp
         <nav className="topic-menu" aria-label="Topic menu">
           {tracks.map((track) => {
             const isActiveTrack = activeTrack === track.slug;
-            const isExpanded = expandedTracks.has(track.slug);
+            const isExpanded = isActiveTrack || expandedTracks.has(track.slug);
 
             return (
               <div
@@ -429,7 +401,7 @@ export function InterviewApp({ activeTopicSlug = "", initialData }: InterviewApp
         </nav>
       </aside>
 
-      <section className="workspace">
+      <section className="workspace" key={activeTopicSlug || "overview"}>
         <header className="workspace-header">
           <div className="topbar">
             <nav className="workspace-path" aria-label="Current docs path">
@@ -484,7 +456,7 @@ export function InterviewApp({ activeTopicSlug = "", initialData }: InterviewApp
               <QuestionToc
                 onSelectQuestion={selectQuestion}
                 questions={filteredQuestions}
-                selectedQuestionId={selectedQuestionId}
+                selectedQuestionId={visibleSelectedQuestionId}
               />
             </section>
           )}
@@ -515,10 +487,6 @@ function buildTrackSummaries(topics: TopicSummary[]) {
   return Array.from(byTrack.values()).sort(
     (first, second) => trackOrder.indexOf(first.slug) - trackOrder.indexOf(second.slug),
   );
-}
-
-function getFirstQuestionId(questions: Question[], topicSlug: string) {
-  return questions.find((question) => question.topicSlug === topicSlug)?.id ?? "";
 }
 
 type WorkspaceErrorBoundaryProps = {
