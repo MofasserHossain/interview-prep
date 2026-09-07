@@ -244,6 +244,17 @@ export const topics: Topic[] = [
     file: "react-performance-interview-guide.md",
   },
   {
+    slug: "react-bundle-optimization",
+    title: "React Bundle Optimization",
+    category: "React Bundle Optimization",
+    trackSlug: "react",
+    trackTitle: "React",
+    subtopicTitle: "Bundle Optimization",
+    description:
+      "Bundle analysis, webpack, Vite, code splitting, dynamic imports, tree shaking, third-party dependencies, source maps, caching, and production builds.",
+    file: "react-bundle-optimization-guide.md",
+  },
+  {
     slug: "senior-frontend-react-scenarios",
     title: "Senior Frontend Scenarios",
     category: "Senior Frontend",
@@ -452,6 +463,12 @@ export function getDifficulty(topicSlug: string, number: number): Difficulty {
   if (topicSlug === "react-performance") {
     if (number <= 7) return "beginner";
     if (number <= 22) return "intermediate";
+    return "senior";
+  }
+
+  if (topicSlug === "react-bundle-optimization") {
+    if (number <= 1) return "beginner";
+    if (number <= 4) return "intermediate";
     return "senior";
   }
 
