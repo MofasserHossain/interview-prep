@@ -266,6 +266,17 @@ export const topics: Topic[] = [
     file: "machine-coding-interview-guide.md",
   },
   {
+    slug: "ai-frontend-engineering",
+    title: "AI Frontend Engineering",
+    category: "AI Frontend",
+    trackSlug: "ai-engineering",
+    trackTitle: "AI Engineering",
+    subtopicTitle: "Frontend AI Apps",
+    description:
+      "Frontend interview scenarios for LLM chat, streaming UI, race conditions, agent tool state, RAG citations, AI app security, testing, and observability.",
+    file: "ai-frontend-engineering-guide.md",
+  },
+  {
     slug: "system-design-microservices",
     title: "System Design & Microservices",
     category: "System Design",
@@ -275,6 +286,39 @@ export const topics: Topic[] = [
     description:
       "Scalability, service boundaries, communication, consistency, reliability, and distributed-system tradeoffs.",
     file: "system-design-microservices-guide.md",
+  },
+  {
+    slug: "kafka-event-streaming",
+    title: "Kafka Event Streaming",
+    category: "Kafka",
+    trackSlug: "system-design",
+    trackTitle: "System Design",
+    subtopicTitle: "Kafka & Event Streaming",
+    description:
+      "Kafka producers, consumers, topics, partitions, offsets, consumer groups, delivery guarantees, replication, Spring Kafka, retries, DLTs, ordering, and scaling.",
+    file: "kafka-event-streaming-guide.md",
+  },
+  {
+    slug: "rabbitmq-message-broker",
+    title: "RabbitMQ Message Broker",
+    category: "RabbitMQ",
+    trackSlug: "system-design",
+    trackTitle: "System Design",
+    subtopicTitle: "RabbitMQ Queues & Exchanges",
+    description:
+      "RabbitMQ exchanges, queues, bindings, acknowledgements, publisher confirms, DLX, retries, quorum queues, streams, ordering, scaling, and production tradeoffs.",
+    file: "rabbitmq-message-broker-guide.md",
+  },
+  {
+    slug: "mqtt-iot-messaging",
+    title: "MQTT IoT Messaging",
+    category: "MQTT",
+    trackSlug: "system-design",
+    trackTitle: "System Design",
+    subtopicTitle: "MQTT IoT Messaging",
+    description:
+      "MQTT brokers, topics, QoS levels, retained messages, last will, persistent sessions, shared subscriptions, flow control, security, and IoT architecture.",
+    file: "mqtt-iot-messaging-guide.md",
   },
   {
     slug: "design-patterns",
@@ -459,6 +503,12 @@ export function getDifficulty(topicSlug: string, number: number): Difficulty {
     return "senior";
   }
 
+  if (topicSlug === "ai-frontend-engineering") {
+    if (number <= 2) return "beginner";
+    if (number <= 6) return "intermediate";
+    return "senior";
+  }
+
   const seniorJobTopics = new Set([
     "senior-full-stack-saas-job-prep",
     "typescript-react-architecture",
@@ -474,6 +524,18 @@ export function getDifficulty(topicSlug: string, number: number): Difficulty {
   if (topicSlug === "senior-api-database-performance") {
     if (number <= 4) return "beginner";
     if (number <= 10) return "intermediate";
+    return "senior";
+  }
+
+  const messagingTopics = new Set([
+    "kafka-event-streaming",
+    "rabbitmq-message-broker",
+    "mqtt-iot-messaging",
+  ]);
+
+  if (messagingTopics.has(topicSlug)) {
+    if (number <= 8) return "beginner";
+    if (number <= 18) return "intermediate";
     return "senior";
   }
 
