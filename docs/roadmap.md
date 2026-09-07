@@ -10,20 +10,16 @@
 - Backend submenus for fundamentals and API/database performance
 - Node.js submenus for fundamentals/modules/APIs and event loop/runtime details
 - React topics grouped under multiple subtopics, including basics, performance optimization, and machine-coding practice
+- System Design messaging topics cover Kafka, RabbitMQ, and MQTT with broker, queue, stream, delivery, retry, and operations concepts
 - JavaScript submenus split into language fundamentals, modules/import/export, promises and async, event loop/runtime, `this` and functions, prototypes and objects, map/object/set, loops/array methods, scope/hoisting/closures, and types/equality/copying
 
 ## Next Content Areas
 
-1. System design and distributed systems
-2. Microservices and API architecture
-3. DevOps, Docker, Kubernetes, and CI/CD
-4. Nginx and web infrastructure
-5. .NET and C#
-6. Python, Django, FastAPI, and Flask
-7. Mobile and React Native
-8. Frontend architecture and micro frontends
-9. Data structures and algorithms
-10. Testing, accessibility, security, and observability
+1. Data structures and algorithms
+2. Testing, accessibility, security, and observability
+3. AI backend engineering and LLM application architecture
+4. Advanced system design case studies
+5. Cloud-native deployment and incident response scenarios
 
 ## Later App Features
 
