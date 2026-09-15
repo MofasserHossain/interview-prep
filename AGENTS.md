@@ -29,8 +29,6 @@ parses those docs and turns numbered `##` sections into questions.
 - `docs/` contains project guidance, authoring rules, and topic planning.
 - `src/lib/content.ts` parses Markdown into app data.
 - `src/lib/topics.ts` is the topic registry. Add new content files there.
-- `.conductor/` contains setup, run, check, build, and archive commands for
-  parallel Conductor workspaces.
 
 ## Adding A New Topic
 
@@ -92,19 +90,6 @@ npm run build
 ```
 
 Use `npm run format` for code formatting and `npm run format:check` in review.
-
-## Conductor Workflow
-
-Use the `.conductor` scripts:
-
-- setup: `bash ./.conductor/setup.sh`
-- web: `bash ./.conductor/run.sh web`
-- check: `bash ./.conductor/run.sh check`
-- build: `bash ./.conductor/run.sh build`
-- archive: `bash ./.conductor/archive.sh`
-
-The run script uses `CONDUCTOR_PORT` when available so multiple workspaces can
-run side by side.
 
 ## Editing Rules
 
