@@ -45,6 +45,9 @@
   --text-subtle: oklch(0.34 0 0);
   --border-strong: oklch(0.58 0 0);
   --shadow: 0 18px 50px rgb(0 0 0 / 0.055);
+  --shell-header-height: 72px;
+  --sidebar-x-padding: 13px;
+  --workspace-x-padding: 32px;
 }
 
 * {
@@ -1150,12 +1153,13 @@ h2 {
 }
 
 .sidebar {
-  gap: 14px;
-  padding: 18px 13px 24px;
+  gap: 0;
+  padding: 0;
 }
 
 .sidebar .brand-block {
-  padding: 4px 8px 12px;
+  min-height: var(--shell-header-height);
+  padding: 0 calc(var(--sidebar-x-padding) + 8px);
   border-bottom: 1px solid var(--border);
 }
 
@@ -1175,12 +1179,12 @@ h2 {
 }
 
 .sidebar .brand-icon {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
 }
 
 .sidebar h1 {
-  font-size: 1.08rem;
+  font-size: 1rem;
 }
 
 .sidebar .topic-icon {
@@ -1193,6 +1197,7 @@ h2 {
 
 .topic-menu {
   gap: 2px;
+  padding: 14px var(--sidebar-x-padding) 24px;
 }
 
 .menu-row {
@@ -1279,7 +1284,7 @@ h2 {
 .workspace {
   gap: 0;
   overflow-y: auto;
-  padding: 0 32px 72px;
+  padding: 0 0 72px;
   scrollbar-gutter: stable;
 }
 
@@ -1287,7 +1292,9 @@ h2 {
   position: sticky;
   top: 0;
   z-index: 20;
-  padding: 14px 0;
+  min-height: var(--shell-header-height);
+  align-items: center;
+  padding: 0 var(--workspace-x-padding);
   border-bottom: 1px solid var(--border);
   background: color-mix(in srgb, var(--background), transparent 6%);
   backdrop-filter: blur(14px);
@@ -1352,7 +1359,7 @@ h2 {
   width: 100%;
   margin: 0;
   overflow: visible;
-  padding: 42px 0 0;
+  padding: 42px var(--workspace-x-padding) 0;
 }
 
 .docs-index-page {
@@ -1534,7 +1541,7 @@ h2 {
   width: 100%;
   margin: 0;
   overflow: visible;
-  padding: 42px 0 0;
+  padding: 42px var(--workspace-x-padding) 0;
 }
 
 .doc-layout .detail-panel {
@@ -2322,12 +2329,14 @@ h2 {
   }
 
   .sidebar .brand-block {
+    min-height: 0;
     padding: 4px 6px 12px;
   }
 
   .topic-menu {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 6px;
+    padding: 0;
   }
 
   .menu-group {
@@ -2366,7 +2375,13 @@ h2 {
   }
 
   .workspace-header {
+    min-height: 0;
     padding: 12px 0;
+  }
+
+  .topic-overview,
+  .doc-layout {
+    padding-inline: 0;
   }
 
   .topic-overview {
