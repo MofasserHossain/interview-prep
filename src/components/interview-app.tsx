@@ -350,10 +350,9 @@ export function InterviewApp({ activeTopicSlug = "", initialData }: InterviewApp
       <aside className="sidebar">
         <Link className="brand-block brand-button" href="/" onClick={resetSearch}>
           <div className="brand-icon" aria-hidden="true">
-            <BookOpen size={22} />
+            <BookOpen size={20} />
           </div>
           <div>
-            <p className="eyebrow">Interview Prep</p>
             <h1>Docs Library</h1>
           </div>
         </Link>

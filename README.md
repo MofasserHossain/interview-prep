@@ -20,7 +20,6 @@ optimization, and machine-coding practice.
 - Oxlint for linting
 - oxfmt for formatting
 - Knip for dead-code and dependency checks
-- Conductor scripts for parallel workspace setup/run/check/build/archive
 
 ## Project Structure
 
@@ -30,7 +29,6 @@ src/components/          App UI and shadcn components
 src/lib/                 Content parser, topic registry, shared types
 content/interview/       Markdown interview guides
 docs/                    Authoring guidance and roadmap
-.conductor/              Conductor setup, run, check, build, archive scripts
 .agents/                 Agent behavior guidance
 AGENTS.md                Repository guidance for coding agents
 CLAUDE.md                Symlink to AGENTS.md
@@ -83,21 +81,6 @@ Format files:
 ```bash
 npm run format
 ```
-
-## Conductor
-
-The repo includes Conductor scripts for parallel workspaces.
-
-```bash
-bash ./.conductor/setup.sh
-bash ./.conductor/run.sh web
-bash ./.conductor/run.sh check
-bash ./.conductor/run.sh build
-bash ./.conductor/archive.sh
-```
-
-The web script uses `CONDUCTOR_PORT` when Conductor provides one, so multiple
-workspaces can run side by side.
 
 ## Adding A Topic
 
