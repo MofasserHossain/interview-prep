@@ -13,8 +13,7 @@ optimization, and machine-coding practice.
 - Next.js App Router
 - React
 - TypeScript
-- Tailwind CSS v4
-- shadcn-compatible component setup
+- Hand-written CSS with semantic class names
 - lucide-react icons
 - Markdown rendering with `react-markdown` and `remark-gfm`
 - Oxlint for linting
@@ -25,7 +24,7 @@ optimization, and machine-coding practice.
 
 ```txt
 src/app/                 Next.js routes and global styles
-src/components/          App UI and shadcn components
+src/components/          App UI, one component per file
 src/lib/                 Content parser, topic registry, shared types
 content/interview/       Markdown interview guides
 docs/                    Authoring guidance and roadmap

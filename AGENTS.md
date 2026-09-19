@@ -23,8 +23,13 @@ parses those docs and turns numbered `##` sections into questions.
 
 - `src/app/` contains the Next.js App Router shell.
 - `src/components/` contains reusable UI and feature components.
-- `src/components/ui/` is managed by shadcn. Keep local wrappers compatible with
-  shadcn conventions.
+- `src/components/` holds one component per file: `interview-app.tsx` is the
+  shell; `topic-sidebar` concerns live in it, while `topic-overview.tsx`,
+  `document-detail.tsx`, `question-toc.tsx`, `code-block.tsx`,
+  `markdown-content.tsx`, `topic-icon.tsx`, and `workspace-error-boundary.tsx`
+  are the pieces it composes.
+- `src/lib/tracks.ts` groups topics into sidebar tracks. `src/lib/react-text.ts`
+  holds ReactNode text helpers shared by the markdown and code renderers.
 - `content/interview/` contains topic Markdown files.
 - `docs/` contains project guidance, authoring rules, and topic planning.
 - `src/lib/content.ts` parses Markdown into app data.
@@ -50,11 +55,39 @@ parses those docs and turns numbered `##` sections into questions.
    ```
 
 3. Register the file in `src/lib/topics.ts`.
-4. Assign a clear category, slug, description, and accent color.
+4. Assign a clear category, slug, description, and track metadata.
 5. Run `npm run check` and `npm run build`.
 
 Do not hard-code questions inside React components. Content belongs in
 Markdown unless the feature is truly app behavior.
+
+## Adding A Study Callout Type
+
+Callouts like `Benefits:` or `Interview Note:` are data, not code. Add one entry
+to `studyBlockDefinitions` in `src/lib/study-blocks.ts`:
+
+```ts
+{ match: "gotcha", title: "Gotcha", variant: "important" }
+```
+
+`match` is the lowercased paragraph text (a trailing `:` is optional in the
+Markdown). Use `aliases` for alternate spellings. `variant` must be one of
+`StudyBlockVariant`, and each variant needs a `.study-section-label.<variant>`
+rule in `src/app/globals.css`.
+
+## Adding A Document Section Type
+
+Sections come from `##` headings: numbered ones become `question`, everything
+else becomes `prose`. To add a third kind:
+
+1. Add it to `SectionKind` in `src/lib/types.ts`.
+2. Emit it from `parseTopic` in `src/lib/content.ts`.
+3. Add a renderer in `src/components/content/` taking `SectionRendererProps`.
+4. Register it in `sectionRenderers` in `content/document-section.tsx`.
+
+Step 4 is compiler-enforced: `sectionRenderers` is typed
+`Record<Question["kind"], ComponentType<SectionRendererProps>>`, so a missing
+renderer fails `npm run typecheck`.
 
 ## Content Quality
 
@@ -73,7 +106,9 @@ only when they clarify the concept.
 
 - Build the actual question-bank workflow first, not a marketing landing page.
 - Keep the interface dense, scannable, and useful for repeated study.
-- Use shadcn/Tailwind-compatible patterns for new UI.
+- Styling is hand-written CSS in `src/app/globals.css` using semantic class
+  names. There is no Tailwind or shadcn in this project; do not add utility
+  classes.
 - Use lucide icons for actions and navigation.
 - Keep cards to individual items, panels, and study surfaces.
 - Preserve mobile usability. Text must not overlap or overflow controls.

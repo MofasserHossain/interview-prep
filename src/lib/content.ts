@@ -1,9 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
-import { topics, getDifficulty } from "@/lib/topics";
+import { topics } from "@/lib/topics";
 import type { InterviewData, Question, Topic } from "@/lib/types";
 
 const contentDirectory = path.join(process.cwd(), "content", "interview");
+
+const skippedSections = new Set(["sources used"]);
 
 const keywordTags = [
   "actions",
@@ -158,17 +160,28 @@ const keywordTags = [
 
 export function getInterviewData(): InterviewData {
   const questions = topics.flatMap((topic) => parseTopic(topic));
-  const summaries = topics.map((topic) => {
-    const topicQuestions = questions.filter((question) => question.topicSlug === topic.slug);
+  const sectionsByTopic = new Map<string, Question[]>();
 
-    return {
-      ...topic,
-      questionCount: topicQuestions.length,
-      readingMinutes: topicQuestions.reduce(
-        (total, question) => total + question.readingMinutes,
-        0,
-      ),
-    };
+  for (const question of questions) {
+    const sections = sectionsByTopic.get(question.topicSlug);
+
+    if (sections) {
+      sections.push(question);
+    } else {
+      sectionsByTopic.set(question.topicSlug, [question]);
+    }
+  }
+
+  const summaries = topics.map((topic) => {
+    let questionCount = 0;
+    let readingMinutes = 0;
+
+    for (const section of sectionsByTopic.get(topic.slug) ?? []) {
+      if (section.kind === "question") questionCount += 1;
+      readingMinutes += section.readingMinutes;
+    }
+
+    return Object.assign({}, topic, { questionCount, readingMinutes });
   });
 
   return {
@@ -181,40 +194,69 @@ function parseTopic(topic: Topic): Question[] {
   const filePath = path.join(contentDirectory, topic.file);
   const markdown = fs.readFileSync(filePath, "utf8");
   const headings = [...markdown.matchAll(/^##\s+(.+)$/gm)];
-  const questions: Question[] = [];
+  const sections: Question[] = [];
 
   headings.forEach((heading, index) => {
     const title = heading[1].trim();
-    const questionMatch = title.match(/^(\d+)\.\s+(.+)$/);
-
-    if (!questionMatch) return;
-
-    const number = Number(questionMatch[1]);
-    const question = normalizeQuestionTitle(questionMatch[2].trim());
     const start = heading.index! + heading[0].length;
     const nextHeading = headings[index + 1];
     const end = nextHeading?.index ?? markdown.length;
     const answer = cleanAnswer(markdown.slice(start, end));
+    const questionMatch = title.match(/^(\d+)\.\s+(.+)$/);
 
-    questions.push({
-      id: `${topic.slug}-${String(number).padStart(3, "0")}`,
-      topicSlug: topic.slug,
-      topicTitle: topic.title,
-      trackSlug: topic.trackSlug,
-      trackTitle: topic.trackTitle,
-      subtopicTitle: topic.subtopicTitle,
-      category: topic.category,
-      difficulty: getDifficulty(topic.slug, number),
-      number,
-      question,
-      answer,
-      excerpt: getExcerpt(answer),
-      tags: getTags(`${question} ${answer}`, topic),
-      readingMinutes: getReadingMinutes(answer),
-    });
+    if (!questionMatch) {
+      if (skippedSections.has(title.toLowerCase())) return;
+
+      sections.push(
+        buildSection(topic, {
+          answer,
+          id: `${topic.slug}-prose-${slugifyTitle(title)}`,
+          kind: "prose",
+          number: 0,
+          question: title,
+        }),
+      );
+
+      return;
+    }
+
+    const number = Number(questionMatch[1]);
+
+    sections.push(
+      buildSection(topic, {
+        answer,
+        id: `${topic.slug}-${String(number).padStart(3, "0")}`,
+        kind: "question",
+        number,
+        question: normalizeQuestionTitle(questionMatch[2].trim()),
+      }),
+    );
   });
 
-  return questions;
+  return sections;
+}
+
+type SectionSeed = Pick<Question, "answer" | "id" | "kind" | "number" | "question">;
+
+function buildSection(topic: Topic, seed: SectionSeed): Question {
+  return {
+    ...seed,
+    topicSlug: topic.slug,
+    topicTitle: topic.title,
+    trackSlug: topic.trackSlug,
+    trackTitle: topic.trackTitle,
+    subtopicTitle: topic.subtopicTitle,
+    category: topic.category,
+    tags: getTags(`${seed.question} ${seed.answer}`, topic),
+    readingMinutes: getReadingMinutes(seed.answer),
+  };
+}
+
+function slugifyTitle(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 function cleanAnswer(value: string) {
@@ -222,15 +264,6 @@ function cleanAnswer(value: string) {
     .replace(/\n-{3,}\s*$/g, "")
     .replace(/\n##\s+Sources Used[\s\S]*$/g, "")
     .trim();
-}
-
-function getExcerpt(answer: string) {
-  return answer
-    .replace(/```[\s\S]*?```/g, " ")
-    .replace(/[#>*_`-]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 190);
 }
 
 function getTags(text: string, topic: Topic) {

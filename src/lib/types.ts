@@ -1,4 +1,4 @@
-export type Difficulty = "beginner" | "intermediate" | "senior" | "mixed";
+type SectionKind = "question" | "prose";
 
 export type Topic = {
   slug: string;
@@ -13,17 +13,16 @@ export type Topic = {
 
 export type Question = {
   id: string;
+  kind: SectionKind;
   topicSlug: string;
   topicTitle: string;
   trackSlug: string;
   trackTitle: string;
   subtopicTitle: string;
   category: string;
-  difficulty: Difficulty;
   number: number;
   question: string;
   answer: string;
-  excerpt: string;
   tags: string[];
   readingMinutes: number;
 };
