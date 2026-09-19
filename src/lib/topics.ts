@@ -62,6 +62,17 @@ export const topics: Topic[] = [
       "Request anatomy, methods, idempotency, status codes, headers, the TLS handshake, certificates, HTTP/1.1 vs 2 vs 3, caching, cookies, CORS, compression, REST vs GraphQL vs gRPC, realtime transports, security headers, and idempotency keys.",
     file: "networking/http-tls-protocols.md",
   },
+  {
+    slug: "api-protocols",
+    title: "API Protocols In Depth",
+    category: "Networking",
+    trackSlug: "networking",
+    trackTitle: "Networking",
+    subtopicTitle: "API Protocols In Depth",
+    description:
+      "REST constraints and the Richardson maturity model, resource design and versioning, SOAP, GraphQL schemas and resolvers, N+1 and DataLoader, GraphQL caching and security, Protocol Buffers, gRPC streaming and deadlines, grpc-web, the WebSocket handshake and frames, WebRTC signalling, tRPC, and safe API evolution.",
+    file: "networking/api-protocols.md",
+  },
 
   // JavaScript
   {
@@ -566,6 +577,39 @@ export const topics: Topic[] = [
     description:
       "Over-the-air updates, app size, build environments, deep links, push notifications, testing, crash reporting, version upgrades, cross-platform gotchas, release-only crashes, and shipping tricks.",
     file: "react-native/production.md",
+  },
+  {
+    slug: "react-native-deep-linking-notifications",
+    title: "React Native Deep Linking & Notifications",
+    category: "React Native",
+    trackSlug: "react-native",
+    trackTitle: "React Native",
+    subtopicTitle: "Deep Linking & Notifications",
+    description:
+      "Custom schemes vs Universal Links and App Links, hosting and debugging the association files, React Navigation linking config, cold vs warm start, deferred deep links, FCM and APNs delivery, notification channels, foreground/background/killed handling, silent push, and permission UX.",
+    file: "react-native/deep-linking-notifications.md",
+  },
+  {
+    slug: "react-native-builds-releases",
+    title: "React Native Builds & Releases",
+    category: "React Native",
+    trackSlug: "react-native",
+    trackTitle: "React Native",
+    subtopicTitle: "Builds, Signing & Store Release",
+    description:
+      "Generating Android and iOS release builds, APK vs AAB vs IPA, keystores and Play App Signing, certificates and provisioning profiles, versioning, flavors and schemes, EAS Build, fastlane, CI/CD, tester distribution, staged rollout, native build failures, and build-time optimization.",
+    file: "react-native/builds-releases.md",
+  },
+  {
+    slug: "react-native-senior-scenarios",
+    title: "React Native Senior Scenarios",
+    category: "React Native",
+    trackSlug: "react-native",
+    trackTitle: "React Native",
+    subtopicTitle: "Senior Scenarios & Architecture",
+    description:
+      "Large-codebase structure, state management choices, writing native modules, brownfield integration, sharing code with web, offline-first sync, background work, permissions, security hardening, white-label builds, feature flags, accessibility, RTL localization, in-app purchases, crash triage, and New Architecture migration.",
+    file: "react-native/senior-scenarios.md",
   },
 
   // AI Engineering

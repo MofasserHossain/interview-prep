@@ -208,6 +208,19 @@ const keywordTags = [
   "proxy",
 ];
 
+/**
+ * The Markdown file's real modification time, used for `lastModified` in the
+ * sitemap and `dateModified` in structured data. Build time would mark every
+ * page as freshly changed on every deploy, which is a false signal.
+ */
+export function getTopicLastModified(file: string): Date {
+  try {
+    return fs.statSync(path.join(contentDirectory, file)).mtime;
+  } catch {
+    return new Date();
+  }
+}
+
 export function getInterviewData(): InterviewData {
   const questions = topics.flatMap((topic) => parseTopic(topic));
   const sectionsByTopic = new Map<string, Question[]>();
