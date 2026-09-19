@@ -26,7 +26,7 @@ optimization, and machine-coding practice.
 src/app/                 Next.js routes and global styles
 src/components/          App UI, one component per file
 src/lib/                 Content parser, topic registry, shared types
-content/interview/       Markdown interview guides
+content/<track>/         Markdown interview guides, grouped by sidebar track
 docs/                    Authoring guidance and roadmap
 .agents/                 Agent behavior guidance
 AGENTS.md                Repository guidance for coding agents
@@ -88,7 +88,7 @@ npm run format
 
 ## Adding A Topic
 
-1. Add a Markdown file under `content/interview/`.
+1. Add a Markdown file under `content/<track>/`.
 2. Use numbered `##` headings. Each one becomes a readable section.
 3. Register the file in `src/lib/topics.ts` with track and subtopic metadata.
 4. Run `npm run check` and `npm run build`.

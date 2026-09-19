@@ -3,7 +3,7 @@ import path from "node:path";
 import { topics } from "@/lib/topics";
 import type { InterviewData, Question, Topic } from "@/lib/types";
 
-const contentDirectory = path.join(process.cwd(), "content", "interview");
+const contentDirectory = path.join(process.cwd(), "content");
 
 const skippedSections = new Set(["sources used"]);
 

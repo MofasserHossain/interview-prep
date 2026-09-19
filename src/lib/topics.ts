@@ -14,7 +14,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Page Load & Rendering",
     description:
       "Navigation, DNS, TLS, HTTP responses, MIME types, HTML parsing, CSSOM, render tree, layout, paint, compositing, script loading, and Core Web Vitals.",
-    file: "browser-page-load-rendering-guide.md",
+    file: "browser/page-load-rendering.md",
   },
   {
     slug: "css-fundamentals-layout",
@@ -25,7 +25,7 @@ export const topics: Topic[] = [
     subtopicTitle: "CSS & Layout",
     description:
       "Cascade, specificity, inheritance, box model, positioning, stacking contexts, flexbox, grid, units, media and container queries, custom properties, and paint cost.",
-    file: "css-fundamentals-layout-guide.md",
+    file: "browser/css-fundamentals-layout.md",
   },
   {
     slug: "dom-events-browser-apis",
@@ -36,7 +36,7 @@ export const topics: Topic[] = [
     subtopicTitle: "DOM, Events & Browser APIs",
     description:
       "DOM traversal and updates, event capture and bubbling, delegation, custom events, storage options, observers, fetch with AbortController, and frame scheduling.",
-    file: "dom-events-browser-apis-guide.md",
+    file: "browser/dom-events-browser-apis.md",
   },
 
   // Networking
@@ -49,7 +49,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Networking Fundamentals",
     description:
       "OSI and TCP/IP models, IP addresses, ports, TCP vs UDP, the handshake, sockets, DNS resolution, NAT, latency vs bandwidth, proxies, load balancing, CDNs, firewalls, and command-line diagnosis.",
-    file: "networking-fundamentals-guide.md",
+    file: "networking/fundamentals.md",
   },
   {
     slug: "http-tls-protocols",
@@ -60,7 +60,7 @@ export const topics: Topic[] = [
     subtopicTitle: "HTTP, TLS & Web Protocols",
     description:
       "Request anatomy, methods, idempotency, status codes, headers, the TLS handshake, certificates, HTTP/1.1 vs 2 vs 3, caching, cookies, CORS, compression, REST vs GraphQL vs gRPC, realtime transports, security headers, and idempotency keys.",
-    file: "http-tls-protocols-guide.md",
+    file: "networking/http-tls-protocols.md",
   },
 
   // JavaScript
@@ -73,7 +73,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Language Fundamentals",
     description:
       "Core language questions, utilities, polyfills, async basics, and coding problems.",
-    file: "javascript-interview-guide.md",
+    file: "javascript/fundamentals.md",
   },
   {
     slug: "javascript-types-equality-copying",
@@ -84,7 +84,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Types, Equality & Copying",
     description:
       "Primitive vs reference values, equality, Object.is, nullish values, shallow/deep copy, optional chaining, and array methods.",
-    file: "javascript-types-equality-copying-guide.md",
+    file: "javascript/types-equality-copying.md",
   },
   {
     slug: "javascript-loops-array-methods",
@@ -95,7 +95,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Loops & Array Methods",
     description:
       "for loops, for...of, for...in, forEach, map, filter, find, reduce, some/every, sort, slice/splice, flat/flatMap, and mutation behavior.",
-    file: "javascript-loops-array-methods-guide.md",
+    file: "javascript/loops-array-methods.md",
   },
   {
     slug: "javascript-collections-iteration",
@@ -106,7 +106,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Map, Object & Set",
     description:
       "Map vs Object, Object.create(null), WeakMap, Set, WeakSet, object key helpers, freeze/seal, and object merging.",
-    file: "javascript-collections-iteration-guide.md",
+    file: "javascript/collections-iteration.md",
   },
   {
     slug: "javascript-execution-context",
@@ -117,7 +117,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Execution Context & Lexical Environment",
     description:
       "Execution contexts, creation and execution phases, lexical environments, environment records, scope chain resolution, the call stack, this binding, and multi-script execution.",
-    file: "javascript-execution-context-guide.md",
+    file: "javascript/execution-context.md",
   },
   {
     slug: "javascript-scope-hoisting-closures",
@@ -128,7 +128,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Scope, Hoisting & Closures",
     description:
       "Lexical scope, hoisting, temporal dead zone, closures, var loop traps, object state, and module scope.",
-    file: "javascript-scope-hoisting-closures-guide.md",
+    file: "javascript/scope-hoisting-closures.md",
   },
   {
     slug: "javascript-this-functions",
@@ -139,7 +139,7 @@ export const topics: Topic[] = [
     subtopicTitle: "this & Functions",
     description:
       "this binding, callback loss, arrow functions, call, apply, bind, partial application, and constructor behavior.",
-    file: "javascript-this-functions-guide.md",
+    file: "javascript/this-functions.md",
   },
   {
     slug: "javascript-prototypes-objects",
@@ -150,7 +150,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Prototypes & Objects",
     description:
       "Objects, prototype chains, constructor prototypes, classes, property checks, shadowing, and prototype pollution.",
-    file: "javascript-prototypes-objects-guide.md",
+    file: "javascript/prototypes-objects.md",
   },
   {
     slug: "javascript-modules-import-export",
@@ -161,7 +161,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Modules, Import & Export",
     description:
       "ES modules, CommonJS comparison, import/export syntax, named and default exports, dynamic imports, module scope, and practical module decisions.",
-    file: "javascript-modules-import-export-guide.md",
+    file: "javascript/modules-import-export.md",
   },
   {
     slug: "javascript-promises-async",
@@ -172,7 +172,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Promises & Async",
     description:
       "Promise states, then/catch/finally, async/await, Promise.all, allSettled, any, race, timeouts, and tradeoffs.",
-    file: "javascript-promises-async-guide.md",
+    file: "javascript/promises-async.md",
   },
   {
     slug: "javascript-event-loop-runtime",
@@ -183,7 +183,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Event Loop & Runtime",
     description:
       "Runtime model, call stack, Web APIs, task queue, microtask queue, rendering priority, async/await timing, and output-order questions.",
-    file: "javascript-event-loop-runtime-guide.md",
+    file: "javascript/event-loop-runtime.md",
   },
   {
     slug: "javascript-performance-debugging",
@@ -194,7 +194,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Performance & Debugging",
     description:
       "Hidden classes and inline caches, deoptimization, array element kinds, V8 garbage collection, heap snapshots and memory leaks, CPU profiling in the browser and Node, long tasks, and bundle analysis.",
-    file: "javascript-performance-debugging-guide.md",
+    file: "javascript/performance-debugging.md",
   },
   {
     slug: "javascript-code-practice",
@@ -205,7 +205,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Code Practice & Output Questions",
     description:
       "Predict-the-output drills across hoisting, closures, this, coercion, references, array method traps, async ordering, prototypes, and destructuring defaults.",
-    file: "javascript-code-practice-guide.md",
+    file: "javascript/code-practice.md",
   },
 
   // React
@@ -218,7 +218,7 @@ export const topics: Topic[] = [
     subtopicTitle: "React Basics",
     description:
       "React fundamentals, props and state, reconciliation, render and commit phases, hook comparisons, error boundaries, list rendering, code splitting, and Next.js rendering basics.",
-    file: "frontend-react-next-interview-guide.md",
+    file: "react/basics.md",
   },
   {
     slug: "react-core-through-17",
@@ -229,7 +229,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Core Concepts Through 17",
     description:
       "Components, JSX, props, state, forms, lifecycle, composition, Context, refs, portals, error boundaries, HOCs, render props, and hooks.",
-    file: "react-core-through-17-guide.md",
+    file: "react/core-concepts.md",
   },
   {
     slug: "react-18-features",
@@ -240,7 +240,7 @@ export const topics: Topic[] = [
     subtopicTitle: "React 18 Features",
     description:
       "Concurrent rendering, automatic batching, transitions, deferred values, Suspense streaming, and new root APIs.",
-    file: "react-18-features-guide.md",
+    file: "react/18-features.md",
   },
   {
     slug: "react-19-features",
@@ -251,7 +251,7 @@ export const topics: Topic[] = [
     subtopicTitle: "React 19 Features",
     description:
       "Actions, form hooks, use, optimistic UI, Server Components, Server Functions, refs, metadata, assets, and React 19.2.",
-    file: "react-19-features-guide.md",
+    file: "react/19-features.md",
   },
   {
     slug: "react-compiler",
@@ -262,7 +262,7 @@ export const topics: Topic[] = [
     subtopicTitle: "React Compiler",
     description:
       "Automatic memoization, compiler-friendly code, lint feedback, Next.js setup, annotations, and gradual adoption.",
-    file: "react-compiler-guide.md",
+    file: "react/compiler.md",
   },
   {
     slug: "typescript-react-architecture",
@@ -273,7 +273,7 @@ export const topics: Topic[] = [
     subtopicTitle: "TypeScript Architecture",
     description:
       "Advanced TypeScript for React: DTOs, generics, discriminated unions, utility types, Redux Toolkit, component boundaries, and tests.",
-    file: "typescript-react-architecture-guide.md",
+    file: "react/typescript-architecture.md",
   },
   {
     slug: "react-internals-fiber",
@@ -284,7 +284,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Internals & Fiber",
     description:
       "Render versus commit, why rendered work may never reach the DOM, Fiber and double buffering, lanes and scheduling, update queues, reconciliation, effect timing, hydration, and tearing.",
-    file: "react-internals-fiber-guide.md",
+    file: "react/internals-fiber.md",
   },
   {
     slug: "react-performance",
@@ -295,7 +295,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Performance Optimization",
     description:
       "Re-renders, memoization, debouncing, throttling, lazy loading, virtualization, concurrency, context, and stable keys.",
-    file: "react-performance-interview-guide.md",
+    file: "react/performance.md",
   },
   {
     slug: "react-bundle-optimization",
@@ -306,7 +306,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Bundle Optimization",
     description:
       "Bundle analysis, webpack, Vite, code splitting, dynamic imports, tree shaking, third-party dependencies, source maps, caching, and production builds.",
-    file: "react-bundle-optimization-guide.md",
+    file: "react/bundle-optimization.md",
   },
   {
     slug: "senior-frontend-react-scenarios",
@@ -317,7 +317,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Senior Frontend Scenarios",
     description:
       "Scenario-driven senior frontend practice for React performance, architecture, micro frontends, CI/CD, migration, and production ownership.",
-    file: "senior-frontend-react-scenarios-guide.md",
+    file: "react/senior-scenarios.md",
   },
   {
     slug: "machine-coding",
@@ -328,7 +328,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Machine Coding Practice",
     description:
       "Timed implementation practice for todo apps, stopwatches, circle-click challenges, state design, and edge cases.",
-    file: "machine-coding-interview-guide.md",
+    file: "react/machine-coding.md",
   },
 
   // Next.js
@@ -341,7 +341,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Fundamentals & App Router",
     description:
       "App Router file conventions, server and client components, rendering and streaming, data fetching, server actions, Cache Components, Proxy, metadata, and deployment.",
-    file: "nextjs-fundamentals-guide.md",
+    file: "nextjs/fundamentals.md",
   },
   {
     slug: "nextjs-routing-navigation",
@@ -352,7 +352,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Routing & Navigation",
     description:
       "File-system routes, dynamic and catch-all segments, root params, nested layouts and templates, route groups, parallel and intercepting routes, redirects, navigation hooks, and typed routes.",
-    file: "nextjs-routing-navigation-guide.md",
+    file: "nextjs/routing-navigation.md",
   },
   {
     slug: "nextjs-server-client-components",
@@ -363,7 +363,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Server & Client Components",
     description:
       "The use client boundary, composition patterns, serialisation rules, hydration mismatches, preventing theme and locale flashes, server-only code, context providers, and client data fetching.",
-    file: "nextjs-server-client-components-guide.md",
+    file: "nextjs/server-client-components.md",
   },
   {
     slug: "nextjs-rendering-caching",
@@ -374,7 +374,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Rendering, Caching & Dynamic APIs",
     description:
       "What makes a route static or dynamic, the Request-time APIs, the new Date() trap, io and connection, Partial Prerendering, Cache Components, revalidation, and diagnosing render modes.",
-    file: "nextjs-rendering-caching-guide.md",
+    file: "nextjs/rendering-caching.md",
   },
   {
     slug: "nextjs-data-forms-mutations",
@@ -385,7 +385,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Data Fetching, Forms & Mutations",
     description:
       "Fetching in Server Components, avoiding waterfalls, Server Functions over the wire, form validation, pending and optimistic state, Route Handlers, and Server Action security.",
-    file: "nextjs-data-forms-mutations-guide.md",
+    file: "nextjs/data-forms-mutations.md",
   },
   {
     slug: "nextjs-styling-assets",
@@ -396,7 +396,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Styling & Assets",
     description:
       "CSS Modules, global CSS, Tailwind, Sass, CSS-in-JS registries, CSS ordering and chunking, next/image optimization, next/font, static assets, video, MDX, and theming.",
-    file: "nextjs-styling-assets-guide.md",
+    file: "nextjs/styling-assets.md",
   },
   {
     slug: "nextjs-metadata-seo",
@@ -407,7 +407,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Metadata & SEO",
     description:
       "The metadata object and generateMetadata, title templates, metadataBase, Open Graph images with ImageResponse, viewport, sitemaps, robots, manifests, JSON-LD, and i18n metadata.",
-    file: "nextjs-metadata-seo-guide.md",
+    file: "nextjs/metadata-seo.md",
   },
   {
     slug: "nextjs-error-handling",
@@ -418,7 +418,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Error Handling",
     description:
       "Expected errors versus uncaught exceptions, error boundaries and the retry prop, global-error, error.digest, notFound, forbidden and unauthorized, unstable_rethrow, and catchError.",
-    file: "nextjs-error-handling-guide.md",
+    file: "nextjs/error-handling.md",
   },
   {
     slug: "nextjs-security-auth",
@@ -429,7 +429,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Security & Auth",
     description:
       "Where auth checks belong, why layouts are wrong, the Data Access Layer and DTOs, sessions, optimistic Proxy checks, Server Action security, closure encryption, tainting, CSP nonces, and auditing.",
-    file: "nextjs-security-auth-guide.md",
+    file: "nextjs/security-auth.md",
   },
   {
     slug: "nextjs-optimizations",
@@ -440,7 +440,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Optimizations & Performance",
     description:
       "Image and font optimization, script strategies, lazy loading, prefetching, the client router cache, bundle size, data waterfalls, after(), Turbopack, and Core Web Vitals.",
-    file: "nextjs-optimizations-guide.md",
+    file: "nextjs/optimizations.md",
   },
   {
     slug: "nextjs-proxy-observability",
@@ -451,7 +451,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Proxy & Observability",
     description:
       "Proxy (formerly Middleware), matchers and execution order, rewrites versus redirects, instrumentation, onRequestError, OpenTelemetry, Web Vitals reporting, logging, and debugging.",
-    file: "nextjs-proxy-observability-guide.md",
+    file: "nextjs/proxy-observability.md",
   },
   {
     slug: "nextjs-testing-tooling",
@@ -462,7 +462,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Testing, Debugging & Tooling",
     description:
       "Test strategy and why async Server Components need E2E, Vitest and Jest setup, Playwright, Turbopack, typed routes, linting after next lint, bundle analysis, the React Compiler, and codemods.",
-    file: "nextjs-testing-tooling-guide.md",
+    file: "nextjs/testing-tooling.md",
   },
   {
     slug: "nextjs-deployment-production",
@@ -473,7 +473,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Deployment & Production",
     description:
       "Build output, standalone and static export, Docker, build-time versus runtime env vars, version skew and deploymentId, multi-instance self-hosting, shared caches, reverse proxies, and rollback.",
-    file: "nextjs-deployment-production-guide.md",
+    file: "nextjs/deployment-production.md",
   },
 
   // Frontend Architecture
@@ -486,7 +486,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Frontend System Design",
     description:
       "Structuring a design round, real-time transports, chat at high concurrency, syncing missed data, offline writes, chunked resumable uploads, infinite feeds, traffic spikes, A/B testing, and permissions.",
-    file: "frontend-system-design-guide.md",
+    file: "frontend-architecture/system-design.md",
   },
   {
     slug: "frontend-architecture-micro-frontends",
@@ -497,7 +497,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Micro Frontends",
     description:
       "Scalable frontend structure, design systems, state ownership, micro frontends, and deployment tradeoffs.",
-    file: "frontend-architecture-micro-frontends-guide.md",
+    file: "frontend-architecture/micro-frontends.md",
   },
 
   // React Native
@@ -510,7 +510,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Fundamentals & Core Concepts",
     description:
       "React vs React Native, how an app runs on a device, core components, styling and flexbox defaults, mount and unmount lifecycle, platform-specific code, Expo vs CLI, navigation, keyboard and safe areas, images, app state, and debugging.",
-    file: "react-native-fundamentals-guide.md",
+    file: "react-native/fundamentals.md",
   },
   {
     slug: "mobile-react-native",
@@ -521,7 +521,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Overview & Offline Basics",
     description:
       "React Native fundamentals, native bridges, performance, platform differences, offline behavior, and releases.",
-    file: "mobile-react-native-guide.md",
+    file: "react-native/overview.md",
   },
   {
     slug: "react-native-networking-auth",
@@ -532,7 +532,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Networking, Auth & Storage",
     description:
       "Fetch vs Axios, cancelling requests on unmount, multiple concurrent calls, slow APIs, the authentication flow, bearer and refresh tokens, secure token storage, AsyncStorage limitations, WebSockets, offline queues, and API key handling.",
-    file: "react-native-networking-auth-guide.md",
+    file: "react-native/networking-auth.md",
   },
   {
     slug: "react-native-performance",
@@ -543,7 +543,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Lists & Performance",
     description:
       "FlatList optimization and virtualization internals, windowing props, getItemLayout, keys, re-render control, FlashList, infinite scroll, images, 60fps animations, startup time, memory leaks, and profiling.",
-    file: "react-native-performance-guide.md",
+    file: "react-native/performance.md",
   },
   {
     slug: "react-native-architecture",
@@ -554,7 +554,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Old vs New Architecture",
     description:
       "Threading model, the old bridge and why it was a bottleneck, JSI, TurboModules, Fabric, Codegen, bridgeless mode, Hermes, Yoga, detecting the active architecture, and migration.",
-    file: "react-native-architecture-guide.md",
+    file: "react-native/architecture.md",
   },
   {
     slug: "react-native-production",
@@ -565,7 +565,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Production, Release & Gotchas",
     description:
       "Over-the-air updates, app size, build environments, deep links, push notifications, testing, crash reporting, version upgrades, cross-platform gotchas, release-only crashes, and shipping tricks.",
-    file: "react-native-production-guide.md",
+    file: "react-native/production.md",
   },
 
   // AI Engineering
@@ -578,7 +578,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Frontend AI Apps",
     description:
       "Frontend interview scenarios for LLM chat, streaming UI, race conditions, agent tool state, RAG citations, AI app security, testing, and observability.",
-    file: "ai-frontend-engineering-guide.md",
+    file: "ai-engineering/frontend-ai-apps.md",
   },
 
   // Backend
@@ -591,7 +591,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Fundamentals & APIs",
     description:
       "HTTP, REST, databases, authentication, caching, scaling, queues, deployments, and distributed-system fundamentals.",
-    file: "backend-interview-guide.md",
+    file: "backend/fundamentals.md",
   },
   {
     slug: "senior-api-database-performance",
@@ -602,7 +602,7 @@ export const topics: Topic[] = [
     subtopicTitle: "API Optimization & Database Performance",
     description:
       "API optimization, payload design, pagination, caching, query performance, N+1 prevention, REST contracts, database modeling, transactions, and latency troubleshooting.",
-    file: "senior-api-database-performance-guide.md",
+    file: "backend/api-database-performance.md",
   },
 
   // Node.js
@@ -615,7 +615,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Fundamentals, Modules & APIs",
     description:
       "Node.js runtime basics, project setup, npm, CommonJS vs ES modules, module caching, built-in APIs, errors, events, HTTP, Express, and backend usage patterns.",
-    file: "nodejs-backend-interview-guide.md",
+    file: "nodejs/fundamentals.md",
   },
   {
     slug: "express-framework",
@@ -626,7 +626,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Express & Middleware",
     description:
       "Middleware pipeline, routing, Express 5 breaking changes, async error handling, validation, auth, security headers, uploads, streaming, trust proxy, timeouts, graceful shutdown, and testing.",
-    file: "express-framework-guide.md",
+    file: "nodejs/express.md",
   },
   {
     slug: "nodejs-event-loop-runtime",
@@ -637,7 +637,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Event Loop & Async Runtime",
     description:
       "Node.js event loop phases, nextTick, promises, timers, setImmediate, browser differences, cluster vs workers, CPU-heavy work, streams, and runtime debugging.",
-    file: "nodejs-event-loop-runtime-guide.md",
+    file: "nodejs/event-loop-runtime.md",
   },
   {
     slug: "nodejs-streams-buffers",
@@ -648,7 +648,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Streams, Buffers & Workers",
     description:
       "Buffers, readable and writable streams, transform streams, backpressure, pipeline, async iteration, worker threads, cluster, signals, and graceful shutdown.",
-    file: "nodejs-streams-buffers-guide.md",
+    file: "nodejs/streams-buffers.md",
   },
 
   // NestJS
@@ -661,7 +661,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Fundamentals & Modules",
     description:
       "Why Nest over Express, the layered architecture, modules and metadata, dynamic and global modules, controllers and routing, providers, project structure, lifecycle hooks, and configuration.",
-    file: "nestjs-fundamentals-guide.md",
+    file: "nestjs/fundamentals.md",
   },
   {
     slug: "nestjs-dependency-injection",
@@ -672,7 +672,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Dependency Injection",
     description:
       "How the container resolves providers, injection tokens, the four custom provider types, scopes and why request scope is contagious, circular dependencies, ModuleRef, and durable providers.",
-    file: "nestjs-dependency-injection-guide.md",
+    file: "nestjs/dependency-injection.md",
   },
   {
     slug: "nestjs-request-lifecycle",
@@ -683,7 +683,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Request Lifecycle",
     description:
       "The exact execution order, middleware, guards and the Reflector, pipes and validation, interceptors and RxJS patterns, exception filters, binding scope, and custom decorators.",
-    file: "nestjs-request-lifecycle-guide.md",
+    file: "nestjs/request-lifecycle.md",
   },
   {
     slug: "nestjs-data-persistence",
@@ -694,7 +694,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Data & Persistence",
     description:
       "TypeORM and Prisma integration, the repository pattern, transactions, relations and N+1, migrations, DTOs versus entities, safe serialisation, pagination, soft deletes, caching, and pooling.",
-    file: "nestjs-data-persistence-guide.md",
+    file: "nestjs/data-persistence.md",
   },
   {
     slug: "nestjs-auth-microservices",
@@ -705,7 +705,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Auth, Testing & Microservices",
     description:
       "JWT and Passport, refresh token rotation, password hashing, RBAC, sessions versus tokens, rate limiting, a security checklist, microservice transports, Kafka and RabbitMQ, and testing.",
-    file: "nestjs-auth-microservices-guide.md",
+    file: "nestjs/auth-microservices.md",
   },
   {
     slug: "nestjs-queues-realtime",
@@ -716,7 +716,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Queues, Events & Realtime",
     description:
       "Background jobs with BullMQ, job idempotency, scheduled tasks and the multi-replica trap, in-process events, WebSocket gateways, scaling realtime with a Redis adapter, server-sent events, CQRS, configurable modules, and queue observability.",
-    file: "nestjs-queues-events-realtime-guide.md",
+    file: "nestjs/queues-events-realtime.md",
   },
 
   // Databases
@@ -729,7 +729,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Database Fundamentals",
     description:
       "Relational model, keys, relationships, normalization, constraints, ACID, isolation levels, locking, index internals, SQL vs NoSQL, replication, and connection pooling.",
-    file: "database-fundamentals-guide.md",
+    file: "databases/fundamentals.md",
   },
   {
     slug: "sql-fundamentals",
@@ -740,7 +740,7 @@ export const topics: Topic[] = [
     subtopicTitle: "SQL Fundamentals",
     description:
       "Query processing order, joins, grouping, subqueries, CTEs, window functions, set operators, NULL logic, upserts, and classic interview query patterns.",
-    file: "sql-fundamentals-guide.md",
+    file: "databases/sql-fundamentals.md",
   },
   {
     slug: "sql-query-optimization",
@@ -751,7 +751,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Query Optimization",
     description:
       "EXPLAIN-driven tuning, index design, sargable predicates, join and subquery rewrites, sorting and aggregation cost, pagination at scale, and real slow-query scenarios.",
-    file: "sql-query-optimization-guide.md",
+    file: "databases/sql-query-optimization.md",
   },
   {
     slug: "mongodb-fundamentals",
@@ -762,7 +762,7 @@ export const topics: Topic[] = [
     subtopicTitle: "MongoDB",
     description:
       "Documents and collections, find versus findOne, explain plans, index types and the ESR rule, slow queries on large collections, aggregation optimization, embedding versus referencing, replica sets, and sharding.",
-    file: "mongodb-fundamentals-guide.md",
+    file: "databases/mongodb.md",
   },
 
   // System Design
@@ -775,7 +775,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Design Patterns",
     description:
       "Classic creational, structural, and behavioral design patterns with bad and good class examples, problems, fixes, and tradeoffs.",
-    file: "design-patterns-guide.md",
+    file: "system-design/design-patterns.md",
   },
   {
     slug: "system-design-microservices",
@@ -786,7 +786,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Microservices & Scalability",
     description:
       "Scalability, service boundaries, communication, consistency, reliability, and distributed-system tradeoffs.",
-    file: "system-design-microservices-guide.md",
+    file: "system-design/microservices.md",
   },
   {
     slug: "kafka-event-streaming",
@@ -797,7 +797,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Kafka & Event Streaming",
     description:
       "Kafka producers, consumers, topics, partitions, offsets, consumer groups, delivery guarantees, replication, Spring Kafka, retries, DLTs, ordering, and scaling.",
-    file: "kafka-event-streaming-guide.md",
+    file: "system-design/kafka-event-streaming.md",
   },
   {
     slug: "rabbitmq-message-broker",
@@ -808,7 +808,7 @@ export const topics: Topic[] = [
     subtopicTitle: "RabbitMQ Queues & Exchanges",
     description:
       "RabbitMQ exchanges, queues, bindings, acknowledgements, publisher confirms, DLX, retries, quorum queues, streams, ordering, scaling, and production tradeoffs.",
-    file: "rabbitmq-message-broker-guide.md",
+    file: "system-design/rabbitmq-message-broker.md",
   },
   {
     slug: "mqtt-iot-messaging",
@@ -819,7 +819,7 @@ export const topics: Topic[] = [
     subtopicTitle: "MQTT IoT Messaging",
     description:
       "MQTT brokers, topics, QoS levels, retained messages, last will, persistent sessions, shared subscriptions, flow control, security, and IoT architecture.",
-    file: "mqtt-iot-messaging-guide.md",
+    file: "system-design/mqtt-iot-messaging.md",
   },
 
   // DevOps & Infrastructure
@@ -832,7 +832,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Docker & Kubernetes",
     description:
       "Containers, images, orchestration, CI/CD, rolling deployments, and production operations.",
-    file: "devops-docker-kubernetes-guide.md",
+    file: "devops/docker-kubernetes.md",
   },
   {
     slug: "nginx-web-infrastructure",
@@ -843,7 +843,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Nginx & Web",
     description:
       "Reverse proxies, TLS termination, load balancing, static assets, compression, and routing.",
-    file: "nginx-web-infrastructure-guide.md",
+    file: "devops/nginx.md",
   },
   {
     slug: "aws-saas-observability",
@@ -854,7 +854,7 @@ export const topics: Topic[] = [
     subtopicTitle: "AWS SaaS & Observability",
     description:
       "AWS-hosted SaaS architecture, ECS/EKS/Lambda choices, CI/CD, Docker/Kubernetes runtime concerns, logs, metrics, traces, SLI/SLO, alerts, and incidents.",
-    file: "aws-saas-observability-guide.md",
+    file: "devops/aws-observability.md",
   },
 
   // .NET & C#
@@ -867,7 +867,7 @@ export const topics: Topic[] = [
     subtopicTitle: "C# & ASP.NET Core",
     description:
       ".NET platform fundamentals, C#, ASP.NET Core, dependency injection, async, middleware, and EF Core.",
-    file: "dotnet-csharp-interview-guide.md",
+    file: "dotnet/csharp-aspnet.md",
   },
 
   // Python
@@ -880,7 +880,7 @@ export const topics: Topic[] = [
     subtopicTitle: "Backend Frameworks",
     description:
       "Python backend fundamentals, Django, FastAPI, Flask, typing, ORMs, async behavior, and API design.",
-    file: "python-backend-frameworks-guide.md",
+    file: "python/backend-frameworks.md",
   },
 
   // Interview Prep
@@ -893,6 +893,6 @@ export const topics: Topic[] = [
     subtopicTitle: "Senior Full Stack SaaS",
     description:
       "Focused preparation for the posted Senior Full Stack and Field Nation-style SaaS roles: React, TypeScript, APIs, AWS, SQL, Docker, queues, and observability.",
-    file: "senior-full-stack-saas-job-prep-guide.md",
+    file: "interview-prep/senior-full-stack-saas.md",
   },
 ];

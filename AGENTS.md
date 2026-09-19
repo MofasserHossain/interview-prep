@@ -16,7 +16,8 @@ across many domains:
 - .NET, C#, Python, backend frameworks
 - mobile development, React Native, cross-platform app architecture
 
-The content source is Markdown under `content/interview/`. The Next.js app
+The content source is Markdown under `content/`, one folder per sidebar
+track (`content/javascript/`, `content/nextjs/`, …). The Next.js app
 parses those docs and turns numbered `##` sections into questions.
 
 ## Architecture
@@ -30,14 +31,15 @@ parses those docs and turns numbered `##` sections into questions.
   are the pieces it composes.
 - `src/lib/tracks.ts` groups topics into sidebar tracks. `src/lib/react-text.ts`
   holds ReactNode text helpers shared by the markdown and code renderers.
-- `content/interview/` contains topic Markdown files.
+- `content/<track>/` contains topic Markdown files, grouped by sidebar track.
 - `docs/` contains project guidance, authoring rules, and topic planning.
 - `src/lib/content.ts` parses Markdown into app data.
 - `src/lib/topics.ts` is the topic registry. Add new content files there.
 
 ## Adding A New Topic
 
-1. Create a Markdown file in `content/interview/`.
+1. Create a Markdown file in `content/<track>/`, reusing an existing track
+   folder or adding one for a new track.
 2. Use this shape:
 
    ```md

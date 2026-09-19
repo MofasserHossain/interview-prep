@@ -6,11 +6,15 @@ microservices, or micro frontends.
 
 ## File Location
 
-Put topic files in:
+Put topic files in a folder named after the sidebar track:
 
 ```txt
-content/interview/
+content/<track>/<name>.md
 ```
+
+For example `content/nextjs/routing-navigation.md`. The track folder must match
+the topic's `trackSlug`, and the folder is created on the first topic that
+needs it.
 
 Register each file in:
 
