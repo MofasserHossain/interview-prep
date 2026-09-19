@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { DocumentDetail } from "@/components/document-detail";
 import { QuestionToc } from "@/components/question-toc";
+import { SiteFooter } from "@/components/site-footer";
 import { TopicOverview } from "@/components/topic-overview";
 import { TopicIcon, TrackIcon } from "@/components/topic-icon";
 import { WorkspaceErrorBoundary } from "@/components/workspace-error-boundary";
@@ -270,6 +271,8 @@ export function InterviewApp({ activeTopicSlug = "", initialData }: InterviewApp
             </section>
           )}
         </WorkspaceErrorBoundary>
+
+        <SiteFooter />
       </section>
     </main>
   );
