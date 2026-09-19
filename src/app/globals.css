@@ -1354,7 +1354,10 @@ h2 {
 }
 
 .topic-overview {
-  flex: 1;
+  /* Grow to fill a short viewport, but never shrink below the content height:
+     the box paints `overflow: visible`, so a shrunk box would let the content
+     spill over whatever follows it in the workspace. */
+  flex: 1 0 auto;
   min-height: 0;
   width: 100%;
   margin: 0;
@@ -1536,7 +1539,8 @@ h2 {
   align-items: start;
   justify-content: center;
   gap: 56px;
-  flex: 1;
+  /* Same sizing rule as `.topic-overview`. */
+  flex: 1 0 auto;
   min-height: auto;
   width: 100%;
   margin: 0;
@@ -2781,5 +2785,116 @@ h2 {
 
   .viz-label {
     font-size: 0.82rem;
+  }
+}
+
+/* Footer closing the scrolling workspace. The content above it grows to fill a
+   short viewport, so this sits at the bottom of the fold without a spacer. */
+.site-footer {
+  flex-shrink: 0;
+  margin-top: 32px;
+  padding: 32px var(--workspace-x-padding) 0;
+  border-top: 1px solid var(--border);
+}
+
+.site-footer-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Line the footer up with the content column of whichever view precedes it, so
+   the byline shares a left edge with the document above it. Each width tracks
+   the rule named beside it. */
+.topic-overview ~ .site-footer .site-footer-inner {
+  /* `.docs-index-page` width. */
+  max-width: 1120px;
+}
+
+.doc-layout ~ .site-footer .site-footer-inner {
+  /* `.doc-layout` columns plus its gap: 920px + 56px + 280px. */
+  max-width: 1256px;
+}
+
+.site-footer-credit {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.site-footer-byline {
+  color: var(--text);
+  font-size: 0.86rem;
+  font-weight: 590;
+}
+
+.site-footer-byline a {
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s ease;
+}
+
+.site-footer-byline a:hover {
+  border-bottom-color: var(--border-strong);
+}
+
+.site-footer-project {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.site-footer-project > * + *::before {
+  margin-right: 8px;
+  color: var(--border-strong);
+  content: "·";
+}
+
+.site-footer-project a {
+  transition: color 0.15s ease;
+}
+
+.site-footer-project a:hover {
+  color: var(--text);
+}
+
+.site-footer-profiles {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.site-footer-profiles a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-muted);
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.site-footer-profiles a:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-muted);
+  color: var(--text);
+}
+
+@media (max-width: 620px) {
+  .site-footer-inner {
+    align-items: flex-start;
+    gap: 14px;
   }
 }
