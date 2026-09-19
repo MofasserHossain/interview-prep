@@ -1,4 +1,4 @@
 .next
 node_modules
 package-lock.json
-content/interview
+/content
