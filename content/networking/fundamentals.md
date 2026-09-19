@@ -1,10 +1,11 @@
 # Networking Fundamentals Interview Guide
 
 Networking interview guidance for web and backend developers, ordered from the
-basics to production debugging: the network models, IP addresses and ports, TCP and
-UDP, the handshake, DNS, NAT, sockets, latency and bandwidth, proxies, load
-balancers, CDNs, firewalls, and the command-line tools that tell you which layer
-actually broke.
+basics to production debugging: the network models, switches and routers, IP and MAC
+addresses, ports and their defaults, TCP versus UDP, the handshake, flow and
+congestion control, connection states, sockets, DNS and how it is attacked, NAT,
+latency versus bandwidth, `ping` and `traceroute` internals, proxies, load balancers,
+CDNs, firewalls, and the command-line tools that tell you which layer actually broke.
 
 No prior networking background is assumed. Every term is defined the first time it
 appears.
@@ -76,7 +77,45 @@ Being asked to recite seven layers is common, but the follow-up is what matters:
 *which layer does a load balancer work at, and why does that change what it can do?*
 Learn the model for the vocabulary, not the recital.
 
-## 3. What Is An IP Address, And What Is The Difference Between IPv4 And IPv6?
+## 3. What Is The Difference Between A Hub, A Switch, A Router, And A Gateway?
+
+Four devices that move traffic, each operating at a different layer. The layer is the
+whole answer.
+
+| Device | Layer | Forwards based on | Decides |
+| --- | --- | --- | --- |
+| **Hub** | 1 (physical) | nothing — repeats to every port | nothing; obsolete |
+| **Switch** | 2 (data link) | MAC address | which port on *this* network |
+| **Router** | 3 (network) | IP address | which *network* to send to next |
+| **Gateway** | 3+ | IP, often translating | the exit point from your network |
+
+```viz
+type: flow
+title: A packet leaving your laptop for the internet
+Laptop :: is the destination IP on my own subnet?
+Same subnet :: hand it to the SWITCH, which forwards by MAC address
+Different subnet :: hand it to the DEFAULT GATEWAY (your router)
+Router :: looks up its routing table, forwards toward the destination network
+Repeat :: each router along the path does the same until delivery
+```
+
+The **default gateway** is the IP address your machine sends anything non-local to —
+typically your router, often `192.168.1.1` at home. Without it, a machine can only
+reach its own subnet.
+
+```bash
+ip route          # Linux — "default via 192.168.1.1" is your gateway
+netstat -nr       # macOS equivalent
+```
+
+Interview answer:
+
+"A switch moves frames inside one network using MAC addresses. A router moves packets
+*between* networks using IP addresses. The gateway is just the router your host sends
+everything it cannot deliver locally. Hubs are layer 1 and effectively extinct because
+they broadcast to every port."
+
+## 4. What Is An IP Address, And What Is The Difference Between IPv4 And IPv6?
 
 An **IP address** identifies a network interface so packets can be routed to it. It
 answers "which machine".
@@ -86,7 +125,7 @@ IPv4:  192.168.1.10          32 bits, ~4.3 billion addresses, exhausted
 IPv6:  2001:db8::8a2e:370:7334   128 bits, effectively unlimited
 ```
 
-IPv4 ran out of addresses, which is why NAT (question 6) exists and why IPv6 was
+IPv4 ran out of addresses, which is why NAT (question 16) exists and why IPv6 was
 created. IPv6 also removes the need for NAT and simplifies routing, but adoption is
 gradual, so most systems run **dual stack** — both at once.
 
@@ -112,7 +151,51 @@ This is why `localhost` inside a Docker container is not your host machine, why 
 service on `10.0.x.x` is unreachable from your laptop without a VPN, and why a
 security group allowing `0.0.0.0/0` means "the entire internet".
 
-## 4. What Is A Port, And Why Does A Server Need One?
+## 5. What Is A MAC Address, And How Does It Differ From An IP Address?
+
+A **MAC address** (Media Access Control) is a 48-bit hardware identifier burned into a
+network interface, written as six hex pairs.
+
+```txt
+MAC:  00:1A:2B:3C:4D:5E     physical, assigned by the manufacturer
+IP:   192.168.1.10          logical, assigned by the network
+```
+
+| | MAC address | IP address |
+| --- | --- | --- |
+| Layer | 2 (data link) | 3 (network) |
+| Scope | one local network segment | globally routable |
+| Assigned by | hardware manufacturer | DHCP or manual config |
+| Changes | effectively never | every time you join a new network |
+| Used by | switches | routers |
+
+Mental model:
+
+The IP address is the street address the postal system routes on. The MAC address is
+which specific mailbox on that street. Routing gets a packet to the right *network*;
+MAC delivery gets it to the right *machine* on that network. **ARP** is the lookup
+between them.
+
+```bash
+arp -a            # the IP-to-MAC table your machine has learned
+ifconfig | grep ether   # your own MAC address
+```
+
+Important:
+
+MAC addresses do not survive a router hop. Each router rewrites the source and
+destination MAC for the next segment while the IP addresses stay the same end to end.
+That is why a web server can never see your MAC address — only your ISP's last router
+can.
+
+Interview trap:
+
+MAC addresses are trivially spoofable in software, so they are not an authentication
+mechanism. MAC-based Wi-Fi allowlists and "device fingerprinting by MAC" are both
+weak — and modern phones randomise their MAC per network specifically to defeat
+tracking.
+
+## 6. What Is A Port, And Why Does A Server Need One?
 
 An IP address identifies a machine. A **port** identifies which program on that
 machine should receive the message. One server runs many services; the port says
@@ -150,7 +233,70 @@ Symptom:
 `EADDRINUSE: address already in use :::3000` means another process already holds that
 port. Find it with `lsof -i :3000` and kill it, or choose another port.
 
-## 5. What Is The Difference Between TCP And UDP?
+## 7. Which Default Ports Should You Know By Heart?
+
+A pure recall question, and a very common warm-up. **HTTP is 80, HTTPS is 443** — if
+you remember nothing else, remember those two.
+
+```txt
+Web
+  80    HTTP            plain, unencrypted
+  443   HTTPS           HTTP over TLS — also QUIC/HTTP3 over UDP
+  8080  HTTP alternate  common for app servers behind a proxy
+  3000  dev convention  Node, React, Next.js (not a registered standard)
+
+Remote access & transfer
+  22    SSH / SCP / SFTP
+  21    FTP control     (20 = FTP data)
+  23    Telnet          plaintext, obsolete, never use
+
+Mail
+  25    SMTP            server-to-server
+  587   SMTP submission client-to-server, the modern one
+  465   SMTPS           implicit TLS
+  110   POP3            995 with TLS
+  143   IMAP            993 with TLS
+
+Infrastructure
+  53    DNS             UDP normally, TCP for large responses and zone transfers
+  67/68 DHCP            server / client
+  123   NTP             time synchronisation
+  853   DNS over TLS
+
+Databases & brokers
+  3306  MySQL / MariaDB
+  5432  PostgreSQL
+  1433  SQL Server
+  27017 MongoDB
+  6379  Redis
+  11211 Memcached
+  5672  RabbitMQ        (15672 = management UI)
+  9092  Kafka
+  9200  Elasticsearch
+```
+
+Port ranges:
+
+```txt
+0-1023      well known    require root to bind
+1024-49151  registered    assigned to specific applications
+49152-65535 ephemeral     the OS picks one per outbound connection
+```
+
+Why it matters:
+
+This is not trivia — it is what you read in a firewall rule, a security group, a
+`docker-compose.yml`, or an `ss -tlnp` output. Recognising `5432` instantly tells you
+a Postgres connection is being attempted.
+
+Interview trap:
+
+DNS uses **UDP port 53** for ordinary queries but falls back to **TCP port 53** when a
+response exceeds 512 bytes, and always uses TCP for zone transfers. A firewall that
+opens only UDP 53 works until a DNSSEC or large response arrives, then breaks in a way
+that looks random.
+
+## 8. What Is The Difference Between TCP And UDP?
 
 Both are transport protocols — they carry your data between ports. They differ in what
 guarantees they make.
@@ -184,7 +330,7 @@ Interview trap:
 than HTTP/2 — because QUIC rebuilds reliability *per stream* in userspace, avoiding
 the head-of-line blocking that TCP forces on all streams at once.
 
-## 6. What Is The TCP Three-Way Handshake?
+## 9. What Is The TCP Three-Way Handshake?
 
 Before TCP sends data, both sides agree they are ready and exchange starting sequence
 numbers.
@@ -233,7 +379,104 @@ Sockets stuck in `TIME_WAIT` after load testing are normal — the closing side 
 the tuple to catch stray packets. Thousands of them can exhaust ephemeral ports,
 which is why connection reuse matters more than raising limits.
 
-## 7. What Is A Socket?
+## 10. How Do TCP Flow Control And Congestion Control Differ?
+
+Both throttle the sender. They protect different things, and interviewers ask
+precisely because the names sound interchangeable.
+
+- **Flow control** protects the **receiver** from being overwhelmed.
+- **Congestion control** protects the **network** from being overwhelmed.
+
+```viz
+type: flow
+title: Two independent brakes on the sender
+Receiver window (rwnd) :: advertised in every ACK — "I have room for N more bytes"
+Congestion window (cwnd) :: the sender's own estimate of what the network can carry
+Sender may send :: min(rwnd, cwnd) — whichever brake is tighter wins
+Loss detected :: cwnd is cut, because loss is read as a congestion signal
+```
+
+Flow control is the **sliding window**: the receiver advertises how much buffer space
+remains, and the sender must never have more unacknowledged data in flight than that.
+A receiver whose application stops reading advertises a zero window, and the sender
+pauses entirely.
+
+Congestion control is the sender's own guesswork:
+
+```txt
+Slow start          cwnd doubles each RTT — exponential ramp-up
+Congestion avoidance linear growth once a threshold is reached
+Packet loss         cwnd is reduced — the network is signalling overload
+Timeout             cwnd collapses to the minimum and slow start restarts
+```
+
+Common algorithms: **CUBIC** (the Linux default) and **BBR** (models bandwidth and RTT
+directly rather than treating loss as the only congestion signal).
+
+Why it matters:
+
+Throughput is capped by `window / RTT` — the **bandwidth-delay product**. This is why
+a transfer between continents is slow even on a fast link: with a 64 KB window and a
+200 ms round trip, you cannot exceed roughly 2.6 Mbps no matter how much bandwidth
+exists.
+
+```txt
+64 KB / 0.2s = ~320 KB/s = ~2.6 Mbps, on a 1 Gbps link
+```
+
+Interview answer:
+
+"Flow control is the receiver saying 'slow down, my buffer is full'. Congestion
+control is the sender inferring 'the network is dropping packets, back off'. The
+sender obeys whichever is more restrictive, and on long-distance links the window
+size, not the bandwidth, is usually what limits throughput."
+
+## 11. What Do TCP Connection States Tell You When Debugging?
+
+`ss` and `netstat` show the state of every socket. Two of those states are direct
+evidence of specific bugs.
+
+```viz
+type: flow
+title: The lifecycle of a TCP connection
+LISTEN :: a server socket waiting for connections
+SYN_SENT / SYN_RECV :: handshake in progress
+ESTABLISHED :: open and usable — normal traffic
+FIN_WAIT_1 / FIN_WAIT_2 :: we initiated the close, waiting on the peer
+CLOSE_WAIT :: the PEER closed; we have not called close() yet
+TIME_WAIT :: we closed actively; waiting ~2x MSL for stray packets
+CLOSED :: gone
+```
+
+```bash
+ss -s                          # summary counts by state
+ss -tan state close-wait       # list sockets stuck in CLOSE_WAIT
+ss -tan | awk '{print $1}' | sort | uniq -c | sort -rn
+```
+
+What each buildup means:
+
+| State piling up | Cause | Whose bug |
+| --- | --- | --- |
+| **CLOSE_WAIT** | your app never called `close()` on a socket the peer already closed | **yours** — a file-descriptor leak |
+| **TIME_WAIT** | many short-lived outbound connections | usually fine; use keep-alive/pooling |
+| **SYN_RECV** | half-open handshakes accumulating | possible SYN flood, or a saturated backlog |
+| **ESTABLISHED** (huge) | connections never released | missing timeouts or an unbounded pool |
+
+Symptom:
+
+`EMFILE: too many open files` under load, with thousands of sockets in `CLOSE_WAIT`.
+That is not a limit to raise — it is a leak. Some code path is finishing with a
+connection without closing it, and raising `ulimit` only delays the crash.
+
+Interview trap:
+
+`TIME_WAIT` is frequently misdiagnosed as a problem. It is *correct* behaviour on the
+side that closed first, holding the four-tuple so delayed packets from the old
+connection cannot be mistaken for a new one. The real fix for thousands of them is
+connection reuse, not `tcp_tw_reuse` tuning.
+
+## 12. What Is A Socket?
 
 A **socket** is the programming interface to a connection: the object your code reads
 from and writes to. In Node, `net.Socket` is that object, and an HTTP request/response
@@ -270,7 +513,7 @@ This is why a naive TCP protocol that assumes "one write equals one message" wor
 development and corrupts under load. The bug is not in your code's logic; it is the
 missing framing.
 
-## 8. What Happens When You Type A URL And Press Enter?
+## 13. What Happens When You Type A URL And Press Enter?
 
 The most-asked networking question in interviews, because it touches every layer.
 
@@ -309,7 +552,7 @@ The detail that impresses is naming what is **skipped** on a warm request: DNS i
 cached, the connection is reused via keep-alive, TLS resumes with a session ticket,
 and the response may come from the browser cache without a network trip at all.
 
-## 9. How Does DNS Resolution Actually Work?
+## 14. How Does DNS Resolution Actually Work?
 
 **DNS** (Domain Name System) translates a hostname into an IP address. Humans use
 names; routers need numbers.
@@ -368,7 +611,47 @@ Symptom:
 sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder   # macOS
 ```
 
-## 10. What Are NAT, DHCP, And ARP?
+## 15. How Is DNS Attacked, And How Is It Secured?
+
+DNS was designed in 1983 with no authentication, so a resolver historically believed
+any answer that arrived with a matching query id. That is the root of every attack
+below.
+
+| Attack | How it works |
+| --- | --- |
+| **DNS spoofing** | forged reply beats the real one back to the resolver |
+| **Cache poisoning** | the forged answer is cached and served to everyone for its TTL |
+| **DNS hijacking** | registrar or nameserver account is compromised; records are changed |
+| **DNS tunnelling** | data smuggled inside DNS queries to exfiltrate past a firewall |
+| **DNS rebinding** | a hostname resolves publicly, then re-resolves to `127.0.0.1` or an internal IP, letting a browser page reach internal services |
+
+The defences:
+
+```txt
+Source port randomisation  makes a forged reply far harder to guess (post-Kaminsky)
+DNSSEC                     cryptographically signs records — proves authenticity
+DoT  (DNS over TLS,  853)  encrypts the query in transit
+DoH  (DNS over HTTPS, 443) same, indistinguishable from normal web traffic
+Registrar lock + 2FA       prevents hijacking at the account level
+CAA records                restrict which CAs may issue certificates for your domain
+```
+
+Important:
+
+**DNSSEC proves authenticity, not confidentiality.** It stops forged answers but the
+query is still plaintext. **DoH/DoT provide confidentiality, not authenticity** — they
+encrypt the channel but you are trusting whatever resolver is on the other end. They
+solve different problems and are often deployed together.
+
+Interview trap:
+
+DNS rebinding is the one that matters for backend developers, because it defeats
+naive SSRF protection. Validating that a hostname resolves to a public IP is not
+enough — an attacker can answer with a public IP on the first lookup and a private
+one on the second. Resolve once and connect to *that* IP, or block private ranges at
+the socket layer.
+
+## 16. What Are NAT, DHCP, And ARP?
 
 Three protocols that make a local network function. You rarely configure them, but
 they explain a lot of confusing behaviour.
@@ -402,7 +685,7 @@ Interview answer:
 whole private network share one public address. All three are invisible until
 something is misconfigured, and then they explain the symptom exactly."
 
-## 11. What Is The Difference Between Latency, Bandwidth, And Throughput?
+## 17. What Is The Difference Between Latency, Bandwidth, And Throughput?
 
 They are routinely confused, and the distinction drives every performance decision.
 
@@ -445,7 +728,7 @@ Interview trap:
 responses are latency-bound, not bandwidth-bound. Bandwidth matters for video, large
 downloads, and backups.
 
-## 12. What Is The Difference Between A Proxy And A Reverse Proxy?
+## 18. What Is The Difference Between A Proxy And A Reverse Proxy?
 
 Both sit between client and server. The difference is which side they represent.
 
@@ -478,7 +761,7 @@ proxy must forward the original via `X-Forwarded-For`, and the application must 
 configured to trust it — in Express, `app.set("trust proxy", 1)`. Get this wrong and
 rate limiting, geolocation, and audit logs all record the proxy.
 
-## 13. How Does Load Balancing Work, And What Is L4 Versus L7?
+## 19. How Does Load Balancing Work, And What Is L4 Versus L7?
 
 A **load balancer** distributes requests across several backend servers so no single
 one is overwhelmed, and so one failure does not take down the service.
@@ -518,7 +801,7 @@ Strong answer:
 or host, header-based canary releases, or TLS termination in one place. In practice
 most web stacks are L7, because the routing flexibility is the point."
 
-## 14. What Is A CDN, And When Does It Help?
+## 20. What Is A CDN, And When Does It Help?
 
 A **CDN** (Content Delivery Network) is a globally distributed set of caching servers.
 A request goes to the nearest edge location; if it has the content, it answers without
@@ -564,7 +847,7 @@ Important:
 Cache invalidation is the hard part. Content-hashed filenames (`app.4f2b.js`) avoid
 it entirely: a new build has a new URL, so nothing needs purging.
 
-## 15. What Are Firewalls, Security Groups, And VPNs?
+## 21. What Are Firewalls, Security Groups, And VPNs?
 
 A **firewall** allows or blocks traffic by rule — source, destination, port, protocol.
 The safe default is deny-all inbound, then open only what is needed.
@@ -594,7 +877,59 @@ firewall is dropping packets silently. `ECONNREFUSED` means the packet arrived a
 nothing was listening — the port is reachable, the service is not running. That
 distinction narrows the search immediately.
 
-## 16. Which Command-Line Tools Diagnose Which Layer?
+## 22. How Do ping And traceroute Actually Work?
+
+Both are built on **ICMP** (Internet Control Message Protocol), the layer-3 protocol
+routers use to report problems. Neither uses TCP or UDP in the normal sense, which is
+why both can fail on a host that serves web traffic perfectly.
+
+**ping** sends an ICMP Echo Request and measures how long the Echo Reply takes.
+
+```bash
+ping -c 4 example.com
+# 64 bytes from 93.184.216.34: icmp_seq=0 ttl=56 time=11.3 ms
+```
+
+**traceroute** is a clever abuse of the **TTL** field. Every IP packet carries a
+"time to live" counter that each router decrements; at zero the router discards the
+packet and returns an ICMP *Time Exceeded* message — revealing its own address.
+
+```viz
+type: flow
+title: How traceroute maps the path
+Send packet with TTL=1 :: first router decrements to 0, replies Time Exceeded
+Record hop 1 :: that reply's source address is the first router
+Send packet with TTL=2 :: dies at the second router, which identifies itself
+Repeat, incrementing :: each round reveals one more hop
+Destination replies :: Port Unreachable or Echo Reply — the path is complete
+```
+
+```bash
+traceroute example.com
+mtr example.com          # traceroute + ping combined, continuously updated
+```
+
+Interview trap:
+
+**A failed ping does not mean the host is down.** Many networks and cloud providers
+block ICMP by default, so a perfectly healthy web server can be unpingable while
+serving HTTPS normally. Always confirm with the actual port:
+
+```bash
+nc -zv example.com 443
+```
+
+Edge cases:
+
+- `* * *` in traceroute output means that hop did not reply to ICMP — usually a
+  filtering router, not a break in the path. Hops *after* it still appearing proves
+  traffic is passing through fine.
+- Return paths can differ from outbound paths, so a high latency at one hop may be
+  the reply route, not the forward route.
+- Classic Unix `traceroute` uses UDP to high ports by default; Windows `tracert` uses
+  ICMP. That is why the two sometimes produce different results through firewalls.
+
+## 23. Which Command-Line Tools Diagnose Which Layer?
 
 Interviewers ask "the API is timing out — what do you check?" The answer is a
 top-to-bottom sweep, and each tool isolates one layer.
@@ -640,7 +975,7 @@ Interview answer:
 which team and which system to look at, and `curl -w` gives me all four timings in one
 command."
 
-## 17. What Do 502, 503, And 504 Actually Tell You?
+## 24. What Do 502, 503, And 504 Actually Tell You?
 
 All three come from a proxy or load balancer, not from your application — which is
 itself the most useful fact about them.
@@ -678,7 +1013,7 @@ slow backend, and 502 is a broken or prematurely closed response — and if it i
 intermittent under load with clean application logs, I check the keep-alive timeouts
 first."
 
-## 18. How Do You Design A Network For A Typical Production Web App?
+## 25. How Do You Design A Network For A Typical Production Web App?
 
 Everything above, assembled. This is the diagram interviewers expect you to be able
 to draw.

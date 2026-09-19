@@ -1,5 +1,0 @@
-{
-  "permissions": {
-    "allow": ["Bash(grep -rn -A8 '```viz' content/)", "Bash(npm run *)"]
-  }
-}
