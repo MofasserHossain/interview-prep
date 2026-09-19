@@ -1,78 +1,13 @@
-# Frontend, React, and Next.js Interview Guide
+# React Basics Interview Guide
 
-Frontend interview guidance covering HTML, CSS, React internals, hooks, performance, rendering strategies, and Next.js.
+React interview guidance covering component fundamentals, props and state,
+reconciliation, render and commit phases, hook comparisons, error boundaries,
+list rendering, code splitting, and Next.js rendering basics.
 
+For browser fundamentals such as script loading, the CSS box model, and custom
+elements, see the Browser & Web Platform track.
 
-## 1. Why Put Script Tags At The End Of Body?
-
-Normal scripts block HTML parsing while they download and execute. Placing scripts near the end lets the DOM load before JavaScript runs.
-
-Modern alternative:
-
-```html
-<script src="/app.js" defer></script>
-```
-
-## 2. Difference Between `async` And `defer`
-
-`defer` downloads the script while HTML parsing continues, then executes after parsing is complete and before `DOMContentLoaded`.
-
-`async` downloads the script while parsing continues, then executes immediately when ready, which can interrupt parsing.
-
-Use `defer` for app scripts that depend on DOM order.
-
-Use `async` for independent scripts like analytics.
-
-## 3. Can You Create Custom HTML Tags?
-
-Yes, browsers allow unknown tags, but proper custom elements should include a hyphen and be registered with Web Components.
-
-```js
-class UserCard extends HTMLElement {
-  connectedCallback() {
-    this.innerHTML = "<p>User card</p>";
-  }
-}
-
-customElements.define("user-card", UserCard);
-```
-
-Use:
-
-```html
-<user-card></user-card>
-```
-
-## 4. Explain The CSS Box Model.
-
-Every element is rendered as a box:
-
-```txt
-content -> padding -> border -> margin
-```
-
-Default `content-box`:
-
-```css
-box-sizing: content-box;
-```
-
-Width applies only to content.
-
-Better common setup:
-
-```css
-* {
-  box-sizing: border-box;
-}
-```
-
-With `border-box`, width includes content, padding, and border.
-
----
-
-
-## 5. What Is React?
+## 1. What Is React?
 
 React is a JavaScript library for building component-based user interfaces. Components receive props, hold state, and return UI.
 
@@ -82,7 +17,7 @@ function Greeting({ name }) {
 }
 ```
 
-## 6. Props vs State
+## 2. Props vs State
 
 Props are passed from parent to child and should be treated as read-only.
 
@@ -95,7 +30,7 @@ function Counter() {
 }
 ```
 
-## 7. What Is Reconciliation?
+## 3. What Is Reconciliation?
 
 Reconciliation is React's process of comparing the previous UI tree with the new UI tree and deciding what DOM changes are needed.
 
@@ -109,7 +44,7 @@ Keys help React track list items.
 
 Avoid using array index as key when list order can change.
 
-## 8. Render Phase vs Commit Phase
+## 4. Render Phase vs Commit Phase
 
 Render phase:
 
@@ -122,7 +57,7 @@ Commit phase:
 - React applies changes to the DOM.
 - Effects run after commit.
 
-## 9. useState vs useRef
+## 5. useState vs useRef
 
 `useState` stores reactive state and causes re-render when updated.
 
@@ -135,7 +70,7 @@ const intervalRef = useRef<number | null>(null);
 
 Use `useRef` for DOM nodes, timers, previous values, and instance-like values.
 
-## 10. useMemo vs useCallback
+## 6. useMemo vs useCallback
 
 `useMemo` memoizes a calculated value.
 
@@ -155,7 +90,7 @@ const handleSave = useCallback(() => {
 
 Do not use them everywhere. Use them when they prevent real expensive work or unnecessary child renders.
 
-## 11. Controlled vs Uncontrolled Components
+## 7. Controlled vs Uncontrolled Components
 
 Controlled:
 
@@ -175,7 +110,7 @@ const inputRef = useRef<HTMLInputElement>(null);
 
 Controlled inputs are easier to validate and synchronize with UI state.
 
-## 12. Error Boundaries
+## 8. Error Boundaries
 
 Error boundaries catch rendering errors in child components and show fallback UI.
 
@@ -200,7 +135,7 @@ class ErrorBoundary extends React.Component {
 
 They do not catch event handler errors, async errors, or server-side errors.
 
-## 13. How Do You Render 10,000 List Items?
+## 9. How Do You Render 10,000 List Items?
 
 Do not render all DOM nodes at once. Use:
 
@@ -218,7 +153,7 @@ Example with `react-window`:
 
 Virtualization renders only visible rows plus a small buffer.
 
-## 14. What Is Code Splitting?
+## 10. What Is Code Splitting?
 
 Code splitting breaks a large JavaScript bundle into smaller chunks loaded on demand.
 
@@ -234,7 +169,7 @@ Next.js:
 const Chart = dynamic(() => import("./Chart"), { ssr: false });
 ```
 
-## 15. What Is SSR In Next.js?
+## 11. What Is SSR In Next.js?
 
 SSR means the server renders HTML before sending it to the browser.
 
@@ -247,7 +182,7 @@ Benefits:
 
 In the Next.js App Router, components are Server Components by default unless marked with `"use client"`.
 
-## 16. SSR vs SSG vs ISR vs CSR
+## 12. SSR vs SSG vs ISR vs CSR
 
 SSR:
 
@@ -275,7 +210,7 @@ CSR:
 Browser receives minimal HTML and builds UI using JavaScript.
 ```
 
-## 17. What Is Hydration?
+## 13. What Is Hydration?
 
 Hydration is when React attaches event handlers and client-side behavior to server-rendered HTML.
 
@@ -288,7 +223,7 @@ Client hydrates: attaches onClick handler
 
 Hydration mismatch happens when server-rendered HTML differs from the first client render.
 
-## 18. Next.js Error Handling
+## 14. Next.js Error Handling
 
 In the App Router, use route-level `error.tsx`.
 

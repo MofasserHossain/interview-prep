@@ -35,12 +35,17 @@ CLAUDE.md                Symlink to AGENTS.md
 
 ## Current Tracks And Subtopics
 
+- Job Prep: Senior Full Stack SaaS
 - Backend: Fundamentals & APIs, API Optimization & Database Performance
-- Node.js: Fundamentals, Modules & APIs, Event Loop & Async Runtime
-- JavaScript: Language Fundamentals, Modules, Import & Export, Promises & Async, Event Loop & Runtime, this & Functions, Prototypes & Objects, Map, Object & Set, Loops & Array Methods, Scope, Hoisting & Closures, Types, Equality & Copying
-- React: Basics & Next.js, Performance Optimization, Machine Coding Practice
-- System Design: Microservices & Scalability
-- DevOps & Infrastructure: Docker & Kubernetes, Nginx & Web
+- Databases: Database Fundamentals, SQL Fundamentals, Query Optimization
+- Node.js: Fundamentals, Modules & APIs, Event Loop & Async Runtime, Streams, Buffers & Workers, NestJS
+- JavaScript: Language Fundamentals, Modules, Import & Export, Promises & Async, Event Loop & Runtime, this & Functions, Prototypes & Objects, Map, Object & Set, Loops & Array Methods, Scope, Hoisting & Closures, Types, Equality & Copying, Execution Context & Lexical Environment, Code Practice & Output Questions
+- Browser & Web Platform: Page Load & Rendering, CSS & Layout, DOM, Events & Browser APIs
+- React: React Basics, TypeScript Architecture, Core Concepts Through 17, React 18 Features, React 19 Features, React Compiler, Performance Optimization, Bundle Optimization, Senior Frontend Scenarios, Machine Coding Practice
+- Next.js: Fundamentals & App Router, Rendering, Caching & Dynamic APIs, Routing & Navigation, Server & Client Components, Data Fetching, Forms & Mutations, Error Handling, Metadata & SEO, Security & Auth, Proxy & Observability, Styling & Assets, Deployment & Production, Testing, Debugging & Tooling, Optimizations & Performance
+- AI Engineering: Frontend AI Apps
+- System Design: Microservices & Scalability, Kafka & Event Streaming, RabbitMQ Queues & Exchanges, MQTT IoT Messaging, Design Patterns
+- DevOps & Infrastructure: Docker & Kubernetes, AWS SaaS & Observability, Nginx & Web
 - .NET & C#: C# & ASP.NET Core
 - Python: Backend Frameworks
 - Mobile: React Native

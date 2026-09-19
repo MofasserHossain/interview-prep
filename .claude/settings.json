@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -n '^#\\\\{1,2\\\\} ' content/interview/mobile-react-native-guide.md)",
+      "Bash(grep -rn -A8 '```viz' content/interview/)",
+      "Bash(npm run *)"
+    ]
+  }
+}
