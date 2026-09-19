@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import { Geist } from "next/font/google";
 import { brand, siteDescription, siteKeywords, siteName, siteUrl } from "@/lib/site";
 
@@ -80,6 +81,7 @@ export default function RootLayout({
             __html: JSON.stringify(websiteJsonLd).replace(/</g, "\\u003c"),
           }}
         />
+        <Analytics />
       </body>
     </html>
   );
