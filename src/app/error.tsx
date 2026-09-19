@@ -4,16 +4,11 @@ import { AlertTriangle, BookOpen, ChevronRight, FileText, RefreshCcw } from "luc
 import Link from "next/link";
 import { useEffect } from "react";
 import { topics } from "@/lib/topics";
+import { groupTopicsByTrack } from "@/lib/tracks";
 
 type ErrorProps = {
   error: Error & { digest?: string };
   retry: () => void;
-};
-
-type ErrorTrack = {
-  slug: string;
-  title: string;
-  topics: typeof topics;
 };
 
 export default function Error({ error, retry }: ErrorProps) {
@@ -21,7 +16,7 @@ export default function Error({ error, retry }: ErrorProps) {
     console.error(error);
   }, [error]);
 
-  const tracks = getErrorTracks();
+  const tracks = groupTopicsByTrack(topics);
 
   return (
     <main className="app-shell app-error-shell">
@@ -103,21 +98,4 @@ export default function Error({ error, retry }: ErrorProps) {
       </section>
     </main>
   );
-}
-
-function getErrorTracks() {
-  const byTrack = new Map<string, ErrorTrack>();
-
-  topics.forEach((topic) => {
-    const current = byTrack.get(topic.trackSlug) ?? {
-      slug: topic.trackSlug,
-      title: topic.trackTitle,
-      topics: [],
-    };
-
-    current.topics.push(topic);
-    byTrack.set(topic.trackSlug, current);
-  });
-
-  return Array.from(byTrack.values());
 }
