@@ -55,6 +55,25 @@ const studyBlockDefinitions: StudyBlockDefinition[] = [
   },
   { match: "interview method", title: "Interview Method", variant: "interview" },
   { match: "strong answer", title: "Strong Interview Answer", variant: "interview" },
+  { match: "problem it solves", title: "Problem It Solves", variant: "benefit" },
+  { match: "when to use it", title: "When To Use It", variant: "benefit" },
+  { match: "fix", title: "Fix", variant: "benefit" },
+  { match: "scenario", title: "Scenario", variant: "example" },
+  { match: "query plan", title: "Query Plan", variant: "example" },
+  { match: "plan before", title: "Plan Before", variant: "example" },
+  { match: "plan after", title: "Plan After", variant: "example" },
+  { match: "the rule", title: "The Rule", variant: "example" },
+  { match: "tradeoff", title: "Tradeoff", variant: "important", aliases: ["tradeoffs"] },
+  { match: "when not to use it", title: "When Not To Use It", variant: "important" },
+  { match: "edge cases", title: "Edge Cases", variant: "important" },
+  { match: "symptom", title: "Symptom", variant: "important" },
+  {
+    match: "interview answer",
+    title: "Interview Answer",
+    variant: "interview",
+    aliases: ["interview phrasing"],
+  },
+  { match: "interview trap", title: "Interview Trap", variant: "interview" },
 ];
 
 const definitionsByLabel = new Map(

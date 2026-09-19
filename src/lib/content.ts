@@ -3,7 +3,7 @@ import path from "node:path";
 import { topics } from "@/lib/topics";
 import type { InterviewData, Question, Topic } from "@/lib/types";
 
-const contentDirectory = path.join(process.cwd(), "content", "interview");
+const contentDirectory = path.join(process.cwd(), "content");
 
 const skippedSections = new Set(["sources used"]);
 
@@ -156,6 +156,56 @@ const keywordTags = [
   "webpack",
   "weakmap",
   "websocket",
+  "execution context",
+  "lexical environment",
+  "environment record",
+  "scope chain",
+  "critical rendering path",
+  "render tree",
+  "cssom",
+  "reflow",
+  "repaint",
+  "mime type",
+  "preload",
+  "core web vitals",
+  "dom",
+  "event delegation",
+  "event bubbling",
+  "box model",
+  "stacking context",
+  "specificity",
+  "flexbox",
+  "css grid",
+  "media query",
+  "cascade",
+  "css",
+  "sql",
+  "join",
+  "primary key",
+  "foreign key",
+  "normalization",
+  "composite index",
+  "covering index",
+  "b-tree",
+  "cardinality",
+  "query plan",
+  "execution plan",
+  "isolation level",
+  "deadlock",
+  "pagination",
+  "nestjs",
+  "dependency injection",
+  "interceptor",
+  "guard",
+  "backpressure",
+  "worker thread",
+  "cluster",
+  "buffer",
+  "server component",
+  "app router",
+  "cache components",
+  "server actions",
+  "proxy",
 ];
 
 export function getInterviewData(): InterviewData {

@@ -1019,6 +1019,297 @@ Strong interview answer:
 > event delegation, removed web event pooling, and prepared the ecosystem for
 > React 18.
 
+## 37. What Is The Difference Between A React Node, A React Element, And A Component?
+
+Three different levels of the same system, and interviewers ask this to find out
+whether you know that JSX produces data rather than DOM.
+
+**A component** is the blueprint: a function (or class) that takes props and
+returns what should be rendered. It is a definition — it does nothing until
+something renders it.
+
+```tsx
+function Greeting({ name }: { name: string }) {
+  return <h1>Hello {name}</h1>;
+}
+```
+
+**A React element** is the object that describes *one rendered use* of a
+component or host tag. JSX compiles to a `createElement` call (or `jsx()` with
+the modern transform), and the result is a plain, immutable object.
+
+```tsx
+const element = <Greeting name="Ada" />;
+
+// roughly:
+{ type: Greeting, props: { name: "Ada" }, key: null }
+```
+
+An element is a **description, not an instance**. Creating one is cheap and
+renders nothing by itself; React reads it during reconciliation and decides what
+to do.
+
+**A React node** is anything React can render. It is the widest of the three and
+mostly appears as the TypeScript type `ReactNode`:
+
+- a React element
+- a string or a number
+- `null`, `undefined`, or a boolean (all render nothing)
+- an array or fragment containing any of the above
+
+```tsx
+type CardProps = {
+  children: ReactNode;   // anything renderable
+  icon: ReactElement;    // must be an element specifically
+};
+```
+
+Mental model:
+
+`Component` is the recipe, `element` is the order ticket, `node` is anything the
+kitchen will accept. `ReactNode` is what you type `children` as; `ReactElement`
+is what you type a prop as when you genuinely need an element and not a string.
+
+Interview trap:
+
+`<Greeting />` and `Greeting` are not interchangeable. The first is an element
+(an object); the second is a function reference. Passing `<Icon />` where a
+component type is expected — or `Icon` where an element is expected — is the bug
+this question is really about.
+
+## 38. What Is The React Event System And How Does It Differ From Native DOM Events?
+
+React does not attach a listener to every element. It attaches a small number of
+listeners at the **root container** and dispatches events to your handlers using
+its own synthetic system.
+
+```viz
+type: flow
+title: How a click reaches your onClick
+User clicks a button :: a real native DOM event fires
+Native event bubbles :: up the real DOM to the React root container
+React's root listener :: one listener per event type, not per element
+React finds the path :: walks its own component tree from the target up
+Handlers run :: onClick fires as if it had bubbled through the React tree
+```
+
+What a **SyntheticEvent** is: a cross-browser wrapper around the native event
+with a normalised API (`stopPropagation`, `preventDefault`, `target`,
+`currentTarget`). The real event is always available at `event.nativeEvent`.
+
+The differences that matter in practice:
+
+- **Delegation, not direct binding.** React attaches at the root (since React 17;
+  before that, at `document`). Your `onClick` never becomes an `addEventListener`
+  on that button.
+- **Handlers fire later than native ones.** A native listener attached directly to
+  an inner element runs *before* React's handler, because the event has to bubble
+  up to the root first. That is why calling `stopPropagation` in a native
+  listener can silently kill your React handlers.
+- **Events bubble through the React tree, not the DOM tree.** A click inside a
+  portal bubbles to the portal's React parent even though the DOM node lives
+  elsewhere in `document.body`. This surprises people building modals.
+- **`onChange` behaves like the native `input` event.** It fires on every
+  keystroke, not on blur like native `change`.
+- **Naming is camelCase**, and the value is a function, not a string.
+- **Capture phase** is available with the `Capture` suffix — `onClickCapture`.
+- **Some events are not delegated.** Events that do not bubble — `scroll`, media
+  events — are attached to the node directly.
+- **Passive listeners.** React attaches `touchstart`, `touchmove`, and `wheel`
+  passively at the root, so `preventDefault()` inside those handlers does not
+  work. You need a ref and a manual `addEventListener` with `{ passive: false }`.
+
+Interview note:
+
+Event **pooling** — where React reused the event object and nulled its fields
+after the handler, forcing `event.persist()` — was removed in React 17. If you
+learned that rule, it is now historical. Mentioning that it *used to* exist and
+was removed is a nice signal of depth.
+
+Strong answer:
+
+> React uses one delegated listener per event type at the root container and
+> dispatches a SyntheticEvent through its own component tree, which gives
+> consistent cross-browser behaviour and lets events follow the React tree rather
+> than the DOM tree — portals being the obvious case. The practical consequences
+> are that native listeners on inner nodes fire before React's, that
+> `onChange` fires per keystroke, and that `preventDefault` does not work in
+> wheel and touch handlers because React attaches those passively.
+
+## 39. What Is The Difference Between Client-Side And Server-Side Routing?
+
+**Server-side routing** is the original model: every navigation is a full HTTP
+request. The browser unloads the current document, the server returns a complete
+HTML page, and everything restarts.
+
+**Client-side routing** intercepts link clicks, changes the URL with the History
+API (`pushState`), and swaps components in place. No document is fetched; no
+JavaScript state is lost.
+
+```tsx
+// Client-side: the browser never navigates
+<Link to="/profile">Profile</Link>
+
+// Server-side: a full page load
+<a href="/profile">Profile</a>
+```
+
+| | Server-side | Client-side |
+| --- | --- | --- |
+| Per navigation | full HTML document | JSON data at most |
+| JS state | destroyed | preserved |
+| First paint | fast, HTML is ready | waits for the JS bundle |
+| Later navigation | another round trip | near-instant |
+| SEO | trivially crawlable | depends on the crawler |
+| Works without JS | yes | no |
+| Scroll / focus | handled by the browser | your responsibility |
+
+What client-side routing forces you to re-implement:
+
+- **Scroll restoration** — the browser no longer does it for you.
+- **Focus management and announcements** — a screen reader is not told the page
+  changed, so route changes need an explicit focus move or a live region.
+- **The 404-on-refresh problem.** Deep-linking to `/profile` sends a real request
+  to the server. A static host must be configured to serve `index.html` for all
+  unknown paths, or a hard refresh 404s.
+- **Loading and error states**, since there is no browser progress bar.
+
+Why it matters:
+
+Almost every production app now runs a hybrid: the first request is
+server-rendered for fast first paint and SEO, then the client router takes over
+for subsequent navigation. That is exactly what Next.js does — server-render or
+prerender the entry, hydrate, then navigate client-side with prefetching.
+
+Strong answer:
+
+> Server-side routing trades a round trip per navigation for simplicity, working
+> without JavaScript, and SEO by default. Client-side routing trades a heavier
+> initial load and taking over scroll, focus, and error handling yourself for
+> near-instant navigation and preserved state. Modern frameworks do not pick one
+> — they server-render the first response and then use client-side routing, so
+> you get the first-paint characteristics of one and the navigation feel of the
+> other.
+
+## 40. How Do You Localize A React Application?
+
+Localization is more than swapping strings, and a good answer covers all four
+layers.
+
+**1. Externalise every string.** No user-visible text in JSX. Keys live in
+per-locale resource files, loaded by a provider at the root.
+
+```tsx
+import { useTranslation } from "react-i18next";
+
+function Cart({ count }: { count: number }) {
+  const { t } = useTranslation();
+  return <Text>{t("cart.items", { count })}</Text>;
+}
+```
+
+```json
+{ "cart": { "items_one": "{{count}} item", "items_other": "{{count}} items" } }
+```
+
+**2. Use ICU-style plurals and formatting — never string concatenation.**
+`"You have " + n + " items"` is untranslatable: word order differs by language,
+and many languages have more than two plural forms. `Intl.PluralRules` and ICU
+message syntax exist precisely for this.
+
+**3. Format data with `Intl`, not by hand.** Dates, numbers, currencies, relative
+times, and list joins are all locale-dependent and all built into the platform.
+
+```ts
+new Intl.NumberFormat(locale, { currency: "EUR", style: "currency" }).format(12.5);
+new Intl.DateTimeFormat(locale, { dateStyle: "long" }).format(date);
+new Intl.RelativeTimeFormat(locale).format(-3, "day");
+```
+
+**4. Handle layout and direction.** Arabic and Hebrew are right-to-left. Set `dir`
+on the document, use CSS logical properties (`margin-inline-start` rather than
+`margin-left`), and mirror directional icons. German text runs 30% longer than
+English, so fixed-width buttons break.
+
+The operational parts interviewers probe:
+
+- **Locale detection order** — explicit user setting, then URL or cookie, then
+  `Accept-Language`, then a default. Put the locale in the URL if you want it
+  shareable and indexable.
+- **Bundle size.** Load only the active locale, lazily. Shipping forty locale
+  files to every user is a common mistake.
+- **Translation workflow.** Keys are extracted from source, sent to translators,
+  and merged back. Missing keys need a defined fallback rather than a blank UI.
+- **Testing.** Pseudo-localization (`[[Ŝàvé Ĉĥàñĝéŝ››]]`) reveals hard-coded
+  strings and overflow before real translations arrive.
+
+Tradeoff:
+
+`react-i18next` is the most common choice and is framework-agnostic; FormatJS
+(`react-intl`) is closer to the ICU standard; Lingui does compile-time extraction
+with smaller runtime output. In Next.js, locale-prefixed routes plus
+server-loaded dictionaries keep translations out of the client bundle entirely.
+
+## 41. How Do You Subscribe To An External Data Source And Clean Up Correctly?
+
+The classic version uses `useEffect` with a cleanup function:
+
+```tsx
+useEffect(() => {
+  const socket = new WebSocket(url);
+  socket.addEventListener("message", handleMessage);
+
+  return () => {
+    socket.removeEventListener("message", handleMessage);
+    socket.close();
+  };
+}, [url]); // re-subscribes only when url changes
+```
+
+The rules this pattern depends on:
+
+- Cleanup runs **before every re-run** of the effect and once on unmount, so the
+  old subscription is always torn down before a new one is created.
+- The dependency array decides how often you resubscribe. Missing `url` means you
+  keep listening to a stale socket; including an unstable object or function
+  means you tear down and resubscribe on every render.
+- In development, StrictMode intentionally mounts, unmounts, and remounts, so a
+  missing cleanup shows up immediately as a duplicated subscription.
+
+For subscribing to an **external store** — something outside React that holds
+state and can change at any time — `useSyncExternalStore` is the correct hook:
+
+```tsx
+const isOnline = useSyncExternalStore(
+  (onChange) => {
+    window.addEventListener("online", onChange);
+    window.addEventListener("offline", onChange);
+    return () => {
+      window.removeEventListener("online", onChange);
+      window.removeEventListener("offline", onChange);
+    };
+  },
+  () => navigator.onLine,      // client snapshot
+  () => true,                  // server snapshot, for SSR
+);
+```
+
+Why it matters:
+
+With concurrent rendering, an effect-based subscription can **tear** — one part of
+the tree renders with the old external value and another with the new one, inside
+the same commit. `useSyncExternalStore` tells React about the store directly so
+it can keep the whole tree consistent. This is why every serious state library
+(Redux, Zustand) uses it internally.
+
+Interview trap:
+
+`getSnapshot` must return a **cached, referentially stable** value. Returning a
+new object or array each call (`() => ({ ...state })`) makes React think the
+store changed on every check and throws "The result of getSnapshot should be
+cached to avoid an infinite loop". The `subscribe` function must also be stable —
+define it outside the component or wrap it in `useCallback`.
+
 ## Quick Revision Checklist
 
 Before a classic React interview, be ready to explain:
@@ -1040,6 +1331,11 @@ Before a classic React interview, be ready to explain:
 - Rules of Hooks and effect dependencies
 - the core hook set through React 17
 - what React 17 changed and why it had no new hook set
+- React node vs React element vs component
+- the synthetic event system and how it differs from native DOM events
+- client-side vs server-side routing
+- localization, plurals, and `Intl` formatting
+- subscribing to external stores with `useSyncExternalStore`
 
 ## Sources Used
 

@@ -2,7 +2,7 @@
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
   "bracketSpacing": true,
   "endOfLine": "lf",
-  "ignorePatterns": [".next/**", "**/dist/**", "**/node_modules/**", "content/interview/**"],
+  "ignorePatterns": [".next/**", "**/dist/**", "**/node_modules/**", "content/**"],
   "insertFinalNewline": true,
   "printWidth": 100,
   "semi": true,

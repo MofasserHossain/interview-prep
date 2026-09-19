@@ -326,6 +326,15 @@ For most frontend interview questions, use this priority model:
 5. drain microtasks created by that task
 6. repeat
 
+```viz
+type: queues
+title: What runs first after the current script
+Call stack :: the running script, to completion
+Microtasks :: promise handlers, queueMicrotask, await continuations
+Rendering :: requestAnimationFrame, style, layout, paint
+Tasks :: setTimeout, DOM events, messages, one per turn
+```
+
 Important queues:
 
 | Queue or step | Examples | Priority |

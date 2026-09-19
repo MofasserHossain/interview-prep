@@ -10,20 +10,41 @@ export type TrackSummary = {
   topics: TopicSummary[];
 };
 
+// Sidebar order, read as a learning path: the frontend run first, then the
+// backend run, then platform and other languages. Keep `@/lib/topics` grouped
+// the same way so the registry matches what the menu shows.
 const trackOrder = [
-  "role-prep",
-  "backend",
-  "nodejs",
+  // Frontend path
+  "browser",
+  "networking",
   "javascript",
   "react",
+  "nextjs",
+  "frontend-architecture",
+  "react-native",
   "ai-engineering",
+  // Backend path
+  "backend",
+  "nodejs",
+  "nestjs",
+  "databases",
+  // Platform
   "system-design",
   "devops",
+  // Other languages
   "dotnet",
   "python",
-  "mobile",
-  "frontend-architecture",
+  // Meta
+  "interview-prep",
 ];
+
+// Unlisted tracks sort to the end rather than the top, so a new track added to
+// the registry but forgotten here does not take over the menu.
+function trackRank(slug: string) {
+  const index = trackOrder.indexOf(slug);
+
+  return index === -1 ? trackOrder.length : index;
+}
 
 export function buildTrackSummaries(topics: TopicSummary[]) {
   const byTrack = new Map<string, TrackSummary>();
@@ -44,7 +65,7 @@ export function buildTrackSummaries(topics: TopicSummary[]) {
   });
 
   return Array.from(byTrack.values()).toSorted(
-    (first, second) => trackOrder.indexOf(first.slug) - trackOrder.indexOf(second.slug),
+    (first, second) => trackRank(first.slug) - trackRank(second.slug),
   );
 }
 
@@ -63,6 +84,6 @@ export function groupTopicsByTrack(topics: Topic[]) {
   });
 
   return Array.from(byTrack.values()).toSorted(
-    (first, second) => trackOrder.indexOf(first.slug) - trackOrder.indexOf(second.slug),
+    (first, second) => trackRank(first.slug) - trackRank(second.slug),
   );
 }
