@@ -1,9 +1,4 @@
 {
   "$schema": "https://unpkg.com/knip@latest/schema.json",
-  "entry": ["src/app/page.tsx", "src/app/layout.tsx", "next.config.ts"],
-  "project": ["src/app/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}", "src/lib/**/*.ts"],
-  "ignoreIssues": {
-    "src/components/ui/**": ["exports"]
-  },
-  "ignoreDependencies": ["shadcn", "tailwindcss"]
+  "project": ["src/app/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}", "src/lib/**/*.ts"]
 }
