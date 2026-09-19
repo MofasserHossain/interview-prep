@@ -1,10 +1,11 @@
 # HTTP, TLS And Web Protocols Interview Guide
 
 HTTP interview guidance ordered from the basics upward: request and response
-anatomy, methods, status codes, headers, HTTPS and the TLS handshake, certificates,
-HTTP/1.1 versus HTTP/2 versus HTTP/3, caching, cookies, CORS, compression, API style
-choices, realtime transports, security headers, idempotency keys, and debugging with
-`curl`.
+anatomy, URL structure and encoding, methods, idempotency, status codes, headers,
+HTTPS and the TLS handshake, certificates, HTTP/1.1 versus HTTP/2 versus HTTP/3,
+caching, cookies, authentication schemes, CSRF, CORS, compression, chunked
+encoding, API style choices, realtime transports, security headers, idempotency
+keys, and debugging with `curl`.
 
 Every term is defined on first use. Read the Networking Fundamentals guide alongside
 this one — that covers the layers below HTTP.
@@ -43,7 +44,64 @@ Statelessness is what makes horizontal scaling possible. Any server can handle a
 request, so adding capacity is just adding machines. The moment a server remembers
 something in local memory, that property is lost.
 
-## 2. What Are The HTTP Methods, And What Does Each Mean?
+## 2. What Are The Parts Of A URL, And What Needs Encoding?
+
+```txt
+https://user:pass@api.example.com:8443/v1/users?role=admin&sort=name#results
+└─┬─┘   └───┬───┘ └──────┬───────┘└┬─┘└───┬───┘└───────┬──────────┘└──┬───┘
+scheme   userinfo      host       port   path        query         fragment
+```
+
+| Part | Notes |
+| --- | --- |
+| scheme | `https`, `http`, `ws`, `ftp` — case-insensitive |
+| userinfo | legacy, deprecated in browsers for HTTP |
+| host | domain or IP — case-insensitive |
+| port | omitted means the scheme default: 80 for HTTP, 443 for HTTPS |
+| path | **case-sensitive** on most servers |
+| query | `?key=value&key2=value2` |
+| fragment | `#results` — **never sent to the server** |
+
+Interview trap:
+
+The **fragment never leaves the browser**. It is used purely client-side for anchors
+and SPA routing, so you cannot read it server-side and it never appears in server
+logs. That is also why putting a token in a fragment (as OAuth implicit flow once did)
+keeps it out of server logs — and why it still ends up in browser history.
+
+Percent-encoding: reserved characters must be escaped or they change the URL's
+structure.
+
+```js
+// Encodes everything unsafe in a VALUE, including / ? & = #
+encodeURIComponent("a/b?c=d&e"); // "a%2Fb%3Fc%3Dd%26e"
+
+// Leaves URL structure characters intact — for a WHOLE url, not a value
+encodeURI("https://x.com/a b");  // "https://x.com/a%20b"
+```
+
+The rule:
+
+`encodeURIComponent` for every individual query value or path segment.
+`encodeURI` only when escaping a complete URL you already trust. Using `encodeURI` on
+a value is a real bug: a value containing `&` silently becomes two parameters.
+
+```js
+// Safest — the API builds a correct query string for you.
+const url = new URL("https://api.example.com/search");
+url.searchParams.set("q", "a&b=c");   // properly escaped
+```
+
+Edge cases:
+
+There is no standard for arrays in query strings. `?tag=a&tag=b`, `?tag[]=a`, and
+`?tag=a,b` are all in use, and the server framework decides which it understands —
+which is exactly where the Express `query parser` setting matters.
+
+Practical limit: browsers and proxies cap URLs around 2,000 characters. Anything
+longer belongs in a POST body.
+
+## 3. What Are The HTTP Methods, And What Does Each Mean?
 
 The method states the *intent* of the request.
 
@@ -73,7 +131,7 @@ honour. A `GET /deleteUser?id=42` endpoint is legal HTTP and a serious bug — b
 prefetchers, crawlers, and link previewers follow GET links, and will delete data by
 simply looking at the page.
 
-## 3. What Are Safe And Idempotent Methods?
+## 4. What Are Safe And Idempotent Methods?
 
 Two properties that decide whether a request can be retried or cached.
 
@@ -109,7 +167,7 @@ Interview answer:
 The practical consequence is retry policy: I can auto-retry GET, PUT, and DELETE, but
 a POST needs an idempotency key before I retry it."
 
-## 4. What Do The Status Code Families Mean?
+## 5. What Do The Status Code Families Mean?
 
 The first digit is the category; learn the families, then the individual codes.
 
@@ -153,7 +211,7 @@ Important:
 301 is cached by browsers essentially forever and is very hard to undo. Use 302 or
 307 unless you are certain the move is permanent.
 
-## 5. What Are The Most Important HTTP Headers?
+## 6. What Are The Most Important HTTP Headers?
 
 Headers carry metadata about the request or response.
 
@@ -191,7 +249,7 @@ Interview trap:
 describes what it **wants back**. Confusing them is why a request sometimes gets a
 415 Unsupported Media Type instead of a 406 Not Acceptable.
 
-## 6. What Is The Difference Between HTTP And HTTPS?
+## 7. What Is The Difference Between HTTP And HTTPS?
 
 HTTPS is HTTP carried inside a **TLS** (Transport Layer Security) tunnel. Same
 protocol, encrypted transport.
@@ -222,7 +280,7 @@ Interview trap:
 deprecated and insecure. The live versions are **TLS 1.2** and **TLS 1.3**. Saying
 "SSL certificate" is accepted usage; configuring SSLv3 is a vulnerability.
 
-## 7. How Does The TLS Handshake Work?
+## 8. How Does The TLS Handshake Work?
 
 The handshake establishes a shared secret over an untrusted network, then switches to
 fast symmetric encryption.
@@ -264,7 +322,7 @@ Interview answer:
 because it is far cheaper. TLS 1.3 cut it to one round trip and removed the legacy
 cipher suites that caused most TLS vulnerabilities."
 
-## 8. How Does Certificate Trust Work?
+## 9. How Does Certificate Trust Work?
 
 A **certificate** binds a public key to a hostname, signed by a **Certificate
 Authority** (CA) that browsers already trust.
@@ -307,7 +365,7 @@ Important:
 Certificates expire — Let's Encrypt issues 90-day certificates specifically to force
 automation. A manual renewal process is an outage with a scheduled date.
 
-## 9. What Changed Between HTTP/1.1, HTTP/2, And HTTP/3?
+## 10. What Changed Between HTTP/1.1, HTTP/2, And HTTP/3?
 
 Each version solved the previous one's bottleneck.
 
@@ -360,7 +418,7 @@ QUIC's other real win is **connection migration**. A connection is identified by
 connection ID rather than the four-tuple, so moving from Wi-Fi to cellular keeps the
 session alive instead of dropping it.
 
-## 10. How Does HTTP Caching Work?
+## 11. How Does HTTP Caching Work?
 
 Two mechanisms: **expiration** (do not ask again yet) and **validation** (ask, but
 skip the body if unchanged).
@@ -403,7 +461,7 @@ Sending `Cache-Control: public` on an authenticated response lets a shared CDN c
 serve one user's data to another. Always `private` or `no-store` for anything
 user-specific, and use `Vary: Authorization` if a shared cache is unavoidable.
 
-## 11. How Do Cookies Work, And What Do Their Attributes Do?
+## 12. How Do Cookies Work, And What Do Their Attributes Do?
 
 A cookie is a key/value pair the server asks the browser to store and send back
 automatically on subsequent requests to that origin.
@@ -445,7 +503,128 @@ Interview answer:
 plain HTTP, `SameSite=Lax` for CSRF protection, a scoped `Path`, and a sensible
 `Max-Age`. That combination removes the three common session-theft routes."
 
-## 12. What Is CORS, And What Triggers A Preflight?
+## 13. What Are The HTTP Authentication Schemes?
+
+Authentication rides on the `Authorization` header, with a scheme name in front of
+the credentials.
+
+```txt
+Authorization: Basic  dXNlcjpwYXNzd29yZA==
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+Authorization: Digest username="...", nonce="...", response="..."
+```
+
+| Scheme | Credential | Notes |
+| --- | --- | --- |
+| **Basic** | `base64(user:password)` | **encoding, not encryption** — useless without TLS |
+| **Bearer** | a token (usually a JWT) | "whoever holds it, wields it" |
+| **Digest** | hashed challenge/response | legacy, avoids sending the password |
+| **API key** | opaque string | usually a custom header like `X-API-Key` |
+| **mTLS** | a client certificate | strongest; used service-to-service |
+
+The 401 challenge flow:
+
+```viz
+type: flow
+title: How a server asks for credentials
+Client requests a protected resource :: no Authorization header
+Server responds 401 :: WWW-Authenticate: Basic realm="api"
+Client retries :: now with Authorization: Basic ...
+Server responds 200 :: or 403 if authenticated but not permitted
+```
+
+Interview trap:
+
+Base64 is **not** encryption. `dXNlcjpwYXNzd29yZA==` decodes to `user:password` with
+one command. Basic auth over plain HTTP hands the password to anyone on the path.
+
+```bash
+echo "dXNlcjpwYXNzd29yZA==" | base64 -d   # user:password
+```
+
+Important:
+
+Never put an API key in the **query string**. URLs are written to server access logs,
+proxy logs, browser history, and `Referer` headers — so a key in a query string leaks
+into at least four places you do not control. Use a header.
+
+Interview answer:
+
+"Bearer tokens for user-facing APIs, with short expiry and a refresh token. API keys
+in a header — never a query parameter — for server-to-server where a full auth flow is
+overkill. mTLS when both ends are mine and I want the transport itself to prove
+identity. Basic auth only behind TLS, and really only for internal tools."
+
+## 14. What Is CSRF, And How Do You Defend Against It?
+
+**CSRF** (Cross-Site Request Forgery) exploits the fact that browsers attach cookies
+automatically to *any* request to a domain — including requests triggered by a
+completely different site.
+
+```html
+<!-- On evil.com. The victim is logged into bank.com in another tab. -->
+<form action="https://bank.com/transfer" method="POST" id="f">
+  <input name="to" value="attacker">
+  <input name="amount" value="10000">
+</form>
+<script>document.getElementById("f").submit();</script>
+```
+
+```viz
+type: flow
+title: Why the attack works
+Victim logs into bank.com :: receives a session cookie
+Victim visits evil.com :: in another tab, still logged in
+evil.com auto-submits a form :: targeting bank.com
+Browser attaches the cookie :: it always does, regardless of who triggered the request
+bank.com sees a valid session :: and performs the transfer
+```
+
+Key reasoning:
+
+The root cause is **ambient authority** — the credential is sent automatically without
+the application deciding to send it. This is why CSRF affects cookie-based sessions
+and **does not** affect tokens in an `Authorization` header: JavaScript must
+deliberately attach those, and an attacker's page cannot read your token to attach it.
+
+The defences, strongest first:
+
+```txt
+SameSite=Lax/Strict  the browser refuses to send the cookie cross-site (default now)
+CSRF token           a per-session random value in a hidden field or header,
+                     which evil.com cannot read due to the same-origin policy
+Double-submit cookie a token sent in BOTH a cookie and a header; the server compares
+Origin/Referer check reject state-changing requests from unexpected origins
+Re-authentication    require the password again for high-value actions
+```
+
+```js
+// Express: token check as middleware on state-changing routes.
+app.use((req, res, next) => {
+  if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
+
+  if (req.get("x-csrf-token") !== req.session.csrfToken) {
+    return next(new HttpError(403, "Invalid CSRF token"));
+  }
+
+  next();
+});
+```
+
+Interview trap:
+
+`SameSite=Lax` (the modern default) blocks the attack above, but it still sends the
+cookie on **top-level GET navigations**. So a `GET` endpoint that changes state
+remains vulnerable even with `Lax` — another reason `GET` must always be safe.
+
+Interview answer:
+
+"CSRF is an ambient-authority problem, so the fix is either removing the ambience —
+`SameSite` cookies, or tokens in a header — or proving intent with a CSRF token the
+attacker's origin cannot read. A pure Bearer-token SPA is structurally immune; a
+cookie-session app needs both `SameSite` and tokens on state-changing routes."
+
+## 15. What Is CORS, And What Triggers A Preflight?
 
 Browsers enforce the **same-origin policy**: a page on origin A cannot read a response
 from origin B. An origin is scheme + host + port — all three must match.
@@ -496,7 +675,7 @@ CORS is enforced **by the browser**, and it protects the *user*, not the server.
 `curl`, Postman, and any server-side client ignore it entirely. It is not
 authorisation — every request still needs its own auth check.
 
-## 13. How Does Compression Work Over HTTP?
+## 16. How Does Compression Work Over HTTP?
 
 The client advertises what it can decode; the server picks one and says which it used.
 
@@ -530,7 +709,67 @@ TLS enables **BREACH**-style attacks, because compressed size leaks information 
 content. The practical mitigations are CSRF tokens that vary per request, and not
 reflecting user input next to secrets.
 
-## 14. REST, GraphQL, Or gRPC — How Do You Choose?
+## 17. How Does A Server Send A Response Of Unknown Length?
+
+Every HTTP/1.1 response must tell the client where the body ends. There are exactly
+two ways.
+
+```txt
+Content-Length: 1024                 the body is exactly 1024 bytes
+Transfer-Encoding: chunked           the body arrives in self-describing chunks
+```
+
+Chunked encoding sends each piece with its size in hex, then a zero-length chunk to
+signal the end:
+
+```txt
+HTTP/1.1 200 OK
+Transfer-Encoding: chunked
+
+1a
+{"status":"generating..."}
+12
+{"progress":50}
+0
+
+```
+
+When to use it:
+
+When the length is unknown at the time headers are sent — a streamed database export,
+a generated report, a proxied response, or LLM tokens produced as they are computed.
+The alternative is buffering the whole response in memory just to count the bytes.
+
+```js
+// Node sets Transfer-Encoding: chunked automatically when you write
+// without having set Content-Length.
+res.writeHead(200, { "Content-Type": "application/json" });
+res.write('{"progress":10}');   // sent immediately
+res.write('{"progress":50}');
+res.end();
+```
+
+Tradeoff:
+
+Chunked responses cannot report download progress, because the total size is unknown —
+the browser shows an indeterminate spinner rather than a percentage. Buffering gives
+you a progress bar at the cost of memory and time to first byte.
+
+Interview trap:
+
+**HTTP/2 and HTTP/3 have no chunked encoding.** Their binary framing already delimits
+messages, so `Transfer-Encoding: chunked` is forbidden there. Streaming still works —
+it is just handled by the protocol's own DATA frames.
+
+Important:
+
+Sending **both** `Content-Length` and `Transfer-Encoding` is the basis of **HTTP
+request smuggling**: a front-end proxy and a back-end server disagree about which
+header wins, so the back end sees a request boundary in a different place and an
+attacker can prepend a request to the next user's connection. Modern servers reject
+requests carrying both, which is why you should never hand-roll the framing.
+
+## 18. REST, GraphQL, Or gRPC — How Do You Choose?
 
 ```viz
 type: stack
@@ -566,7 +805,7 @@ Interview answer:
 diverge and the mobile round-trip cost is real. gRPC inside the cluster where I
 control both ends and want generated clients and binary framing."
 
-## 15. Polling, Long Polling, SSE, Or WebSockets?
+## 19. Polling, Long Polling, SSE, Or WebSockets?
 
 Four ways to get server updates to a client, in increasing capability.
 
@@ -608,7 +847,7 @@ Both need proxy configuration. Nginx buffers proxied responses by default, which
 breaks SSE silently — it works locally and delivers nothing in production until the
 buffer fills.
 
-## 16. Which Security Headers Should Every Response Have?
+## 20. Which Security Headers Should Every Response Have?
 
 ```txt
 Strict-Transport-Security: max-age=31536000; includeSubDomains
@@ -650,7 +889,7 @@ HSTS with `preload` is effectively irreversible — the domain ships in browser 
 and removal takes months. Never add `preload` until every subdomain is confirmed
 HTTPS-only.
 
-## 17. How Do You Make Retries Safe With Idempotency Keys?
+## 21. How Do You Make Retries Safe With Idempotency Keys?
 
 A `POST` is not idempotent, but real networks time out — and the client cannot tell a
 lost request from a lost response.
@@ -696,7 +935,7 @@ server stores key plus response atomically and replays the stored response on a
 repeat. That converts an unsafe POST into something a client, a proxy, or a queue
 consumer can retry freely."
 
-## 18. How Do You Debug HTTP Problems With curl?
+## 22. How Do You Debug HTTP Problems With curl?
 
 `curl` is the fastest way to separate a client problem from a server problem.
 

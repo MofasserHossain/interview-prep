@@ -120,6 +120,7 @@ const topicIcons = {
   "aws-saas-observability": Workflow,
   "networking-fundamentals": Network,
   "http-tls-protocols": Globe,
+  "api-protocols": Workflow,
   "nginx-web-infrastructure": Router,
   "dotnet-csharp": Blocks,
   "python-backend-frameworks": Terminal,
@@ -129,6 +130,9 @@ const topicIcons = {
   "react-native-performance": Gauge,
   "react-native-architecture": Layers3,
   "react-native-production": Container,
+  "react-native-deep-linking-notifications": Router,
+  "react-native-builds-releases": Boxes,
+  "react-native-senior-scenarios": Workflow,
   "frontend-architecture-micro-frontends": Layers3,
   "frontend-system-design": Workflow,
 };
