@@ -228,7 +228,7 @@ export const topics: Topic[] = [
     trackTitle: "React",
     subtopicTitle: "React Basics",
     description:
-      "React fundamentals, props and state, reconciliation, render and commit phases, hook comparisons, error boundaries, list rendering, code splitting, and Next.js rendering basics.",
+      "A short primer on React fundamentals: props and state, reconciliation, render and commit phases, hook comparisons, error boundaries, list rendering, and code splitting, each pointing at the topic that covers it in depth.",
     file: "react/basics.md",
   },
   {
@@ -320,6 +320,50 @@ export const topics: Topic[] = [
     file: "react/bundle-optimization.md",
   },
   {
+    slug: "react-data-fetching-state",
+    title: "Data Fetching & Server State",
+    category: "React Data",
+    trackSlug: "react",
+    trackTitle: "React",
+    subtopicTitle: "Data Fetching & Server State",
+    description:
+      "Server state versus client state, query caches, staleTime and gcTime, deduplication, race conditions, optimistic updates, invalidation, pagination, retries, prefetching, SSR hydration, and choosing a state library.",
+    file: "react/data-fetching-state.md",
+  },
+  {
+    slug: "react-forms-validation",
+    title: "React Forms & Validation",
+    category: "React Forms",
+    trackSlug: "react",
+    trackTitle: "React",
+    subtopicTitle: "Forms & Validation",
+    description:
+      "Controlled versus uncontrolled inputs, large-form re-renders, React Hook Form, zod schemas, validation timing, multi-step wizards, server error mapping, uploads, double submission, and React 19 form Actions.",
+    file: "react/forms-validation.md",
+  },
+  {
+    slug: "react-testing",
+    title: "React Testing",
+    category: "React Testing",
+    trackSlug: "react",
+    trackTitle: "React",
+    subtopicTitle: "Testing",
+    description:
+      "Testing Library queries, user-event, act warnings, async assertions, MSW network mocking, custom hooks, Suspense and error boundaries, the test pyramid, flaky tests, coverage, and testing an untested codebase.",
+    file: "react/testing.md",
+  },
+  {
+    slug: "react-accessibility",
+    title: "React Accessibility",
+    category: "React Accessibility",
+    trackSlug: "react",
+    trackTitle: "React",
+    subtopicTitle: "Accessibility",
+    description:
+      "Semantic HTML, the rules of ARIA, accessible names, tabindex, focus management on route change, modals and focus traps, inert, roving tabindex, live regions, form errors, contrast, motion preferences, and testing limits.",
+    file: "react/accessibility.md",
+  },
+  {
     slug: "senior-frontend-react-scenarios",
     title: "Senior Frontend Scenarios",
     category: "Senior Frontend",
@@ -329,6 +373,17 @@ export const topics: Topic[] = [
     description:
       "Scenario-driven senior frontend practice for React performance, architecture, micro frontends, CI/CD, migration, and production ownership.",
     file: "react/senior-scenarios.md",
+  },
+  {
+    slug: "react-senior-drills",
+    title: "Senior Drill Round",
+    category: "Senior Frontend",
+    trackSlug: "react",
+    trackTitle: "React",
+    subtopicTitle: "Senior Drill Round",
+    description:
+      "A rapid-fire interview round for 4 to 6 years of React experience, contrasting the mid-level answer with the senior one across rendering internals, production incidents, accessibility, testing, server state, and forms.",
+    file: "react/senior-drills.md",
   },
   {
     slug: "machine-coding",
