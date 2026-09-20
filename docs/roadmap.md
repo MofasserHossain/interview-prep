@@ -12,8 +12,11 @@
   EXPLAIN-driven query optimization
 - Node.js submenus for fundamentals/modules/APIs, event loop/runtime,
   streams/buffers/workers, and NestJS
-- React topics grouped under multiple subtopics, including basics, performance
-  optimization, and machine-coding practice
+- React topics grouped under multiple subtopics, including basics, core concepts,
+  React 18/19, the compiler, internals and Fiber, performance, bundle
+  optimization, data fetching and server state, forms and validation, testing,
+  accessibility, senior scenarios, a senior drill round, and machine-coding
+  practice
 - Next.js track with 13 subtopics covering the App Router, routing, Server and
   Client Components, data and forms, rendering and Cache Components, error
   handling, metadata, styling, optimization, security, Proxy and observability,
@@ -34,7 +37,8 @@
 1. TypeScript language fundamentals as its own topic
 2. Data structures and algorithms
 3. MongoDB, NoSQL, and Redis guides extending the Databases track
-4. Testing, accessibility, and web security
+4. Web security as its own topic, plus framework-agnostic testing fundamentals
+   (React testing and accessibility now live in the React track)
 5. AI backend engineering and LLM application architecture
 6. Advanced system design case studies
 7. Cloud-native deployment and incident response scenarios

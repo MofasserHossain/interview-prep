@@ -6,7 +6,6 @@ export type TrackSummary = {
   slug: string;
   title: string;
   questionCount: number;
-  readingMinutes: number;
   topics: TopicSummary[];
 };
 
@@ -54,12 +53,10 @@ export function buildTrackSummaries(topics: TopicSummary[]) {
       slug: topic.trackSlug,
       title: topic.trackTitle,
       questionCount: 0,
-      readingMinutes: 0,
       topics: [],
     };
 
     current.questionCount += topic.questionCount;
-    current.readingMinutes += topic.readingMinutes;
     current.topics.push(topic);
     byTrack.set(topic.trackSlug, current);
   });

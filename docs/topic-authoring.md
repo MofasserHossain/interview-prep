@@ -116,7 +116,10 @@ order:
 - `mongodb-nosql-guide.md` — documents, aggregation, indexing (extends the
   Databases track)
 - `redis-caching-guide.md` — data types, eviction, caching patterns
-- `testing-fundamentals-guide.md` — unit, integration, end-to-end, test doubles
 - `web-security-guide.md` — XSS, CSRF, CORS, CSP, secure headers
-- `accessibility-guide.md` — semantics, ARIA, keyboard, screen readers
 - `data-structures-algorithms-guide.md` — the roadmap's outstanding item
+
+Testing and accessibility are covered for the React track by
+`content/react/testing.md` and `content/react/accessibility.md`. A
+framework-agnostic `testing-fundamentals-guide.md` covering test doubles and
+backend testing is still open.

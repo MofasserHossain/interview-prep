@@ -183,7 +183,6 @@ export function InterviewApp({ activeTopicSlug = "", initialData }: InterviewApp
                     <strong>{track.title}</strong>
                     <small>{track.topics.length} subtopics</small>
                   </span>
-                  <span className="menu-count">{track.questionCount}</span>
                   <span className="menu-chevron" aria-hidden="true">
                     {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                   </span>
@@ -201,7 +200,6 @@ export function InterviewApp({ activeTopicSlug = "", initialData }: InterviewApp
                     >
                       <TopicIcon slug={topic.slug} />
                       <span>{topic.subtopicTitle}</span>
-                      <small>{topic.questionCount}</small>
                     </Link>
                   ))}
                 </div>
