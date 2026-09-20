@@ -74,6 +74,13 @@ const studyBlockDefinitions: StudyBlockDefinition[] = [
     aliases: ["interview phrasing"],
   },
   { match: "interview trap", title: "Interview Trap", variant: "interview" },
+  {
+    match: "what the interviewer is testing",
+    title: "What The Interviewer Is Testing",
+    variant: "interview",
+  },
+  { match: "mid-level answer", title: "Mid-Level Answer", variant: "important" },
+  { match: "follow-up probe", title: "Follow-Up Probe", variant: "interview" },
 ];
 
 const definitionsByLabel = new Map(

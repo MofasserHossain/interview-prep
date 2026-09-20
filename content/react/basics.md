@@ -1,11 +1,15 @@
 # React Basics Interview Guide
 
-React interview guidance covering component fundamentals, props and state,
-reconciliation, render and commit phases, hook comparisons, error boundaries,
-list rendering, code splitting, and Next.js rendering basics.
+A short primer on the React fundamentals that come up in every interview:
+components, props and state, reconciliation, render and commit phases, hook
+comparisons, error boundaries, list rendering, and code splitting.
+
+This is the on-ramp for the React track. Each answer is deliberately brief, and
+points at the topic that covers it properly — start here, then go deep.
 
 For browser fundamentals such as script loading, the CSS box model, and custom
-elements, see the Browser & Web Platform track.
+elements, see the Browser & Web Platform track. For Next.js rendering, hydration,
+and error handling, see the Next.js track.
 
 ## 1. What Is React?
 
@@ -16,6 +20,8 @@ function Greeting({ name }) {
   return <h1>Hello {name}</h1>;
 }
 ```
+
+Goes deeper: **Core Concepts Through 17**, question 1.
 
 ## 2. Props vs State
 
@@ -29,6 +35,8 @@ function Counter() {
   return <button onClick={() => setCount(count + 1)}>{count}</button>;
 }
 ```
+
+Goes deeper: **Core Concepts Through 17**, question 5.
 
 ## 3. What Is Reconciliation?
 
@@ -44,6 +52,8 @@ Keys help React track list items.
 
 Avoid using array index as key when list order can change.
 
+Goes deeper: **Internals & Fiber**, questions 9 and 10.
+
 ## 4. Render Phase vs Commit Phase
 
 Render phase:
@@ -57,6 +67,8 @@ Commit phase:
 - React applies changes to the DOM.
 - Effects run after commit.
 
+Goes deeper: **Internals & Fiber**, questions 2 and 3.
+
 ## 5. useState vs useRef
 
 `useState` stores reactive state and causes re-render when updated.
@@ -69,6 +81,8 @@ const intervalRef = useRef<number | null>(null);
 ```
 
 Use `useRef` for DOM nodes, timers, previous values, and instance-like values.
+
+Goes deeper: **Core Concepts Through 17**, question 30.
 
 ## 6. useMemo vs useCallback
 
@@ -90,6 +104,9 @@ const handleSave = useCallback(() => {
 
 Do not use them everywhere. Use them when they prevent real expensive work or unnecessary child renders.
 
+Goes deeper: **Performance Optimization**, question 9, and **React Compiler** for
+why most of this is becoming automatic.
+
 ## 7. Controlled vs Uncontrolled Components
 
 Controlled:
@@ -109,6 +126,9 @@ const inputRef = useRef<HTMLInputElement>(null);
 ```
 
 Controlled inputs are easier to validate and synchronize with UI state.
+
+Goes deeper: **Forms & Validation**, questions 1 and 2 — including why controlled
+is a cost, not a best practice.
 
 ## 8. Error Boundaries
 
@@ -135,6 +155,9 @@ class ErrorBoundary extends React.Component {
 
 They do not catch event handler errors, async errors, or server-side errors.
 
+Goes deeper: **Core Concepts Through 17**, question 17, and **React Testing**,
+question 10.
+
 ## 9. How Do You Render 10,000 List Items?
 
 Do not render all DOM nodes at once. Use:
@@ -153,6 +176,9 @@ Example with `react-window`:
 
 Virtualization renders only visible rows plus a small buffer.
 
+Goes deeper: **Performance Optimization**, questions 20 to 22, and **Senior
+Frontend Scenarios**, question 27.
+
 ## 10. What Is Code Splitting?
 
 Code splitting breaks a large JavaScript bundle into smaller chunks loaded on demand.
@@ -169,78 +195,4 @@ Next.js:
 const Chart = dynamic(() => import("./Chart"), { ssr: false });
 ```
 
-## 11. What Is SSR In Next.js?
-
-SSR means the server renders HTML before sending it to the browser.
-
-Benefits:
-
-- better SEO
-- faster first meaningful HTML
-- useful for dynamic data
-- less initial work for weak devices
-
-In the Next.js App Router, components are Server Components by default unless marked with `"use client"`.
-
-## 12. SSR vs SSG vs ISR vs CSR
-
-SSR:
-
-```txt
-HTML generated per request.
-Good for dynamic fresh data.
-```
-
-SSG:
-
-```txt
-HTML generated at build time.
-Good for static pages.
-```
-
-ISR:
-
-```txt
-Static pages regenerated after deployment at configured intervals.
-```
-
-CSR:
-
-```txt
-Browser receives minimal HTML and builds UI using JavaScript.
-```
-
-## 13. What Is Hydration?
-
-Hydration is when React attaches event handlers and client-side behavior to server-rendered HTML.
-
-Example:
-
-```txt
-Server sends: <button>Buy</button>
-Client hydrates: attaches onClick handler
-```
-
-Hydration mismatch happens when server-rendered HTML differs from the first client render.
-
-## 14. Next.js Error Handling
-
-In the App Router, use route-level `error.tsx`.
-
-```tsx
-"use client";
-
-export default function Error({ reset }: { reset: () => void }) {
-  return (
-    <div>
-      <h2>Something went wrong</h2>
-      <button onClick={reset}>Try again</button>
-    </div>
-  );
-}
-```
-
-Use `global-error.tsx` for root-level fallback.
-
----
-
+Goes deeper: **Bundle Optimization**, questions 2 and 3.
