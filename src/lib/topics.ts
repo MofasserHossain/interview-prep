@@ -994,4 +994,15 @@ export const topics: Topic[] = [
       "Focused preparation for the posted Senior Full Stack and Field Nation-style SaaS roles: React, TypeScript, APIs, AWS, SQL, Docker, queues, and observability.",
     file: "interview-prep/senior-full-stack-saas.md",
   },
+  {
+    slug: "senior-frontend-ecommerce-graphql",
+    title: "Senior Frontend E-commerce (React & GraphQL)",
+    category: "Interview Prep",
+    trackSlug: "interview-prep",
+    trackTitle: "Interview Prep",
+    subtopicTitle: "E-commerce React & GraphQL",
+    description:
+      "Round 2 preparation for Senior Frontend e-commerce roles: Fiber, the render-to-commit pipeline, GraphQL operations, N+1, Apollo cache persistence, cart design with optimistic UI and undo, A/B testing, and cross-device sync.",
+    file: "interview-prep/senior-frontend-ecommerce-graphql.md",
+  },
 ];
