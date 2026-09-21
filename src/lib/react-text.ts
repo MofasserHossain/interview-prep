@@ -5,34 +5,36 @@ export function capitalizeFirstReadableText(value: ReactNode) {
   return capitalizeFirstReadableTextOnce(value)[0];
 }
 
+// The flag means "reached the first readable content". The walk stops there
+// whether or not it needed a capital, so later text and code stay as written.
 function capitalizeFirstReadableTextOnce(value: ReactNode): [ReactNode, boolean] {
   if (typeof value === "string") {
     return capitalizeTextStart(value);
   }
 
   if (Array.isArray(value)) {
-    let changed = false;
+    let reached = false;
     const children = value.map((child) => {
-      if (changed) return child;
+      if (reached) return child;
 
-      const [nextChild, didChange] = capitalizeFirstReadableTextOnce(child);
-      changed = didChange;
+      const [nextChild, didReach] = capitalizeFirstReadableTextOnce(child);
+      reached = didReach;
 
       return nextChild;
     });
 
-    return [children, changed];
+    return [children, reached];
   }
 
-  if (isValidElement<{ children?: ReactNode }>(value)) {
+  if (isValidElement<{ children?: ReactNode; node?: { tagName?: string } }>(value)) {
     if (isCodeLikeElement(value)) {
-      return [value, false];
+      return [value, true];
     }
 
-    const [children, changed] = capitalizeFirstReadableTextOnce(value.props.children);
+    const [children, reached] = capitalizeFirstReadableTextOnce(value.props.children);
 
-    if (!changed) {
-      return [value, false];
+    if (!reached || children === value.props.children) {
+      return [value, reached];
     }
 
     return [cloneElement(value, undefined, children), true];
@@ -45,7 +47,8 @@ function capitalizeTextStart(value: string): [string, boolean] {
   const match = value.match(/^(\s*["'([{]*)([a-z])/);
 
   if (!match) {
-    return [value, false];
+    // Whitespace between elements isn't readable yet; any other text is.
+    return [value, /\S/.test(value)];
   }
 
   const index = match[1].length;
@@ -56,8 +59,12 @@ function capitalizeTextStart(value: string): [string, boolean] {
   ];
 }
 
-function isCodeLikeElement(value: ReactElement) {
-  return typeof value.type === "string" && ["code", "kbd", "pre", "samp"].includes(value.type);
+// Markdown renders through `markdownComponents`, so an inline `code` element's
+// type is a component function; react-markdown's `node` prop keeps the tag name.
+function isCodeLikeElement(value: ReactElement<{ node?: { tagName?: string } }>) {
+  const tagName = typeof value.type === "string" ? value.type : value.props.node?.tagName;
+
+  return tagName !== undefined && ["code", "kbd", "pre", "samp"].includes(tagName);
 }
 
 export function getCodeText(value: ReactNode): string {
