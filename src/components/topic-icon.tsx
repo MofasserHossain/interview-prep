@@ -24,6 +24,7 @@ import {
   Router,
   Search,
   Server,
+  ShoppingCart,
   Smartphone,
   SquareStack,
   Table2,
@@ -58,6 +59,7 @@ const trackIcons = {
 
 const topicIcons = {
   "senior-full-stack-saas-job-prep": FileText,
+  "senior-frontend-ecommerce-graphql": ShoppingCart,
   backend: Server,
   "senior-api-database-performance": Zap,
   "database-fundamentals": Database,
