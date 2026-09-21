@@ -920,6 +920,17 @@ export const topics: Topic[] = [
       "MQTT brokers, topics, QoS levels, retained messages, last will, persistent sessions, shared subscriptions, flow control, security, and IoT architecture.",
     file: "system-design/mqtt-iot-messaging.md",
   },
+  {
+    slug: "nodejs-microservices-case-study",
+    title: "Node.js Microservices Case Study",
+    category: "Microservices",
+    trackSlug: "system-design",
+    trackTitle: "System Design",
+    subtopicTitle: "Microservices Case Study",
+    description:
+      "A Node.js API gateway, four services and RabbitMQ traced end to end: dataflows, edge auth, events, amqplib code line by line, reliability gaps, and a code review.",
+    file: "system-design/nodejs-microservices-case-study.md",
+  },
 
   // DevOps & Infrastructure
   {
