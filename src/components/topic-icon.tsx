@@ -126,6 +126,7 @@ const topicIcons = {
   "kafka-event-streaming": Workflow,
   "rabbitmq-message-broker": Workflow,
   "mqtt-iot-messaging": Router,
+  "nodejs-microservices-case-study": Boxes,
   "design-patterns": Blocks,
   "devops-docker-kubernetes": Container,
   "aws-saas-observability": Workflow,
