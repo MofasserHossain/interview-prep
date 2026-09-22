@@ -27,12 +27,10 @@ export type Question = {
   readingMinutes: number;
 };
 
-type TopicSummary = Topic & {
+export type TopicSummary = Topic & {
   questionCount: number;
   readingMinutes: number;
 };
 
-export type InterviewData = {
-  topics: TopicSummary[];
-  questions: Question[];
-};
+/** What the table of contents and scroll tracking need from a section. */
+export type TocEntry = Pick<Question, "id" | "kind" | "question">;

@@ -1,12 +1,13 @@
 import { ImageResponse } from "next/og";
-import { getInterviewData } from "@/lib/content";
+import { findTopic, getTopicSummary } from "@/lib/content";
 import { brand, logoPaths, logoStroke, siteName } from "@/lib/site";
+import { topics } from "@/lib/topics";
 
 const size = { width: 1200, height: 630 };
 const contentType = "image/png";
 
 export function generateStaticParams() {
-  return getInterviewData().topics.map((topic) => ({ topicSlug: topic.slug }));
+  return topics.map((topic) => ({ topicSlug: topic.slug }));
 }
 
 /**
@@ -19,7 +20,7 @@ export async function generateImageMetadata({
   params: Promise<{ topicSlug: string }> | { topicSlug: string };
 }) {
   const { topicSlug } = await params;
-  const topic = getInterviewData().topics.find((item) => item.slug === topicSlug);
+  const topic = findTopic(topicSlug);
 
   return [
     {
@@ -39,7 +40,8 @@ export default async function TopicOpengraphImage({
   params: Promise<{ topicSlug: string }>;
 }) {
   const { topicSlug } = await params;
-  const topic = getInterviewData().topics.find((item) => item.slug === topicSlug);
+  const registered = findTopic(topicSlug);
+  const topic = registered ? getTopicSummary(registered) : undefined;
 
   return new ImageResponse(
     <div

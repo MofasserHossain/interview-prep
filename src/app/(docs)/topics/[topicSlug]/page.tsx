@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { InterviewApp } from "@/components/interview-app";
-import { getInterviewData, getTopicLastModified } from "@/lib/content";
+import { DocumentSection } from "@/components/content/document-section";
+import { DocPagination } from "@/components/doc-pagination";
+import { DocsWorkspace } from "@/components/docs-workspace";
+import { SiteFooter } from "@/components/site-footer";
+import { findTopic, getTopicLastModified, getTopicSections, getTopicSummary } from "@/lib/content";
 import { siteName, siteUrl } from "@/lib/site";
+import { topics } from "@/lib/topics";
+import { groupTopicsByTrack } from "@/lib/tracks";
 
 type TopicPageProps = {
   params: Promise<{
@@ -14,17 +19,14 @@ export const dynamic = "force-static";
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  const data = getInterviewData();
-
-  return data.topics.map((topic) => ({
+  return topics.map((topic) => ({
     topicSlug: topic.slug,
   }));
 }
 
 export async function generateMetadata({ params }: TopicPageProps): Promise<Metadata> {
   const { topicSlug } = await params;
-  const data = getInterviewData();
-  const topic = data.topics.find((item) => item.slug === topicSlug);
+  const topic = findTopic(topicSlug);
 
   if (!topic) {
     return {};
@@ -57,13 +59,16 @@ export async function generateMetadata({ params }: TopicPageProps): Promise<Meta
 
 export default async function TopicPage({ params }: TopicPageProps) {
   const { topicSlug } = await params;
-  const data = getInterviewData();
-  const topic = data.topics.find((item) => item.slug === topicSlug);
+  const topic = findTopic(topicSlug);
 
-  if (!data.questions.length || !topic) {
+  if (!topic) {
     notFound();
   }
 
+  const sections = getTopicSections(topic);
+  const { readingMinutes } = getTopicSummary(topic);
+  const orderedTopics = groupTopicsByTrack(topics).flatMap((track) => track.topics);
+  const topicIndex = orderedTopics.findIndex((item) => item.slug === topic.slug);
   const url = `${siteUrl}/topics/${topic.slug}`;
 
   const jsonLd = {
@@ -77,7 +82,7 @@ export default async function TopicPage({ params }: TopicPageProps) {
         url,
         inLanguage: "en",
         dateModified: getTopicLastModified(topic.file).toISOString(),
-        wordCount: topic.readingMinutes * 180,
+        wordCount: readingMinutes * 180,
         articleSection: topic.trackTitle,
         keywords: [topic.trackTitle, topic.title].join(", "),
         isPartOf: { "@type": "WebSite", name: siteName, url: siteUrl },
@@ -96,7 +101,26 @@ export default async function TopicPage({ params }: TopicPageProps) {
 
   return (
     <>
-      <InterviewApp activeTopicSlug={topic.slug} initialData={data} />
+      <DocsWorkspace
+        article={{
+          description: topic.description,
+          pagination: (
+            <DocPagination
+              nextTopic={orderedTopics[topicIndex + 1]}
+              previousTopic={topicIndex > 0 ? orderedTopics[topicIndex - 1] : undefined}
+            />
+          ),
+          sections: sections.map((section) => ({
+            content: <DocumentSection section={section} />,
+            entry: { id: section.id, kind: section.kind, question: section.question },
+          })),
+          title: topic.subtopicTitle,
+          topicSlug: topic.slug,
+        }}
+        footer={<SiteFooter />}
+        headerPath={["Docs", topic.trackTitle, topic.subtopicTitle]}
+        key={topic.slug}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

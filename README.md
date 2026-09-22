@@ -86,6 +86,13 @@ Format files:
 npm run format
 ```
 
+Inspect client bundles with the Turbopack bundle analyzer (served on
+`http://localhost:4000`):
+
+```bash
+npm run analyze
+```
+
 ## Adding A Topic
 
 1. Add a Markdown file under `content/<track>/`.

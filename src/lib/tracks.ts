@@ -1,6 +1,10 @@
-import type { InterviewData, Topic } from "@/lib/types";
+import type { Topic, TopicSummary } from "@/lib/types";
 
-export type TopicSummary = InterviewData["topics"][number];
+export type TrackGroup = {
+  slug: string;
+  title: string;
+  topics: Topic[];
+};
 
 export type TrackSummary = {
   slug: string;
@@ -67,7 +71,7 @@ export function buildTrackSummaries(topics: TopicSummary[]) {
 }
 
 export function groupTopicsByTrack(topics: Topic[]) {
-  const byTrack = new Map<string, { slug: string; title: string; topics: Topic[] }>();
+  const byTrack = new Map<string, TrackGroup>();
 
   topics.forEach((topic) => {
     const current = byTrack.get(topic.trackSlug) ?? {
