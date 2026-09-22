@@ -106,6 +106,54 @@ Study callout labels such as `Tradeoff:` or `When to use it:` must be a short
 standalone paragraph. `findStudyBlock` ignores anything longer than 35
 characters, so an inline `Tradeoff: ...` sentence renders as ordinary text.
 
+## Diagrams
+
+A fenced block with the language `viz` renders as a diagram instead of code.
+`type:` picks the diagram and `title:` names it.
+
+`flow`, `stack`, and `queues` take one item per line as `label :: note`. A
+leading `>` highlights an item:
+
+```viz
+type: flow
+title: Critical rendering path
+HTML bytes :: parsed incrementally
+> CSSOM :: every stylesheet must arrive first
+```
+
+- `flow` numbers the steps top to bottom; `queues` is the same list labelled
+  "Priority".
+- `stack` draws its **first line at the bottom**, so write the base of the
+  stack first and the running frame last.
+
+`timeline` draws lanes of timed bars on one seconds axis. Use it wherever
+overlap and waiting are the point: page loads, event-loop turns, request
+waterfalls.
+
+```viz
+type: timeline
+title: Blocking page
+end: 3
+styles.css :: 0-1 :: download
+app.js :: 0-0.5 :: download
+app.js :: 0.5-1.5 :: wait :: waits for vendor.js
+Main thread :: 0.01-1.52 :: blocked :: parser stopped at vendor.js
+@ 1.55 :: First paint
+```
+
+- A bar is `lane :: start-end :: kind`, with an optional `:: note`. Lines that
+  share a lane label draw on one row, in first-appearance order.
+- `kind` is one of `download`, `wait`, `parse`, `blocked`, `run`, `blank`,
+  `partial`, or `painted`. A line with any other kind is skipped.
+- `@ time :: label` adds a numbered milestone line, listed in the legend.
+- Times are in seconds. `end:` is optional and can only extend the axis.
+- Keep notes short: they show only when the bar is wide enough, and never on
+  phones.
+
+A new bar kind needs an entry in `segmentKinds` and `timelineKindLabels` in
+`src/lib/timeline.ts`, plus a `.timeline-fill.is-<kind>` rule in
+`src/app/globals.css`.
+
 ## Suggested Future Topic Files
 
 The earlier list here has been fully written. Current gaps, roughly in priority
@@ -113,8 +161,6 @@ order:
 
 - `typescript-language-fundamentals-guide.md` — generics, utility types,
   `unknown` vs `any` vs `never`, narrowing, discriminated unions
-- `mongodb-nosql-guide.md` — documents, aggregation, indexing (extends the
-  Databases track)
 - `redis-caching-guide.md` — data types, eviction, caching patterns
 - `web-security-guide.md` — XSS, CSRF, CORS, CSP, secure headers
 - `data-structures-algorithms-guide.md` — the roadmap's outstanding item

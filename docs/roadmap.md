@@ -8,8 +8,13 @@
 - Full-text search over questions and answers
 - Reading-focused answer view with code-block rendering
 - Backend submenus for fundamentals and API/database performance
-- Databases track covering database fundamentals, SQL fundamentals, and
-  EXPLAIN-driven query optimization
+- Databases track covering database fundamentals, SQL fundamentals,
+  EXPLAIN-driven query optimization, and SQL practice problems; PostgreSQL
+  essentials and internals/performance; and MongoDB basics, the aggregation
+  pipeline stage by stage, indexing and performance, and advanced topics
+  (replication, sharding, transactions, change streams, schema patterns) —
+  with every example output produced by running it on PostgreSQL 17 or
+  MongoDB 8.2
 - Node.js submenus for fundamentals/modules/APIs, event loop/runtime,
   streams/buffers/workers, and NestJS
 - React topics grouped under multiple subtopics, including basics, core concepts,
@@ -36,7 +41,7 @@
 
 1. TypeScript language fundamentals as its own topic
 2. Data structures and algorithms
-3. MongoDB, NoSQL, and Redis guides extending the Databases track
+3. A Redis and caching guide extending the Databases track
 4. Web security as its own topic, plus framework-agnostic testing fundamentals
    (React testing and accessibility now live in the React track)
 5. AI backend engineering and LLM application architecture

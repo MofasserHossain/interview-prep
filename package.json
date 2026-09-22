@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "analyze": "next experimental-analyze",
     "start": "next start",
     "check": "npm run typecheck && npm run lint && npm run knip",
     "format": "oxfmt --write .",

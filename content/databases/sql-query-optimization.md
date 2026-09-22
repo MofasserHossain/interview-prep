@@ -446,6 +446,13 @@ MySQL's **index merge** can sometimes combine two single-column indexes, visible
 `index_merge` in `EXPLAIN`. It is better than a scan and worse than a composite
 index; treat it as a hint that the composite is missing.
 
+When the query also sorts, a range column placed **before** the sort column forces
+a filesort, because the matching entries come out ordered by the range column.
+Putting the sort column before the range — equality, sort, range, which is
+MongoDB's ESR rule — lets the index return rows already in order and stop at the
+`LIMIT`, at the cost of examining more index entries. When the range is very
+selective, equality-then-range still wins; compare both plans.
+
 ## 9. What Makes A Predicate Sargable?
 
 A predicate is sargable — Search ARGument ABLE — when the database can use an index
