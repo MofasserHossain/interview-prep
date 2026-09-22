@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { DocumentSection } from "@/components/content/document-section";
 import { DocPagination } from "@/components/doc-pagination";
 import { DocsWorkspace } from "@/components/docs-workspace";
-import { SiteFooter } from "@/components/site-footer";
+import { DocumentDetail } from "@/components/document-detail";
+import { QuestionToc } from "@/components/question-toc";
 import { findTopic, getTopicLastModified, getTopicSections, getTopicSummary } from "@/lib/content";
 import { siteName, siteUrl } from "@/lib/site";
 import { topics } from "@/lib/topics";
@@ -101,26 +102,26 @@ export default async function TopicPage({ params }: TopicPageProps) {
 
   return (
     <>
-      <DocsWorkspace
-        article={{
-          description: topic.description,
-          pagination: (
-            <DocPagination
-              nextTopic={orderedTopics[topicIndex + 1]}
-              previousTopic={topicIndex > 0 ? orderedTopics[topicIndex - 1] : undefined}
-            />
-          ),
-          sections: sections.map((section) => ({
-            content: <DocumentSection section={section} />,
-            entry: { id: section.id, kind: section.kind, question: section.question },
-          })),
-          title: topic.subtopicTitle,
-          topicSlug: topic.slug,
-        }}
-        footer={<SiteFooter />}
-        headerPath={["Docs", topic.trackTitle, topic.subtopicTitle]}
-        key={topic.slug}
-      />
+      <DocsWorkspace headerPath={["Docs", topic.trackTitle, topic.subtopicTitle]} key={topic.slug}>
+        <section className="doc-layout">
+          <DocumentDetail
+            description={topic.description}
+            pagination={
+              <DocPagination
+                nextTopic={orderedTopics[topicIndex + 1]}
+                previousTopic={topicIndex > 0 ? orderedTopics[topicIndex - 1] : undefined}
+              />
+            }
+            sections={sections.map((section) => (
+              <DocumentSection key={section.id} section={section} />
+            ))}
+            title={topic.subtopicTitle}
+          />
+          <QuestionToc
+            questions={sections.map(({ id, kind, question }) => ({ id, kind, question }))}
+          />
+        </section>
+      </DocsWorkspace>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

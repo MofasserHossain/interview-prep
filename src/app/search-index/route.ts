@@ -1,11 +1,11 @@
-import { getAllSections } from "@/lib/content";
+import { getSearchIndex } from "@/lib/content";
 
 export const dynamic = "force-static";
 
 /**
- * Every section, for search on the docs index. Prerendered at build time and
- * fetched by the browser only when someone searches.
+ * Topic and section titles for the search dialog. Prerendered at build time
+ * and fetched by the browser the first time the search opens.
  */
 export function GET() {
-  return Response.json(getAllSections());
+  return Response.json(getSearchIndex());
 }

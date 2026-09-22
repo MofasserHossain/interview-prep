@@ -1,4 +1,3 @@
-import { DocsSearchProvider } from "@/components/docs-search";
 import { TopicSidebar } from "@/components/topic-sidebar";
 import { topics } from "@/lib/topics";
 import { groupTopicsByTrack } from "@/lib/tracks";
@@ -15,10 +14,8 @@ export default function DocsLayout({
 }>) {
   return (
     <main className="app-shell">
-      <DocsSearchProvider>
-        <TopicSidebar tracks={groupTopicsByTrack(topics)} />
-        {children}
-      </DocsSearchProvider>
+      <TopicSidebar tracks={groupTopicsByTrack(topics)} />
+      {children}
     </main>
   );
 }
