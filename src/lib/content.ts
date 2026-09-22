@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { topics } from "@/lib/topics";
-import type { Question, Topic, TopicSummary } from "@/lib/types";
+import type { Question, SearchIndex, Topic, TopicSummary } from "@/lib/types";
 
 const contentDirectory = path.join(process.cwd(), "content");
 
@@ -266,6 +266,24 @@ export function getTopicSummaries(): TopicSummary[] {
 /** Every topic's sections, in registry order. */
 export function getAllSections(): Question[] {
   return topics.flatMap((topic) => getTopicSections(topic));
+}
+
+export function getSearchIndex(): SearchIndex {
+  return {
+    topics: topics.map(({ description, slug, subtopicTitle, trackTitle }) => ({
+      description,
+      slug,
+      title: subtopicTitle,
+      track: trackTitle,
+    })),
+    sections: topics.flatMap((topic, topicIndex) =>
+      getTopicSections(topic).map(({ id, question }) => ({
+        id,
+        title: question,
+        topic: topicIndex,
+      })),
+    ),
+  };
 }
 
 function parseTopic(topic: Topic): Question[] {

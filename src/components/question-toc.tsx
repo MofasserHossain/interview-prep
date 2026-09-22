@@ -1,6 +1,7 @@
 "use client";
 
 import type { TocEntry } from "@/lib/types";
+import { useActiveSection } from "@/lib/use-active-section";
 
 type TocGroup = {
   children: TocEntry[];
@@ -15,15 +16,9 @@ type GroupedToc = {
 
 const overviewTitlePattern = /\s+Overview$/i;
 
-export function QuestionToc({
-  onSelectQuestion,
-  questions,
-  selectedQuestionId,
-}: {
-  onSelectQuestion: (questionId: string) => void;
-  questions: TocEntry[];
-  selectedQuestionId?: string;
-}) {
+export function QuestionToc({ questions }: { questions: TocEntry[] }) {
+  const { selectedId: selectedQuestionId, selectSection: onSelectQuestion } =
+    useActiveSection(questions);
   const groupedToc = getGroupedToc(questions);
 
   return (

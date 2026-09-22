@@ -1,5 +1,6 @@
 import { BookOpen } from "lucide-react";
-import { SearchResetLink, SidebarTopicLink, SidebarTrack } from "@/components/sidebar-nav";
+import Link from "next/link";
+import { SidebarTopicLink, SidebarTrack } from "@/components/sidebar-nav";
 import { TopicIcon, TrackIcon } from "@/components/topic-icon";
 import type { TrackGroup } from "@/lib/tracks";
 
@@ -11,14 +12,14 @@ import type { TrackGroup } from "@/lib/tracks";
 export function TopicSidebar({ tracks }: { tracks: TrackGroup[] }) {
   return (
     <aside className="sidebar">
-      <SearchResetLink className="brand-block brand-button" href="/">
+      <Link className="brand-block brand-button" href="/">
         <div className="brand-icon" aria-hidden="true">
           <BookOpen size={20} />
         </div>
         <div>
           <h1>Docs Library</h1>
         </div>
-      </SearchResetLink>
+      </Link>
 
       <nav className="topic-menu" aria-label="Topic menu">
         {tracks.map((track) => (

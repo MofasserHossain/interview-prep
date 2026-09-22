@@ -27,15 +27,14 @@ parses those docs and turns numbered `##` sections into questions.
   `(docs)/topics/[topicSlug]/page.tsx` render their content on the server.
 - `src/components/` holds one component per file; the client pieces of one
   feature may share a file, as in `sidebar-nav.tsx`. `topic-sidebar.tsx` is the
-  server-rendered sidebar. `docs-workspace.tsx` is the client column with the
-  breadcrumb, search field, and content, and `topic-document.tsx` and
-  `search-results.tsx` are its topic and search views. `document-detail.tsx`,
-  `question-toc.tsx`, `topic-overview.tsx`, `topic-icon.tsx`, and the renderers
-  in `src/components/content/` are the pieces they compose.
-- Keep `"use client"` to components that need state or browser APIs. Pages pass
-  server-rendered content into client components as props, so the Markdown
-  renderer, the topic registry, and topic icons stay out of the browser bundle.
-  Only home-page search renders Markdown in the browser, and it loads on demand.
+  server-rendered sidebar. `docs-workspace.tsx` is the column beside it: the
+  breadcrumb, the `docs-search.tsx` search button and dialog, the page content,
+  and the footer. `document-detail.tsx`, `question-toc.tsx`,
+  `topic-overview.tsx`, `topic-icon.tsx`, and the renderers in
+  `src/components/content/` are the pieces they compose.
+- Keep `"use client"` to components that need state or browser APIs. Markdown
+  renders only on the server, so the Markdown renderer, the topic registry, and
+  topic icons stay out of the browser bundle.
 - Pass a client component only the data it renders. Everything in its props is
   serialized into the page HTML and into every link prefetch of that page.
 - `src/lib/tracks.ts` groups topics into sidebar tracks. `src/lib/react-text.ts`
@@ -45,8 +44,11 @@ parses those docs and turns numbered `##` sections into questions.
 - `src/lib/content.ts` parses Markdown into app data, one topic file at a time,
   cached by file mtime. Look a topic up with `findTopic(slug)` and parse only
   the files a page needs, rather than loading every topic to find one.
-- `src/lib/search.ts` matches search queries and fetches the prerendered
-  `/search-index` (every topic) or `/search-index/<slug>` JSON on first search.
+- Search matches topic and section titles, not answer text. `getSearchIndex`
+  in `src/lib/content.ts` builds the prerendered `/search-index` JSON, and
+  `src/lib/search.ts` fetches it when the search dialog first opens and ranks
+  the matches. The dialog opens from the header button, ⌘K / Ctrl+K, or `/`;
+  a result opens its topic page scrolled to the section.
 - `src/lib/topics.ts` is the topic registry. Add new content files there.
 
 ## Adding A New Topic
@@ -103,9 +105,6 @@ else becomes `prose`. To add a third kind:
 Step 4 is compiler-enforced: `sectionRenderers` is typed
 `Record<Question["kind"], ComponentType<SectionRendererProps>>`, so a missing
 renderer fails `npm run typecheck`.
-
-Section renderers run on the server for topic pages and in the browser for
-home-page search results, so they must not use server-only APIs.
 
 ## Content Quality
 
