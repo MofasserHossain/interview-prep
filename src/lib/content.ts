@@ -366,6 +366,8 @@ function normalizeQuestionWord(value: string) {
 
   const [, prefix, word, suffix] = match;
   if (!word) return value.toLowerCase();
+  // Code spans keep their exact spelling: `jsonb` must not become `Jsonb`.
+  if (prefix.includes("`") || suffix.includes("`")) return value;
   const preservedWord = getPreservedWord(word);
 
   if (preservedWord) {

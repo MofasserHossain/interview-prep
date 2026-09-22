@@ -61,8 +61,10 @@ from first principles instead of memorising exceptions.
 
 Interview note:
 
-Strict ANSI SQL does not allow an alias in `HAVING` either. MySQL and PostgreSQL
-both permit it, so say "MySQL allows this" rather than claiming it is universal.
+Strict ANSI SQL does not allow an alias in `HAVING` either. MySQL permits it as
+an extension; PostgreSQL does not, and fails with `column "revenue" does not
+exist` — repeat the aggregate there: `HAVING SUM(total) > 1000`. Say "MySQL
+allows this" rather than claiming it is universal.
 
 ## 2. What Is The Difference Between `WHERE` And `HAVING`?
 
@@ -246,8 +248,8 @@ matters on outer joins:
 
 ```sql
 SELECT u.id,
-       COUNT(*)    AS wrong,  -- 1 even for users with no orders
-       COUNT(o.id) AS right   -- 0 for users with no orders
+       COUNT(*)    AS wrong_count,  -- 1 even for users with no orders
+       COUNT(o.id) AS right_count   -- 0 for users with no orders
 FROM   users u
 LEFT   JOIN orders o ON o.user_id = u.id
 GROUP  BY u.id;
