@@ -5,26 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import type { ReactNode } from "react";
-import { useDocsSearch } from "@/components/docs-search";
-
-/** A link that also clears the search, since it can point at the current page. */
-export function SearchResetLink({
-  children,
-  className,
-  href,
-}: {
-  children: ReactNode;
-  className: string;
-  href: string;
-}) {
-  const { setQuery } = useDocsSearch();
-
-  return (
-    <Link className={className} href={href} onClick={() => setQuery("")}>
-      {children}
-    </Link>
-  );
-}
 
 /** A collapsible sidebar track. The track holding the current topic stays open. */
 export function SidebarTrack({
@@ -64,13 +44,10 @@ export function SidebarTrack({
 }
 
 export function SidebarTopicLink({ children, slug }: { children: ReactNode; slug: string }) {
-  const { setQuery } = useDocsSearch();
-
   return (
     <Link
       className={useActiveTopicSlug() === slug ? "submenu-row active" : "submenu-row"}
       href={`/topics/${slug}`}
-      onClick={() => setQuery("")}
     >
       {children}
     </Link>
