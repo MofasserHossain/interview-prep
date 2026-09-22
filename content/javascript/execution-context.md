@@ -9,6 +9,10 @@ This guide explains the machinery underneath scope. The JavaScript Scope,
 Hoisting & Closures guide covers the same ground at a practical level, and the
 JavaScript Event Loop & Runtime guide covers what happens once the stack empties.
 
+Questions 16–18 run whole programs step by step through the global and function
+contexts, ending with how a returned function keeps its values. Their outputs and
+engine scope dumps come from running the code in Node 24 and Chrome 153.
+
 ## 1. What Is An Execution Context?
 
 An execution context is the internal record the engine creates whenever it starts
@@ -23,15 +27,23 @@ Three kinds exist:
 | Function | a function is called |
 | Module | a module is evaluated |
 
-Each context carries:
+Each context carries (current specification):
 
 ```txt
 ExecutionContext
-├── LexicalEnvironment    let, const, class bindings
+├── LexicalEnvironment    current scope: let, const, class
 ├── VariableEnvironment   var and function declarations
-├── ThisBinding           the value of `this`
-└── Realm                 the global object and built-ins in use
+├── PrivateEnvironment    #private names of the class
+├── Function              the function being run, or null
+├── ScriptOrModule        the script or module it came from
+└── Realm                 the global object and built-ins
 ```
+
+`this` is not on the list. Since ES2015 it lives in the environment records:
+each function's record stores its `this` value, and the global record stores
+`globalThis`. Looking up `this` walks outward to the nearest record that has one,
+which is how an arrow function, whose record has none, sees the surrounding
+`this` (question 10).
 
 ```js
 const appName = "prep"; // global context
@@ -51,6 +63,28 @@ Why it matters:
 
 Every scope question — hoisting, closures, `this`, the TDZ — is a question about
 what is in a context and when it got there. One model answers all of them.
+
+Interview note:
+
+Older books and many courses describe this with ES3 terms. Each edition since
+has reshaped the model, so map old terms before answering:
+
+```txt
+ES3 (1999)   variable object, activation object with
+             `arguments`, scope chain, `this` on the context
+ES5 (2009)   Lexical Environment = record + outer link;
+             `this` still on the context as ThisBinding
+ES2015       `this` moves into function records; let,
+             const, class and the TDZ; a function's
+             [[Scope]] slot becomes [[Environment]]
+ES2021       the record itself carries [[OuterEnv]]; no
+             separate Lexical Environment object
+ES2022       PrivateEnvironment for #private class names
+```
+
+The old model still traces simple `var` and function code correctly, because the
+steps are the same. It has no place for block records, the TDZ, or an arrow
+function's `this`.
 
 ## 2. What Are The Creation And Execution Phases?
 
@@ -114,14 +148,20 @@ var expressed = function () {};
 
 ## 3. What Is A Lexical Environment?
 
-A Lexical Environment is the structure that holds bindings and a pointer to the
-enclosing environment.
+"Lexical environment" is the everyday name for a scope: the bindings visible at
+one point in the code, plus a link to the enclosing scope. In the current
+specification that is one structure, the environment record:
 
 ```txt
-LexicalEnvironment
-├── EnvironmentRecord   the actual name -> value bindings
-└── [[OuterEnv]]        the enclosing environment, or null
+EnvironmentRecord
+├── bindings       name -> value
+└── [[OuterEnv]]   the enclosing record, or null
 ```
+
+ES5 through ES2020 wrapped the record in a separate "Lexical Environment" object
+that held the outer link. ES2021 merged the two, and the name survives as the
+execution context's `LexicalEnvironment` slot, which points at the current
+record.
 
 ```js
 const a = 1;
@@ -140,12 +180,12 @@ function outer() {
 outer();
 ```
 
-The chain of environments created:
+The chain of records created:
 
 ```txt
-inner env    { c: 3 }  ──[[OuterEnv]]──┐
-outer env    { b: 2 }  ──[[OuterEnv]]──┤
-global env   { a: 1 }  ──[[OuterEnv]]──> null
+inner record   { c: 3 }  ─[[OuterEnv]]─> outer record
+outer record   { b: 2 }  ─[[OuterEnv]]─> global record
+global record  { a: 1 }  ─[[OuterEnv]]─> null
 ```
 
 Output:
@@ -158,11 +198,13 @@ Important:
 
 `[[OuterEnv]]` is set from **where the function was written**, not from where it was
 called. That single fact is what makes JavaScript lexically scoped, and it is why a
-function passed elsewhere still sees its original surroundings.
+function passed elsewhere still sees its original surroundings. A call copies the
+link from the function's `[[Environment]]` slot, which was filled in when the
+function was created (question 16).
 
 ## 4. What Is An Environment Record?
 
-The environment record is the part that actually stores bindings. The specification
+The environment record is the structure that stores bindings. The specification
 defines several types, and knowing which is in play explains several behaviours.
 
 | Record type | Used for | Storage |
@@ -385,10 +427,10 @@ The stack at its deepest point, just before `third` returns:
 ```viz
 type: stack
 title: Execution context stack
-> third() :: running now, logs "third done"
-second() :: suspended, waiting on third()
-first() :: suspended, waiting on second()
 global :: the script's own context
+first() :: suspended, waiting on second()
+second() :: suspended, waiting on third()
+> third() :: running now, logs "third done"
 ```
 
 The stack over time:
@@ -484,8 +526,8 @@ traces in DevTools, but the physical stack really is unwound at the `await`.
 
 ## 9. How Does `this` Get Bound To A Context?
 
-`this` is part of the context, and for ordinary functions it is decided by **how the
-function is called**, not where it is defined.
+Each call stores its `this` in the function's record (question 1), and for ordinary
+functions it is decided by **how the function is called**, not where it is defined.
 
 ```js
 function show() {
@@ -608,8 +650,8 @@ site — object methods and prototype methods.
 ## 11. How Do Closures Retain Environments?
 
 A closure is a function together with the environment it was created in. Because the
-function holds `[[OuterEnv]]`, that environment cannot be garbage collected while
-the function is alive.
+function keeps that environment in its `[[Environment]]` slot, the environment
+cannot be garbage collected while the function is alive.
 
 ```js
 function createCounter() {
@@ -940,7 +982,515 @@ An **agent** is the level above: one execution thread with its own stack and job
 queues. A worker is a separate agent, which is why it cannot share objects with the
 main thread — only structured-cloned copies or a `SharedArrayBuffer`.
 
-## 16. How Do You Answer An Execution Context Question In An Interview?
+## 16. How Does One Program Move Through Global And Function Contexts?
+
+Questions 1–12 each explain one piece. Running one program from its first line to
+its last shows how the pieces connect: the two phases, the record each context
+builds, `this`, `arguments`, the call stack, the environment chain, and the TDZ.
+
+Many courses draw this with ES3 (1999) names, which later editions replaced
+(question 1 has the timeline). They map onto the current terms like this:
+
+| Course diagram | Current specification |
+| --- | --- |
+| Loading / creation phase | creation phase |
+| Variable Object (VO) | environment record |
+| `arguments` and `this` boxes | entries in the function's record |
+| Scope Chain | the `[[OuterEnv]]` links |
+| Closure Scope | a record a live function points at |
+| `0x001` beside a name | a reference to a heap object |
+
+The snapshots below use the current model. `this` and `arguments` sit inside the
+record, because that is where the specification keeps them: `arguments` is an
+ordinary binding, and `this` is a field the record carries. Records are named
+after the function whose call created them.
+
+Mental model:
+
+```txt
+CREATE a function   fn.[[Environment]] = the current record
+CALL a function     push a context with a new record
+                    record.[[OuterEnv]] = fn.[[Environment]]
+                    creation phase fills the record
+                    execution phase runs the body
+RETURN              pop the context; the record is collected
+                    unless a function still points at it
+```
+
+Two internal slots do all the linking. A function's `[[Environment]]` stores the
+record the function was created in, and a record's `[[OuterEnv]]` points at the
+next record out. A call copies the first into the second. Every rule in
+questions 1–12 is one of those three lines seen up close.
+
+Line numbers below refer to this listing:
+
+```js
+var a = 1;
+function one() {
+  console.log(a);
+
+  function two() {
+    console.log(b);
+
+    var b = 2;
+
+    function three(d) {
+      console.log(c + d);
+      let c = 3;
+    }
+
+    three(4);
+  }
+
+  two();
+}
+
+one();
+```
+
+Output:
+
+```txt
+1
+undefined
+ReferenceError: Cannot access 'c' before initialization
+```
+
+**Step 1: global creation phase.** Before line 1 runs, the engine scans the
+script's top level and builds the global record:
+
+```txt
+stack  [ global ]
+record this       window          [[GlobalThisValue]]
+       a          undefined       var: created as undefined
+       one        fn one          declaration: created in full
+chain  global -> null
+```
+
+`one` is already a complete function object, and it has stored the record it
+was created in: `one.[[Environment]]` is the global record.
+
+**Step 2: global execution phase.** Line 1 assigns `a = 1`. Lines 2–19 are a
+declaration that step 1 already handled, so nothing runs there. Line 21 calls
+`one()`.
+
+**Step 3: `one()` creation phase.** The call pushes a new context and builds its
+record before any of `one`'s code runs:
+
+```txt
+stack  [ global, one ]
+record this       window          plain call, sloppy mode
+       arguments  {}              nothing passed
+       two        fn two          [[Environment]]: this record
+chain  one -> global -> null
+```
+
+The new record's outer link is copied from `one.[[Environment]]`, which is why
+the chain continues to the global record.
+
+**Step 4: `one` executes.** Line 3 looks up `a`: not in `one`'s record, found in
+the global record, so it prints `1`. Line 18 calls `two()`.
+
+**Step 5: `two()` creation phase.**
+
+```txt
+stack  [ global, one, two ]
+record this       window
+       arguments  {}
+       b          undefined
+       three      fn three        [[Environment]]: this record
+chain  two -> one -> global -> null
+```
+
+**Step 6: `two` executes.** Line 6 finds `b` in `two`'s record, but line 8 has
+not run yet, so it prints `undefined`. Line 8 assigns `b = 2`. Line 15 calls `three(4)`.
+
+**Step 7: `three(4)` creation phase.**
+
+```txt
+stack  [ global, one, two, three ]
+record this       window
+       arguments  { 0: 4 }
+       d          4               parameter: gets its argument
+       c          <uninitialized> let: in the TDZ
+chain  three -> two -> one -> global -> null
+```
+
+A parameter is the one binding that gets a real value during creation: the
+argument passed in. `arguments` is keyed by position, `{ 0: 4 }`, not by
+parameter name.
+
+**Step 8: `three` executes.** Line 11 reads `c`. The lookup stops at `three`'s
+record, because `c` exists there, but it is still uninitialized, so the engine
+throws.
+Nothing catches the error, so `three`, `two`, and `one` are popped in turn and
+the script stops.
+
+```viz
+type: stack
+title: Stack when line 11 throws
+global :: paused at line 21, a = 1
+one() :: paused at line 18
+two() :: paused at line 15, b = 2
+> three(4) :: d = 4, c uninitialized, throws here
+```
+
+The error's stack trace is that stack, innermost first (Chrome):
+
+```txt
+ReferenceError: Cannot access 'c' before initialization
+    at three (nested.js:11:19)
+    at two (nested.js:15:5)
+    at one (nested.js:18:3)
+    at nested.js:21:1
+```
+
+Fix:
+
+Swap lines 11 and 12 so `c` is initialized before it is read:
+
+```js
+function three(d) {
+  let c = 3;
+  console.log(c + d);
+}
+```
+
+Output:
+
+```txt
+1
+undefined
+7
+```
+
+With the fix, the program unwinds normally:
+
+```txt
+line 12 logs 7   three returns   pop three, record collected
+end of two       two returns     pop two, record collected
+end of one       one returns     pop one, record collected
+end of script    [ global ]      global record stays
+```
+
+Nothing outside those records points at them, so they are garbage. `two`'s
+record holds `three`, and `three` points back at that record, but a cycle that
+nothing else can reach is still garbage. Question 17 shows the one way a record outlives its call.
+
+Interview trap:
+
+Line 6 prints `undefined`, not an error, even though `b` is declared two lines
+later: the creation phase made the `var` binding before `two` ran any code.
+Change line 8 to `let b = 2` and line 6 throws `Cannot access 'b' before
+initialization` instead.
+
+Important:
+
+Here the chain grew in step with the stack, because each function was written
+inside the function that called it. That is a property of this program, not a
+rule. In question 6's `show()` and `run()` example the two differ:
+
+```txt
+stack        global -> run -> show    who called whom
+show chain   show's record -> global  where show was written
+             run's record is on the stack but never searched
+```
+
+The stack decides what runs next. The chain decides what a name means.
+
+Edge cases:
+
+The `this` values are for a classic browser script: `window` at the top level and
+for a plain call, while a strict-mode function gets `undefined`. Node runs each
+CommonJS file inside a wrapper function, so there the top-level `this` is
+`module.exports`, an empty object, and top-level `var`s do not become
+`globalThis` properties. The console output of every program in questions 16–18
+is the same in both.
+
+## 17. How Does A Returned Function Keep Its Outer Variables?
+
+Start with the normal case, where a record dies with its call:
+
+```js
+function hello() {
+  var msg = "Hello world!";
+}
+
+hello();
+
+console.log(msg);
+```
+
+Output:
+
+```txt
+ReferenceError: msg is not defined
+```
+
+Walkthrough:
+
+```txt
+global creation   global { hello -> fn hello }   no msg
+line 5 hello()    push; hello's record { msg -> undefined }
+                  line 2 runs: msg = "Hello world!"
+return            pop; nothing points at hello's record
+line 7            msg: not in global, outer is null: throws
+```
+
+The message says "is not defined" because no record in the chain ever had
+`msg`. Compare question 16's TDZ error, where the binding existed but had no
+value yet.
+
+Now return a function instead. Line numbers refer to this listing:
+
+```js
+var sum = 0;
+
+function doSum(a) {
+  return function (b) {
+    return a + b;
+  };
+}
+
+var temp = doSum(2);
+sum = sum + temp(8);
+```
+
+**Step 1: global creation phase.**
+
+```txt
+stack  [ global ]
+record this       window
+       sum        undefined
+       doSum      fn doSum        [[Environment]]: this record
+       temp       undefined
+```
+
+**Step 2: global execution phase.** Line 1 assigns `sum = 0`. Line 9 must call
+`doSum(2)` before it can assign `temp`.
+
+**Step 3: `doSum(2)` creation phase.**
+
+```txt
+stack  [ global, doSum ]
+record this       window
+       arguments  { 0: 2 }
+       a          2
+chain  doSum -> global -> null
+```
+
+**Step 4: `doSum` executes line 4, and the closure forms.** Evaluating the
+function expression creates a new function object, and like every function it
+stores the record it was created in:
+
+```txt
+anonymous function   [[Environment]] = doSum's record
+```
+
+`doSum` returns that function and its context is popped. But `doSum`'s record is
+**not** collected, because the returned function still points at it. Line 9 then
+assigns the function to `temp`:
+
+```txt
+stack   [ global ]                 doSum's context is gone
+heap    doSum's record { a: 2 }    still reachable:
+          ▲
+          └── [[Environment]] of the returned function
+                                   ▲
+                                   └── global record: temp
+```
+
+This surviving record is what course diagrams label **Closure Scope**, and what
+Chrome DevTools labels `Closure (doSum)`.
+
+**Step 5: line 10 calls `temp(8)`.** The right-hand side runs left to right:
+`sum` is read first (`0`), then the call:
+
+```txt
+stack  [ global, temp(8) ]
+record this       window
+       arguments  { 0: 8 }
+       b          8
+chain  temp -> doSum -> global -> null
+```
+
+The new record's outer link comes from `temp.[[Environment]]`, so the chain runs
+through `doSum`'s record, even though `temp` was called from global code and
+`doSum` returned long ago. Line 5 finds `b` in its own record and `a` in
+`doSum`'s, and returns `10`.
+
+**Step 6: assignment.** The call is popped, its record is collected, and line 10
+finishes with `sum = 0 + 10`:
+
+```txt
+stack  [ global ]
+record sum        10
+       doSum      fn doSum
+       temp       fn (anonymous)  still the function
+heap   doSum's record { a: 2 }    kept alive by temp
+```
+
+Checking that state:
+
+```js
+console.log(sum);
+console.log(typeof temp);
+console.log(temp(8));
+```
+
+Output:
+
+```txt
+10
+function
+10
+```
+
+Interview trap:
+
+A common diagram slip shows `temp -> 10` after line 10. `temp(8)` _returns_ 10
+into the expression; only `sum` is assigned. `temp` is still the function, and
+calling it again gives 10 again, because reading `a` does not use it up.
+
+The rule:
+
+The closure forms when the inner function is **created** (step 4), not when it
+is returned or called. Returning it only lets the function outlive the call that
+made it, and the function carries its `[[Environment]]` along.
+
+## 18. Does A Closure Copy The Outer Values?
+
+No. Some diagrams draw `a -> 2` inside the inner function's own variable object,
+as if the value were copied in. The inner function's record only ever holds its
+own parameters and locals. It reaches `a` through its outer link, and it reads
+the **current** value each time it runs.
+
+Change the variable after the closure forms:
+
+```js
+function makeGreeter() {
+  let name = "Ana";
+
+  const greet = function () {
+    return `Hi ${name}`;
+  };
+
+  name = "Ben";
+  return greet;
+}
+
+const sayHi = makeGreeter();
+console.log(sayHi());
+```
+
+Output:
+
+```txt
+Hi Ben
+```
+
+`greet` was created while `name` held `"Ana"`, but it reads the binding when it
+runs, and by then the binding holds `"Ben"`. A copy would have printed `Hi Ana`.
+The same live link is why question 11's `increment` and `current` see each
+other's changes.
+
+Each call creates its own record, so each returned function holds its own `a`:
+
+```js
+function doSum(a) {
+  return function (b) {
+    return a + b;
+  };
+}
+
+const add2 = doSum(2);
+const add5 = doSum(5);
+
+console.log(add2(8));
+console.log(add5(8));
+console.log(add2(8));
+```
+
+Output:
+
+```txt
+10
+13
+10
+```
+
+```txt
+add2  [[Environment]] -> record from doSum(2) { a: 2 }
+add5  [[Environment]] -> record from doSum(5) { a: 5 }
+```
+
+V8 exposes a function's retained scopes as an internal `[[Scopes]]` slot. Dumped
+through the inspector protocol after question 17's program ran:
+
+```txt
+temp.[[Scopes]]
+  0: Closure (doSum)  { a: 2 }
+  1: Global           { sum: 10, doSum: fn, temp: fn }
+```
+
+Paused on line 5 during `temp(8)`, the chain the lookup walks:
+
+```txt
+local              { b: 8 }
+closure (doSum)    { a: 2 }
+global             { sum: 0, doSum: fn, temp: fn }
+```
+
+`b` and `a` sit in **separate** scopes, exactly as in question 17's step 5. `sum`
+is still `0` there because line 10 assigns it only after `temp(8)` returns.
+
+Important:
+
+The specification keeps a retained record whole, but V8 keeps only what inner
+functions use. A variable moves to the heap only if some inner function
+references it; the rest live in the stack frame and vanish on return. Paused
+inside question 16's `three`, V8 shows only `local { d: 4, c }` and `global`,
+with no scope for `one` or `two`. Make `three` read `b`, and a
+`closure (two) { b: 2 }` scope appears, holding `b` alone. The program behaves
+the same either way; only what the debugger can see changes.
+
+Interview note:
+
+Two consequences show up in real debugging:
+
+- Paused inside that `three`, typing `b` into the DevTools console gives
+  `ReferenceError: b is not defined`, although `b` is in scope in the source.
+  Nothing captured it, so the engine did not keep it.
+- Closures created by the same call share **one** captured scope. If one closure
+  uses a large object, its siblings keep it alive too.
+
+```js
+function makeHandlers() {
+  const big = new Array(1e6).fill("x");
+  const small = 1;
+  const usesBig = () => big.length;
+  const usesSmall = () => small;
+  return { usesBig, usesSmall };
+}
+```
+
+`usesSmall.[[Scopes]]` shows `Closure (makeHandlers) { big, small }`: keeping
+only `usesSmall` still keeps the million-element array reachable.
+
+To see it yourself, paste question 17's program into the Chrome DevTools console,
+run `console.dir(temp)`, and expand `[[Scopes]]`. Or set a breakpoint on line 5
+and read the Scope panel: Local, Closure (doSum), Global.
+
+Strong answer:
+
+> A closure is not a copy. Every function stores the environment it was created
+> in, and every call links its new environment to that stored one. When a
+> returned function outlives its parent's call, the parent's record stays on the
+> heap because the function still points at it, so later calls read and write
+> the live variables. V8 keeps only the variables inner functions use, and
+> closures from the same call share them.
+
+## 19. How Do You Answer An Execution Context Question In An Interview?
 
 Interview method:
 
@@ -1004,6 +1554,11 @@ Strong answer:
 - <https://tc39.es/ecma262/#sec-execution-contexts>
 - <https://tc39.es/ecma262/#sec-lexical-environments>
 - <https://tc39.es/ecma262/#sec-environment-records>
+- <https://tc39.es/ecma262/#sec-globaldeclarationinstantiation>
+- <https://tc39.es/ecma262/#sec-functiondeclarationinstantiation>
+- <https://tc39.es/ecma262/#sec-prepareforordinarycall>
+- <https://tc39.es/ecma262/#sec-ordinaryfunctioncreate>
+- <https://chromedevtools.github.io/devtools-protocol/v8/Debugger/#type-Scope>
 - <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Closures>
 - <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this>
 - <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules>

@@ -1,4 +1,6 @@
 import { Layers, ListOrdered, Workflow } from "lucide-react";
+import { TimelineChart } from "@/components/content/timeline-chart";
+import { parseTimeline } from "@/lib/timeline";
 
 type VisualizationKind = "flow" | "stack" | "queues";
 
@@ -27,6 +29,12 @@ const kindLabels = {
 } satisfies Record<VisualizationKind, string>;
 
 export function Visualization({ source }: { source: string }) {
+  const timeline = parseTimeline(source);
+
+  if (timeline) {
+    return <TimelineChart spec={timeline} />;
+  }
+
   const spec = parseVisualization(source);
 
   if (!spec || spec.items.length === 0) {

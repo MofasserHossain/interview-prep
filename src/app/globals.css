@@ -2712,6 +2712,257 @@ h2 {
   }
 }
 
+/* Timeline viz: lanes of timed segments on one seconds axis. Segment kinds
+   differ by tone and pattern rather than hue, to match the grayscale UI. */
+.viz-timeline {
+  --timeline-label-width: 96px;
+  --timeline-badge-size: 16px;
+}
+
+.timeline-chart {
+  padding: 12px 14px 6px;
+}
+
+.timeline-row {
+  display: grid;
+  grid-template-columns: var(--timeline-label-width) minmax(0, 1fr);
+}
+
+.timeline-lane {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding-right: 10px;
+  color: var(--text);
+  font-size: 0.76rem;
+  font-weight: 560;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.timeline-track {
+  position: relative;
+  min-height: 30px;
+  border-right: 1px solid color-mix(in srgb, var(--border), transparent 35%);
+  border-left: 1px solid var(--border);
+  background-image: repeating-linear-gradient(
+    to right,
+    color-mix(in srgb, var(--border), transparent 35%) 0 1px,
+    transparent 1px calc(100% / var(--timeline-intervals))
+  );
+}
+
+.timeline-segment {
+  position: absolute;
+  top: 7px;
+  bottom: 7px;
+  display: flex;
+  align-items: center;
+  min-width: 3px;
+  overflow: hidden;
+  border-radius: 3px;
+}
+
+/* Above the marker lines, so a milestone never strikes through a note. */
+.timeline-segment-note {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0 6px;
+  font-size: 0.66rem;
+  font-weight: 560;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timeline-fill.is-download {
+  background: oklch(0.8 0 0);
+  color: var(--text);
+}
+
+.timeline-fill.is-wait {
+  border: 1px dashed oklch(0.58 0 0);
+  background: var(--surface);
+  color: var(--text-muted);
+}
+
+.timeline-fill.is-parse {
+  border: 1px solid oklch(0.8 0 0);
+  background: oklch(0.91 0 0);
+  color: var(--text);
+}
+
+.timeline-fill.is-blocked {
+  background: repeating-linear-gradient(135deg, oklch(0.3 0 0) 0 2px, oklch(0.9 0 0) 2px 6px);
+  color: var(--text);
+}
+
+.timeline-fill.is-run {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.timeline-fill.is-blank {
+  border: 1px solid oklch(0.88 0 0);
+  background: repeating-linear-gradient(135deg, oklch(0.84 0 0) 0 1px, var(--surface) 1px 5px);
+  color: var(--text-muted);
+}
+
+.timeline-fill.is-partial {
+  background: oklch(0.64 0 0);
+  color: var(--primary-foreground);
+}
+
+.timeline-fill.is-painted {
+  background: oklch(0.42 0 0);
+  color: var(--primary-foreground);
+}
+
+/* Screen readers get each bar's lane, kind, and times from this text. */
+.timeline-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Hatched fills put their note on a solid chip so it stays legible; the
+   blocked chip is dark so the bar still reads as hatched. */
+.timeline-segment.is-blocked .timeline-segment-note,
+.timeline-segment.is-blank .timeline-segment-note {
+  margin-left: 4px;
+  padding: 2px 5px;
+  border-radius: 3px;
+  background: var(--surface);
+}
+
+.timeline-segment.is-blocked .timeline-segment-note {
+  background: oklch(0.3 0 0);
+  color: var(--primary-foreground);
+}
+
+.timeline-marker-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  border-left: 1px dashed var(--text-subtle);
+  pointer-events: none;
+}
+
+.timeline-marker-row .timeline-track {
+  min-height: calc(var(--timeline-marker-levels) * (var(--timeline-badge-size) + 3px) + 4px);
+  border-color: transparent;
+  background: none;
+}
+
+.timeline-marker-badge,
+.timeline-marker-number {
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: var(--timeline-badge-size);
+  height: var(--timeline-badge-size);
+  border-radius: 50%;
+  background: var(--surface-strong);
+  color: var(--primary-foreground);
+  font-size: 0.6rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.timeline-marker-badge {
+  position: absolute;
+  top: calc(var(--level) * (var(--timeline-badge-size) + 3px));
+  z-index: 2;
+  transform: translateX(-50%);
+}
+
+.timeline-axis .timeline-track {
+  min-height: 22px;
+  border-color: transparent;
+  background: none;
+}
+
+.timeline-tick {
+  position: absolute;
+  top: 5px;
+  color: var(--text-muted);
+  font-size: 0.66rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.timeline-tick:first-child {
+  transform: none;
+}
+
+.timeline-tick:last-child {
+  transform: translateX(-100%);
+}
+
+.timeline-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 14px 12px;
+  border-top: 1px solid var(--border);
+  background: var(--surface-muted);
+}
+
+.timeline-legend-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+}
+
+.timeline-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.timeline-swatch {
+  flex-shrink: 0;
+  width: 18px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.timeline-marker-time {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .viz-timeline {
+    --timeline-label-width: 74px;
+  }
+
+  .timeline-chart {
+    padding: 10px 10px 4px;
+  }
+
+  .timeline-lane {
+    font-size: 0.7rem;
+  }
+
+  /* Bars are too narrow for notes here; the legend and the prose carry them. */
+  .timeline-segment-note {
+    display: none;
+  }
+}
+
 /* Footer closing the scrolling workspace. The content above it grows to fill a
    short viewport, so this sits at the bottom of the fold without a spacer. */
 .site-footer {

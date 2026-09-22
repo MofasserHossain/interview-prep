@@ -1,16 +1,16 @@
 "use client";
 
-import type { Question } from "@/lib/types";
+import type { TocEntry } from "@/lib/types";
 
 type TocGroup = {
-  children: Question[];
-  overview?: Question;
+  children: TocEntry[];
+  overview?: TocEntry;
   title: string;
 };
 
 type GroupedToc = {
   groups: TocGroup[];
-  standalone: Question[];
+  standalone: TocEntry[];
 };
 
 const overviewTitlePattern = /\s+Overview$/i;
@@ -21,7 +21,7 @@ export function QuestionToc({
   selectedQuestionId,
 }: {
   onSelectQuestion: (questionId: string) => void;
-  questions: Question[];
+  questions: TocEntry[];
   selectedQuestionId?: string;
 }) {
   const groupedToc = getGroupedToc(questions);
@@ -108,7 +108,7 @@ function TocButton({
 }: {
   child?: boolean;
   onSelectQuestion: (questionId: string) => void;
-  question: Question;
+  question: TocEntry;
   selected: boolean;
 }) {
   return (
@@ -125,7 +125,7 @@ function TocButton({
   );
 }
 
-function getGroupedToc(questions: Question[]): GroupedToc | undefined {
+function getGroupedToc(questions: TocEntry[]): GroupedToc | undefined {
   const overviewPositions = questions.reduce<number[]>((positions, question, index) => {
     if (question.kind === "question" && overviewTitlePattern.test(question.question)) {
       positions.push(index);

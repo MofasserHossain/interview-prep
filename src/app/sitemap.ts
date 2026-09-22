@@ -1,11 +1,10 @@
 import type { MetadataRoute } from "next";
-import { getInterviewData, getTopicLastModified } from "@/lib/content";
+import { getTopicLastModified } from "@/lib/content";
 import { siteUrl } from "@/lib/site";
+import { topics } from "@/lib/topics";
 
 /** Served at /sitemap.xml. */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const { topics } = getInterviewData();
-
   const newestTopic = topics
     .map((topic) => getTopicLastModified(topic.file))
     .reduce((newest, current) => (current > newest ? current : newest), new Date(0));

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { topics } from "@/lib/topics";
-import type { InterviewData, Question, Topic } from "@/lib/types";
+import type { Question, Topic, TopicSummary } from "@/lib/types";
 
 const contentDirectory = path.join(process.cwd(), "content");
 
@@ -221,36 +221,51 @@ export function getTopicLastModified(file: string): Date {
   }
 }
 
-export function getInterviewData(): InterviewData {
-  const questions = topics.flatMap((topic) => parseTopic(topic));
-  const sectionsByTopic = new Map<string, Question[]>();
+const topicsBySlug = new Map(topics.map((topic) => [topic.slug, topic]));
 
-  for (const question of questions) {
-    const sections = sectionsByTopic.get(question.topicSlug);
+/** The registry entry for a slug. Reads no Markdown. */
+export function findTopic(slug: string): Topic | undefined {
+  return topicsBySlug.get(slug);
+}
 
-    if (sections) {
-      sections.push(question);
-    } else {
-      sectionsByTopic.set(question.topicSlug, [question]);
-    }
+// Parsed sections per topic, keyed by the file's mtime. A build parses each
+// file once per worker instead of once per page, metadata call and image, and
+// `next dev` re-parses a file only after it is edited.
+const sectionCache = new Map<string, { mtimeMs: number; sections: Question[] }>();
+
+export function getTopicSections(topic: Topic): Question[] {
+  const { mtimeMs } = fs.statSync(path.join(contentDirectory, topic.file));
+  const cached = sectionCache.get(topic.slug);
+
+  if (cached?.mtimeMs === mtimeMs) {
+    return cached.sections;
   }
 
-  const summaries = topics.map((topic) => {
-    let questionCount = 0;
-    let readingMinutes = 0;
+  const sections = parseTopic(topic);
+  sectionCache.set(topic.slug, { mtimeMs, sections });
 
-    for (const section of sectionsByTopic.get(topic.slug) ?? []) {
-      if (section.kind === "question") questionCount += 1;
-      readingMinutes += section.readingMinutes;
-    }
+  return sections;
+}
 
-    return Object.assign({}, topic, { questionCount, readingMinutes });
-  });
+export function getTopicSummary(topic: Topic): TopicSummary {
+  let questionCount = 0;
+  let readingMinutes = 0;
 
-  return {
-    topics: summaries,
-    questions,
-  };
+  for (const section of getTopicSections(topic)) {
+    if (section.kind === "question") questionCount += 1;
+    readingMinutes += section.readingMinutes;
+  }
+
+  return Object.assign({}, topic, { questionCount, readingMinutes });
+}
+
+export function getTopicSummaries(): TopicSummary[] {
+  return topics.map((topic) => getTopicSummary(topic));
+}
+
+/** Every topic's sections, in registry order. */
+export function getAllSections(): Question[] {
+  return topics.flatMap((topic) => getTopicSections(topic));
 }
 
 function parseTopic(topic: Topic): Question[] {
@@ -366,6 +381,8 @@ function normalizeQuestionWord(value: string) {
 
   const [, prefix, word, suffix] = match;
   if (!word) return value.toLowerCase();
+  // Code spans keep their exact spelling: `jsonb` must not become `Jsonb`.
+  if (prefix.includes("`") || suffix.includes("`")) return value;
   const preservedWord = getPreservedWord(word);
 
   if (preservedWord) {

@@ -2,7 +2,13 @@
 
 Browser interview guidance covering navigation, DNS and TLS, HTTP responses,
 how content types are decided, HTML parsing, CSSOM, the render tree, layout,
-paint, compositing, script loading order, and Core Web Vitals.
+paint, compositing, script loading order, parser-, render-, and script-blocking
+resources, web fonts, and Core Web Vitals.
+
+The blocking timelines were measured in headless Chrome 153 against a local
+server that delays each file by the stated amount. Times count from the HTML
+request and are rounded. Absolute times will differ on your machine; the order
+of events is the part to learn.
 
 ## 1. What Happens When You Type A URL And Press Enter?
 
@@ -103,8 +109,9 @@ HTML -> DOM  ─┐
 CSS  -> CSSOM ┘
 ```
 
-Both the DOM and the CSSOM are required before anything can render, which is why
-CSS is described as render-blocking.
+Rendering needs the complete CSSOM but only the part of the DOM parsed so far.
+That is why CSS is described as render-blocking and HTML is not: the browser
+paints whatever DOM it has, but never with half the styles.
 
 ```viz
 type: flow
@@ -187,8 +194,8 @@ rendering until the CSSOM is complete.
 Important:
 
 CSS blocks rendering, not HTML parsing. The DOM keeps building while stylesheets
-download. CSS does, however, block any script that follows it, because a script
-may read computed styles.
+download. CSS does, however, block the scripts that follow it — every kind
+except `async` — because a script may read computed styles.
 
 Tradeoff:
 
@@ -272,9 +279,12 @@ The three loading modes:
 | Mode | Blocks parsing | Execution time | Order guaranteed |
 | --- | --- | --- | --- |
 | none | yes | immediately, mid-parse | yes, document order |
-| `async` | no | as soon as it downloads | **no** |
+| `async` | only while it runs | as soon as it downloads | **no** |
 | `defer` | no | after parsing, before `DOMContentLoaded` | yes, document order |
 | `type="module"` | no | deferred by default | yes, document order |
+
+`async` and `defer` only apply to scripts with a `src`. An inline classic script
+ignores both.
 
 When to use it:
 
@@ -311,9 +321,13 @@ Execution order:
 ```txt
 1. one.js       blocking, in document order
 2. inline       blocking, in document order
-3. three.js     async, whenever it finishes downloading (may be earlier)
+3. three.js     async, as soon as it downloads (here, or after two.js)
 4. two.js       defer, after parsing completes
 ```
+
+Measured with `one.js` taking 1 s: when `three.js` arrived quickly it ran third;
+when it took 2 s it ran last, after `DOMContentLoaded`. It can never run before
+the scripts above it, because the parser has not created its element yet.
 
 Because classic scripts share the same global object, a `var` or function
 declared in one file is visible in the next:
@@ -388,7 +402,744 @@ Fix:
 Keep important resources in the HTML, or declare them explicitly with
 `<link rel="preload">`.
 
-## 11. What Do `preload`, `preconnect`, And `dns-prefetch` Do?
+## 11. What Is The Difference Between Parser-Blocking, Render-Blocking, And Script-Blocking?
+
+"Blocking" means three different things, and each resource blocks a different
+one. Interview answers often blur them.
+
+| Kind | What waits | What keeps going | Typical cause |
+| --- | --- | --- | --- |
+| Parser-blocking | building the DOM past this tag | downloads, via the preload scanner | a classic `<script>` |
+| Render-blocking | the first paint | parsing and downloads | a stylesheet in `<head>` |
+| Script-blocking | running the next script | parsing, until it reaches a script | a stylesheet still downloading |
+
+Stylesheets, fonts, and images:
+
+| Resource | Blocks parsing | Blocks the first paint |
+| --- | --- | --- |
+| `<link rel="stylesheet">` in `<head>` | no | yes |
+| stylesheet whose `media` does not match | no | no, but it still downloads |
+| stylesheet loaded through `@import` | no | yes, after an extra round trip |
+| `<link rel="stylesheet">` inside `<body>` | yes, in Chrome | only for content below it |
+| stylesheet added by JavaScript | no | no, unless marked `blocking="render"` |
+| web font | no | hides the text that uses it |
+| `<img>` | no | no — it delays `load` only |
+
+Scripts:
+
+| Script | Blocks parsing | Waits for pending CSS | `DOMContentLoaded` waits for it |
+| --- | --- | --- | --- |
+| classic `<script src>` | yes, download and run | yes | yes |
+| inline `<script>` | yes, while it runs | yes | yes |
+| `<script async>` | only while it runs | no | no |
+| `<script defer>` | no | yes | yes |
+| `<script type="module">` | no | yes | yes |
+| script added by JavaScript | no | no | no — it delays `load` only |
+
+Important:
+
+A classic script in `<head>` also blocks the first paint, but only because no
+`<body>` exists yet to paint. The same script at the end of `<body>` lets
+everything above it paint first.
+
+Strong answer:
+
+> CSS is render-blocking but not parser-blocking. A classic script is
+> parser-blocking. A pending stylesheet is script-blocking — which is how CSS
+> ends up stalling the parser whenever a normal script follows it.
+
+## 12. Walk Through A Page Load Where CSS And JavaScript Both Block
+
+Take the classic worst case: a stylesheet and a normal script in `<head>`.
+
+```html
+<!doctype html>
+<html>
+  <head>
+    <!-- main.css takes 1 s, analytics.js takes 2 s -->
+    <link rel="stylesheet" href="/main.css" />
+    <script src="/analytics.js"></script>
+  </head>
+  <body>
+    <h1>Hello</h1>
+    <img src="/hero.png" width="200" height="100" />
+  </body>
+</html>
+```
+
+Walkthrough:
+
+```txt
+0 s  parser reads <link>: requests main.css, keeps going
+0 s  parser reads <script>: requests analytics.js, STOPS
+     DOM so far: html > head      CSSOM: pending
+0 s  preload scanner reads ahead, requests hero.png
+1 s  main.css arrives: CSSOM ready
+     DOM still has no <body>: nothing visible to render
+2 s  analytics.js arrives and runs (document.body is null)
+2 s  parser resumes: <body>, <h1>, <img>, DOMContentLoaded
+2 s  render tree: html > body > h1, img
+     (head, link, and script are left out)
+2 s  layout and paint: heading and image in one frame
+```
+
+Measured:
+
+```txt
+request    20 ms  /main.css
+request    20 ms  /analytics.js
+request    20 ms  /hero.png       preload scanner
+2023 ms  analytics.js ran, document.body = null
+2023 ms  DOMContentLoaded
+2036 ms  first contentful paint: heading and image
+```
+
+```viz
+type: flow
+title: What the render tree waits for
+DOM :: stops at the script in head, so no body exists yet
+CSSOM :: ready at 1 s, with nothing to style
+> Script :: 2 s download, then it runs while the parser waits
+Render tree :: built at 2 s from the complete DOM and CSSOM
+Paint :: heading and image appear in the same frame
+```
+
+Swap the delays — stylesheet 2 s, script 1 s — and nothing changes on screen.
+The script finishes downloading at 1 s but cannot run until the stylesheet
+arrives, because it might read styles. Measured: it ran at 2013 ms.
+
+The same page with the script moved or marked, same delays:
+
+| Version | First paint | `DOMContentLoaded` | Script runs |
+| --- | --- | --- | --- |
+| `<script>` in `<head>` | 2.0 s | 2.0 s | 2.0 s |
+| `<script>` at the end of `<body>` | 1.0 s | 2.0 s | 2.0 s |
+| `<script defer>` in `<head>` | 1.0 s | 2.0 s | 2.0 s |
+| `<script async>` in `<head>` | 1.0 s | 5 ms | 2.0 s |
+
+Why it matters:
+
+- the stylesheet sets the floor: no version paints before `main.css` arrives
+- `defer` and end-of-body fix the first paint but not `DOMContentLoaded`, which
+  still waits for the script
+- `async` fixes both, at the cost of order: the script runs whenever it lands
+
+Strong answer:
+
+> With a stylesheet and a blocking script in the head, the parser stops at the
+> script, so the DOM has no body until the script has downloaded and run — and
+> the script cannot run until the stylesheet has arrived. The render tree has
+> nothing visible to build, so the screen stays blank for the slower of the
+> two. With `defer`, parsing finishes at once and the first paint happens as
+> soon as the CSS is ready.
+
+## 13. Why Does A Stylesheet Delay The Script After It?
+
+A stylesheet that is still downloading is **script-blocking**: the browser will
+not run a script placed after it until the stylesheet arrives, because the
+script might read styles with `getComputedStyle()` or `offsetWidth` and must see
+final values. When that script is a normal one, the parser is waiting for the
+script, so the stylesheet ends up blocking parsing as well.
+
+```html
+<head>
+  <!-- slow.css takes 2 s -->
+  <link rel="stylesheet" href="/slow.css" />
+  <script>
+    console.log("inline script ran"); // no download
+  </script>
+</head>
+<body>
+  <h1>Title</h1>
+</body>
+```
+
+Measured:
+
+| `<head>` contents | Inline script runs | `DOMContentLoaded` | First paint |
+| --- | --- | --- | --- |
+| the stylesheet only | — | 8 ms | 2.0 s |
+| stylesheet, then inline script | 2.0 s | 2.0 s | 2.0 s |
+| inline script, then stylesheet | 9 ms | 9 ms | 2.0 s |
+
+The inline script needs no download, yet it waits two seconds, and the parser
+waits with it.
+
+Which scripts wait? Each script below logs the colour of `<html>`, which
+`slow.css` sets to red:
+
+```html
+<!-- slow.css takes 1.5 s; a.js and d.js are instant -->
+<link rel="stylesheet" href="/slow.css" />
+<script async src="/a.js"></script>
+<script defer src="/d.js"></script>
+```
+
+Output:
+
+```txt
+17 ms    async a.js ran, html color = rgb(0, 0, 0)
+1517 ms  defer d.js ran, html color = rgb(255, 0, 0)
+1517 ms  DOMContentLoaded
+```
+
+- classic and inline scripts wait, and hold the parser while they wait
+- `defer` and module scripts wait at the end of parsing, so `DOMContentLoaded`
+  moves with them
+- `async` scripts and scripts added by JavaScript do not wait, and can read
+  styles before the stylesheet applies
+
+Fix:
+
+Put inline scripts that never read styles, such as analytics snippets and
+feature flags, above the stylesheet links, and keep `<head>` stylesheets small.
+
+Tradeoff:
+
+A script moved above the CSS runs before any styles exist. That is fine for
+analytics and wrong for code that measures layout.
+
+Interview trap:
+
+"CSS does not block parsing" is true on its own, and false the moment a normal
+script follows the stylesheet.
+
+## 14. What Can A Script See Mid-Parse, And What Can Already Paint?
+
+When a normal script runs, the DOM holds only what the parser has read so far.
+The render tree is built from that same partial DOM, so content above the script
+can be on screen before the rest of the HTML is parsed.
+
+```html
+<head>
+  <script>
+    console.log(document.body); // <body> not parsed yet
+    console.log(document.querySelector("h1"));
+  </script>
+</head>
+<body>
+  <h1>Title</h1>
+  <script>
+    console.log(document.querySelector("h1").textContent);
+    console.log(document.querySelector("p"));
+  </script>
+  <p>Later</p>
+</body>
+```
+
+Output:
+
+```txt
+null
+null
+Title
+null
+```
+
+The render tree grows with the DOM. Here the parser stops halfway down the body:
+
+```html
+<head>
+  <!-- main.css takes 1 s, analytics.js takes 2 s -->
+  <link rel="stylesheet" href="/main.css" />
+</head>
+<body>
+  <h1>Hello</h1>
+  <script src="/analytics.js"></script>
+  <p>After the script</p>
+</body>
+```
+
+Measured:
+
+```txt
+1036 ms  <h1> painted (parser still waiting for the script)
+2013 ms  analytics.js ran: querySelector("p") is null
+2014 ms  DOMContentLoaded
+2020 ms  <p> painted
+```
+
+The two trees at each point:
+
+```txt
+at 1 s: parser waiting for analytics.js
+
+DOM                        render tree
+html                       html
+├── head                   └── body
+│   └── link                   └── h1           painted
+└── body
+    ├── h1
+    └── script
+
+at 2 s: script ran, parsing finished
+
+DOM                        render tree
+html                       html
+├── head                   └── body
+│   └── link                   ├── h1
+└── body                       └── p            painted
+    ├── h1
+    ├── script
+    └── p
+```
+
+Why it matters:
+
+This is why scripts at the end of `<body>` worked: everything above them is
+already in the DOM and can paint while they download. It is also why a script
+in `<head>` that touches `document.body` throws.
+
+Fix:
+
+Run DOM code after parsing: `defer`, `type="module"`, or a `DOMContentLoaded`
+listener.
+
+Interview trap:
+
+`defer` only works on scripts with a `src`. On an inline script it is silently
+ignored, while an inline module script is deferred:
+
+```html
+<!-- defer is ignored here: runs immediately -->
+<script defer>
+  console.log(document.querySelector("p"));
+</script>
+<!-- inline module: deferred, runs after parsing -->
+<script type="module">
+  console.log(document.querySelector("p").textContent);
+</script>
+<p>Hi</p>
+```
+
+Output:
+
+```txt
+null
+Hi
+```
+
+## 15. How Do You Stop CSS From Blocking The First Paint?
+
+Only stylesheets that apply right now need to block the first paint. Everything
+else can come off the critical path.
+
+**Give conditional stylesheets a `media` attribute.** A stylesheet whose media
+query does not match still downloads, at low priority, but does not block
+rendering. On a phone, `desktop.css` below does not hold up the first paint.
+
+```html
+<link rel="stylesheet" href="/print.css" media="print" />
+<link
+  rel="stylesheet"
+  href="/desktop.css"
+  media="(min-width: 1024px)"
+/>
+```
+
+Measured with two non-matching stylesheets that each took 3 s: first paint at
+48 ms. Both files were still requested at 8 ms, and `load` waited until 3.0 s.
+
+**Inline the critical CSS and load the rest without blocking.**
+
+```html
+<head>
+  <style>
+    /* only what the first screen needs */
+    header { height: 64px; background: #111; }
+  </style>
+  <link
+    rel="stylesheet"
+    href="/rest.css"
+    media="print"
+    onload="this.media='all'"
+  />
+  <noscript>
+    <link rel="stylesheet" href="/rest.css" />
+  </noscript>
+</head>
+```
+
+`media="print"` makes the file non-blocking, and `onload` switches it on once it
+has arrived. Measured with `rest.css` taking 1.5 s: first paint at 45 ms, and its
+rules applied at 1.5 s.
+
+**Avoid `@import` in CSS.** The imported file is discovered only after the
+importing file has downloaded, so the two requests run one after the other.
+
+```css
+/* a.css */
+@import url("/b.css");
+```
+
+Measured with each file taking 0.5 s:
+
+| Setup | `b.css` requested | First paint |
+| --- | --- | --- |
+| `a.css` imports `b.css` | 510 ms | 1.04 s |
+| two `<link>` tags | 6 ms | 0.52 s |
+
+**Know what a stylesheet in `<body>` does.** In Chrome, a
+`<link rel="stylesheet">` in the middle of `<body>` pauses the parser at that
+point. Measured with a 2 s stylesheet: content above it painted at 44 ms, while
+content below it and `DOMContentLoaded` both waited 2.0 s. It spreads the
+blocking out rather than removing it.
+
+Tradeoff:
+
+Critical CSS paints sooner but paints twice: once with the inline rules, again
+when the rest arrives. If the inline CSS misses something on the first screen,
+users see it restyle or shift. The `onload` attribute is also an inline event
+handler, which a strict Content Security Policy blocks.
+
+Strong answer:
+
+> Only stylesheets that apply right now block rendering. I inline what the first
+> screen needs, load the rest with the `media="print"` swap, put media-specific
+> CSS behind a `media` attribute, and avoid `@import` because it serializes the
+> requests.
+
+## 16. Do Web Fonts Block Rendering?
+
+They do not block the first paint of the page, but they can hide the text that
+uses them.
+
+A web font is discovered late. The browser requests it only once the CSSOM and
+the DOM show that visible text actually uses it, so the chain is HTML, then CSS,
+then the font.
+
+```css
+@font-face {
+  font-family: "Brand";
+  src: url("/fonts/brand.woff2") format("woff2");
+  font-display: swap;
+}
+
+h1 {
+  font-family: "Brand", sans-serif;
+}
+```
+
+`font-display` decides what that text does while the font downloads. Measured
+with a font that took 5 s:
+
+| Value | Text first appears | When the font arrives at 5 s |
+| --- | --- | --- |
+| `block` | at 3.0 s, invisible until then | swapped in |
+| `swap` | at 47 ms, in the fallback font | swapped in |
+| `fallback` | at ~0.1 s, in the fallback font | ignored: its 3 s swap window had closed |
+| `optional` | at 48 ms, in the fallback font | ignored for this page view |
+| `auto` (default) | at ~1.9 s, invisible until then | swapped in |
+
+`auto` leaves the choice to the browser. Chrome stopped hiding the text about
+1.9 s into the page load, whether the font request started at 0 s or at 1 s.
+Other browsers are free to choose differently.
+
+Late discovery, measured with `fonts.css` taking 1 s and the font 0.5 s:
+
+```txt
+no preload:    font requested at 1029 ms (after fonts.css)
+with preload:  font requested at    7 ms
+```
+
+Fix:
+
+Preload the one or two fonts the first screen needs.
+
+```html
+<link
+  rel="preload"
+  href="/fonts/brand.woff2"
+  as="font"
+  type="font/woff2"
+  crossorigin
+/>
+```
+
+Important:
+
+`crossorigin` is required even for a same-origin font. Fonts are always fetched
+in CORS mode, and a preload without the attribute does not match the real
+request. Measured without it, the font downloaded twice: at 10 ms and again at
+1030 ms.
+
+Why it matters:
+
+Invisible text delays Largest Contentful Paint when the largest element is text,
+and a late swap shifts layout when the fallback font has different metrics. A
+metric-matched fallback (`size-adjust`, `ascent-override`) removes most of that
+shift; the Next.js Styling & Assets guide shows how `next/font` automates it.
+
+Strong answer:
+
+> Fonts don't block the first paint, but text set in a web font can stay
+> invisible while it loads — up to three seconds with `block`. The browser
+> discovers fonts late, after the CSS and DOM show they are used, so I preload
+> the critical ones and set `font-display` explicitly: `swap` when the brand
+> font matters, `optional` when layout stability matters more.
+
+## 17. What Does `blocking="render"` Do?
+
+It marks a script, stylesheet, or `<style>` element as render-blocking without
+making it parser-blocking. The page keeps parsing, but nothing paints until that
+resource has finished.
+
+```html
+<head>
+  <script async blocking="render" src="/theme.js"></script>
+</head>
+```
+
+Measured with `theme.js` taking 1.5 s:
+
+| Tag in `<head>` | `DOMContentLoaded` | First paint |
+| --- | --- | --- |
+| `<script async src>` | 4 ms | 45 ms |
+| `<script async blocking="render" src>` | 13 ms | 1.53 s |
+| `<script blocking="render" src>` | 1.51 s | 1.53 s |
+
+When to use it:
+
+For code that must run before the first frame without stalling the parser, such
+as applying a saved theme or an experiment that changes layout. It prevents a
+flash of the wrong version.
+
+Important:
+
+On a plain `<script src>` the attribute adds nothing: that script already stops
+the parser and, in `<head>`, the first paint. It matters with `async`, `defer`,
+or `type="module"`, and on stylesheets added by JavaScript, which are otherwise
+not render-blocking: measured, an injected stylesheet let the page paint at
+84 ms, and the same stylesheet with `blocking="render"` held the paint until
+1.55 s. It also only works while `<body>` has not been parsed — the same script
+tag inside `<body>` did not delay the first paint (82 ms).
+
+Tradeoff:
+
+Every render-blocking resource delays the first paint for every visitor. At the
+time of writing, Chromium (105+) and Safari (18.2+) support the attribute, and
+Firefox ignores it and paints earlier, so the page must tolerate a flash there.
+
+Interview trap:
+
+A common explanation shows `<script src="theme.js" blocking="render">` and says
+the parser keeps reading. It does not: without `async` or `defer` that script is
+parser-blocking, and `DOMContentLoaded` waited the full 1.51 s in the
+measurement above.
+
+## 18. Walk Through The Entire Flow Of A Page Load, And The Better Way To Build It
+
+Each earlier question covers one piece. This one runs the whole flow on one
+realistic page — a stylesheet that imports another, two scripts, a web font, and
+a hero image — built the common way, then the better way, with the same server
+delays both times.
+
+```viz
+type: flow
+title: The entire flow, first byte to a usable page
+HTML arrives :: the parser builds the DOM incrementally as bytes stream in
+> Stylesheet found :: downloads; blocks the first paint and scripts after it
+> Classic script found :: the parser stops until it downloads and runs
+Preload scanner :: fetches later scripts, styles, and images meanwhile
+CSSOM ready :: every render-blocking stylesheet, imports included, is parsed
+Render tree :: the DOM parsed so far plus the CSSOM, minus display none
+Layout, paint, composite :: first paint of whatever the DOM holds so far
+Web fonts :: requested only now; their text can stay hidden until they land
+Parsing ends :: defer and module scripts run, then DOMContentLoaded
+Images land :: one without a reserved size shifts the layout
+load :: every subresource has finished
+After load :: each DOM or style change reruns style, layout, and paint
+```
+
+The steps overlap in practice. The two timelines below show the real order.
+
+The page, built the common way:
+
+```html
+<!doctype html>
+<html>
+  <head>
+    <!-- styles.css 1 s; it @imports reset.css, 0.5 s -->
+    <link rel="stylesheet" href="/styles.css" />
+    <!-- vendor.js 1.5 s, app.js 0.5 s -->
+    <script src="/vendor.js"></script>
+    <script src="/app.js"></script>
+  </head>
+  <body>
+    <!-- the heading uses a web font: 0.3 s -->
+    <h1>Product</h1>
+    <!-- hero.png 2.5 s, 800x400, no width or height -->
+    <img src="/hero.png" />
+    <p>Several paragraphs of description…</p>
+  </body>
+</html>
+```
+
+```viz
+type: timeline
+title: The common way, measured in Chrome
+end: 3
+styles.css :: 0.01-1.01 :: download
+reset.css :: 1.02-1.52 :: download :: @import
+vendor.js :: 0.01-1.51 :: download
+app.js :: 0.01-0.51 :: download
+app.js :: 0.51-1.52 :: wait :: waits for vendor.js
+brand font :: 1.54-1.84 :: download
+hero.png :: 0.01-2.51 :: download
+Main thread :: 0-0.01 :: parse
+Main thread :: 0.01-1.52 :: blocked :: parser stopped at vendor.js
+Main thread :: 1.52-1.53 :: run
+Screen :: 0-1.55 :: blank
+Screen :: 1.55-1.85 :: partial
+Screen :: 1.85-3 :: painted
+@ 1.52 :: DOMContentLoaded
+@ 1.55 :: First paint, heading text hidden
+@ 1.85 :: Heading text appears
+@ 2.52 :: Hero lands: layout shift 0.146, then load
+```
+
+Walkthrough:
+
+1. **0 s** — the parser requests `styles.css`, reaches `vendor.js`, and stops.
+   The preload scanner requests `app.js` and `hero.png` at the same moment.
+2. **0.5 s** — `app.js` has arrived but cannot run: it must follow `vendor.js`,
+   and the CSSOM is not ready.
+3. **1.0 s** — `styles.css` arrives. Only now does the browser see
+   `@import url("/reset.css")` and request it, so the CSSOM is still incomplete.
+4. **1.5 s** — `vendor.js`, then `reset.css`, arrive. The CSSOM is complete, so
+   `vendor.js` runs, then `app.js`, and the parser finishes the body:
+   `DOMContentLoaded` at 1.52 s.
+5. **1.54 s** — the render tree shows the heading uses the brand font, and only
+   then is the font requested.
+6. **1.55 s** — first paint. The paragraphs show; the heading takes up space,
+   but its text is invisible while the font loads.
+7. **1.85 s** — the font arrives and the heading text appears.
+8. **2.52 s** — the hero image arrives with no reserved size and pushes the text
+   down 400px (layout shift 0.146). Then `load` fires.
+
+The better way — same files, same delays:
+
+```html
+<!doctype html>
+<html>
+  <head>
+    <style>
+      /* critical CSS: only what the first screen needs */
+      body { margin: 0; }
+      @font-face {
+        font-family: Brand;
+        src: url("/brand.woff2") format("woff2");
+        font-display: swap;
+      }
+      h1 { margin: 16px; font-family: Brand, sans-serif; }
+    </style>
+    <link
+      rel="stylesheet"
+      href="/rest.css"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link rel="stylesheet" href="/rest.css" />
+    </noscript>
+    <script defer src="/vendor.js"></script>
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <h1>Product</h1>
+    <img src="/hero.png" width="800" height="400" />
+    <p>Several paragraphs of description…</p>
+  </body>
+</html>
+```
+
+```viz
+type: timeline
+title: The better way, measured in Chrome
+end: 3
+rest.css :: 0.01-1.01 :: download :: not render-blocking
+vendor.js :: 0.01-1.51 :: download
+app.js :: 0.01-0.51 :: download
+app.js :: 0.51-1.51 :: wait :: defer keeps the order
+brand font :: 0.02-0.32 :: download
+hero.png :: 0.01-2.51 :: download
+Main thread :: 0-0.01 :: parse
+Main thread :: 1.51-1.52 :: run
+Screen :: 0-0.05 :: blank
+Screen :: 0.05-3 :: painted
+@ 0.05 :: First paint, heading in the fallback font
+@ 0.32 :: Brand font swapped in
+@ 1.01 :: rest.css applied
+@ 1.51 :: DOMContentLoaded
+@ 2.51 :: Hero fills its reserved box, then load
+```
+
+Walkthrough:
+
+1. **0 s** — the parser reads the whole document in about 10 ms. Nothing stops
+   it: the inline `<style>` needs no request, `rest.css` does not match
+   `media="print"`, and both scripts are deferred.
+2. **15 ms** — the inline `@font-face` is already known, so the font is
+   requested almost at once.
+3. **0.05 s** — first paint: the heading in the fallback font, the text, and an
+   empty 800×400 box for the image.
+4. **0.32 s** — the brand font arrives and swaps in.
+5. **1.0 s** — `rest.css` arrives, and its `onload` switches it on.
+6. **1.51 s** — `vendor.js` arrives; the deferred scripts run in order, then
+   `DOMContentLoaded`.
+7. **2.51 s** — the image fills the box already reserved for it. Nothing moves,
+   and `load` fires.
+
+Measured:
+
+| Milestone | Common way | Better way |
+| --- | --- | --- |
+| First paint | 1.55 s | 0.05 s |
+| Heading text visible | 1.85 s | 0.05 s, in the fallback font |
+| Brand font requested | 1.54 s | 15 ms |
+| `DOMContentLoaded` | 1.52 s | 1.51 s |
+| `load` | 2.52 s | 2.51 s |
+| Layout shift (CLS) | 0.146 | 0 |
+
+Each change removes one blocking step from the flow:
+
+| Change | What it takes off the critical path |
+| --- | --- |
+| critical CSS inlined in `<style>` | the stylesheet requests before the first paint |
+| the rest loaded with `media="print"` | render-blocking for everything else |
+| no `@import` | the second, serial stylesheet request |
+| `defer` on both scripts | the parser stop; the scripts still run in order |
+| `@font-face` inline, with `swap` | the late font request and the hidden text |
+| `width` and `height` on the image | the layout shift |
+
+Why it matters:
+
+`DOMContentLoaded` and `load` barely moved, because the same bytes still arrive
+at the same times. What changed is what the user sees while they arrive: the
+first paint went from 1.55 s to 0.05 s. Knowing the flow is what tells you which
+step each fix removes.
+
+Interview note:
+
+Adding a font preload made this page slightly worse. The inline `@font-face`
+already had the font requested at 15 ms, so the preload got it less than 20 ms
+sooner, while the first paint came later in Chrome: about 0.15 s instead of
+0.08 s across three paired runs. Preload what the parser finds late, such as a
+font declared in an external stylesheet, not what it finds anyway.
+
+Strong answer:
+
+> The parser builds the DOM until a classic script stops it, and stylesheets
+> block the first paint and any script after them. Once the CSSOM is complete,
+> the browser builds the render tree from whatever DOM exists, lays it out, and
+> paints. Fonts are requested only then, images shift the layout if nothing
+> reserved their space, deferred scripts run just before `DOMContentLoaded`,
+> and `load` waits for everything. To make a page fast I take work off that
+> path: inline the critical CSS, load the rest without blocking, avoid
+> `@import`, defer scripts, declare fonts early with `swap`, and give images
+> dimensions.
+
+## 19. What Do `preload`, `preconnect`, And `dns-prefetch` Do?
 
 They are resource hints that move network work earlier.
 
@@ -417,7 +1168,7 @@ Interview note:
 `preload` is for the current page. `prefetch` is for the next one. Mixing them up
 is a common answer mistake.
 
-## 12. What Is The Difference Between Reflow, Repaint, And Composite?
+## 20. What Is The Difference Between Reflow, Repaint, And Composite?
 
 They are the three tiers of cost when something changes.
 
@@ -456,7 +1207,7 @@ Why it matters:
 A 60fps animation has about 16ms per frame. Layout on a large subtree does not
 fit in that budget; a compositor-only change does.
 
-## 13. What Is Layout Thrashing And How Do You Fix It?
+## 21. What Is Layout Thrashing And How Do You Fix It?
 
 Layout thrashing is forcing the browser to recompute layout repeatedly inside one
 frame by interleaving reads and writes.
@@ -496,7 +1247,7 @@ Strong answer:
 > synchronous layout. I fix it by batching reads before writes, or by measuring
 > inside `requestAnimationFrame` so the work happens once per frame.
 
-## 14. Why Do `transform` And `opacity` Animate More Cheaply?
+## 22. Why Do `transform` And `opacity` Animate More Cheaply?
 
 Because they can be handled by the compositor without redoing layout or paint.
 
@@ -526,7 +1277,7 @@ Interview note:
 `opacity` is compositor-friendly, but `visibility` and `background-color` still
 require paint. "Animate transform and opacity" is the rule worth remembering.
 
-## 15. When Do `DOMContentLoaded` And `load` Fire?
+## 23. When Do `DOMContentLoaded` And `load` Fire?
 
 ```js
 document.addEventListener("DOMContentLoaded", () => {
@@ -554,14 +1305,16 @@ Important:
 
 A blocking `<script>` placed after a `<link rel="stylesheet">` waits for that
 stylesheet, which in turn delays `DOMContentLoaded`. This is how CSS ends up
-delaying an event that supposedly ignores CSS.
+delaying an event that supposedly ignores CSS. `defer` and module scripts wait
+for pending stylesheets too, and `DOMContentLoaded` waits for them, so the event
+moves either way. Only `async` scripts skip the wait.
 
 When to use it:
 
 - `DOMContentLoaded` for wiring up DOM behaviour
 - `load` only when you genuinely need final image dimensions
 
-## 16. How Does The Browser Decide When To Render A Frame?
+## 24. How Does The Browser Decide When To Render A Frame?
 
 Rendering is a step in the event loop, not something that happens after every
 change. The browser batches style, layout, and paint into a single frame,
@@ -600,7 +1353,7 @@ Study path:
 The queue mechanics behind this — tasks, microtasks, and their priority — are
 covered in the JavaScript Event Loop & Runtime guide.
 
-## 17. What Are Core Web Vitals?
+## 25. What Are Core Web Vitals?
 
 Three field metrics for user-visible performance.
 
@@ -625,7 +1378,7 @@ INP replaced First Input Delay as a Core Web Vital. FID measured only the delay
 before handling the first input; INP measures the full interaction through to the
 next paint, which matches what users actually feel.
 
-## 18. How Would You Diagnose A Slow First Paint?
+## 26. How Would You Diagnose A Slow First Paint?
 
 Work down the critical rendering path in order and stop at the first stage that
 is slow.
@@ -663,4 +1416,10 @@ Strong answer:
 - <https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/script>
 - <https://developer.mozilla.org/en-US/docs/Web/Performance/Guides/How_browsers_work>
 - <https://developer.mozilla.org/en-US/docs/Web/API/Document/DOMContentLoaded_event>
+- <https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@font-face/font-display>
+- <https://html.spec.whatwg.org/multipage/parsing.html#the-end>
+- <https://html.spec.whatwg.org/multipage/dom.html#render-blocking-mechanism>
+- <https://html.spec.whatwg.org/multipage/urls-and-fetching.html#blocking-attributes>
+- <https://web.dev/articles/critical-rendering-path/render-blocking-css>
+- <https://web.dev/articles/critical-rendering-path/adding-interactivity-with-javascript>
 - <https://web.dev/articles/vitals>

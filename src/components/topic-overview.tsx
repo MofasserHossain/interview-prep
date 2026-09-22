@@ -3,13 +3,7 @@ import Link from "next/link";
 import { TopicIcon, TrackIcon } from "@/components/topic-icon";
 import type { TrackSummary } from "@/lib/tracks";
 
-export function TopicOverview({
-  onNavigate,
-  tracks,
-}: {
-  onNavigate: () => void;
-  tracks: TrackSummary[];
-}) {
+export function TopicOverview({ tracks }: { tracks: TrackSummary[] }) {
   return (
     <section className="topic-overview" aria-label="Interview topic overview">
       <article className="docs-index-page">
@@ -37,12 +31,7 @@ export function TopicOverview({
 
               <div className="docs-link-list">
                 {track.topics.map((topic) => (
-                  <Link
-                    className="docs-link-row"
-                    href={`/topics/${topic.slug}`}
-                    key={topic.slug}
-                    onClick={onNavigate}
-                  >
+                  <Link className="docs-link-row" href={`/topics/${topic.slug}`} key={topic.slug}>
                     <TopicIcon slug={topic.slug} />
                     <span className="docs-link-copy">
                       <strong>{topic.subtopicTitle}</strong>

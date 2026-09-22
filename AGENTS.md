@@ -22,18 +22,31 @@ parses those docs and turns numbered `##` sections into questions.
 
 ## Architecture
 
-- `src/app/` contains the Next.js App Router shell.
-- `src/components/` contains reusable UI and feature components.
-- `src/components/` holds one component per file: `interview-app.tsx` is the
-  shell; `topic-sidebar` concerns live in it, while `topic-overview.tsx`,
-  `document-detail.tsx`, `question-toc.tsx`, `code-block.tsx`,
-  `markdown-content.tsx`, `topic-icon.tsx`, and `workspace-error-boundary.tsx`
-  are the pieces it composes.
+- `src/app/` contains the Next.js App Router shell. `src/app/(docs)/layout.tsx`
+  renders the sidebar once for every docs page, and `(docs)/page.tsx` and
+  `(docs)/topics/[topicSlug]/page.tsx` render their content on the server.
+- `src/components/` holds one component per file; the client pieces of one
+  feature may share a file, as in `sidebar-nav.tsx`. `topic-sidebar.tsx` is the
+  server-rendered sidebar. `docs-workspace.tsx` is the client column with the
+  breadcrumb, search field, and content, and `topic-document.tsx` and
+  `search-results.tsx` are its topic and search views. `document-detail.tsx`,
+  `question-toc.tsx`, `topic-overview.tsx`, `topic-icon.tsx`, and the renderers
+  in `src/components/content/` are the pieces they compose.
+- Keep `"use client"` to components that need state or browser APIs. Pages pass
+  server-rendered content into client components as props, so the Markdown
+  renderer, the topic registry, and topic icons stay out of the browser bundle.
+  Only home-page search renders Markdown in the browser, and it loads on demand.
+- Pass a client component only the data it renders. Everything in its props is
+  serialized into the page HTML and into every link prefetch of that page.
 - `src/lib/tracks.ts` groups topics into sidebar tracks. `src/lib/react-text.ts`
   holds ReactNode text helpers shared by the markdown and code renderers.
 - `content/<track>/` contains topic Markdown files, grouped by sidebar track.
 - `docs/` contains project guidance, authoring rules, and topic planning.
-- `src/lib/content.ts` parses Markdown into app data.
+- `src/lib/content.ts` parses Markdown into app data, one topic file at a time,
+  cached by file mtime. Look a topic up with `findTopic(slug)` and parse only
+  the files a page needs, rather than loading every topic to find one.
+- `src/lib/search.ts` matches search queries and fetches the prerendered
+  `/search-index` (every topic) or `/search-index/<slug>` JSON on first search.
 - `src/lib/topics.ts` is the topic registry. Add new content files there.
 
 ## Adding A New Topic
@@ -91,6 +104,9 @@ Step 4 is compiler-enforced: `sectionRenderers` is typed
 `Record<Question["kind"], ComponentType<SectionRendererProps>>`, so a missing
 renderer fails `npm run typecheck`.
 
+Section renderers run on the server for topic pages and in the browser for
+home-page search results, so they must not use server-only APIs.
+
 ## Content Quality
 
 Every answer should follow this flow:
@@ -127,6 +143,10 @@ npm run build
 ```
 
 Use `npm run format` for code formatting and `npm run format:check` in review.
+
+Use `npm run analyze` (Next.js's Turbopack bundle analyzer) to inspect client
+bundles; `npm run analyze -- --output` writes the report to
+`.next/diagnostics/analyze` instead of serving it.
 
 ## Editing Rules
 

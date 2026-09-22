@@ -37,7 +37,7 @@ CLAUDE.md                Symlink to AGENTS.md
 
 - Job Prep: Senior Full Stack SaaS
 - Backend: Fundamentals & APIs, API Optimization & Database Performance
-- Databases: Database Fundamentals, SQL Fundamentals, Query Optimization
+- Databases: Database Fundamentals, SQL Fundamentals, SQL Query Optimization, SQL Practice Problems, PostgreSQL Essentials, PostgreSQL Internals & Performance, MongoDB Basics, MongoDB Aggregation, MongoDB Indexing & Performance, MongoDB Advanced
 - Node.js: Fundamentals, Modules & APIs, Event Loop & Async Runtime, Streams, Buffers & Workers, NestJS
 - JavaScript: Language Fundamentals, Modules, Import & Export, Promises & Async, Event Loop & Runtime, this & Functions, Prototypes & Objects, Map, Object & Set, Loops & Array Methods, Scope, Hoisting & Closures, Types, Equality & Copying, Execution Context & Lexical Environment, Code Practice & Output Questions
 - Browser & Web Platform: Page Load & Rendering, CSS & Layout, DOM, Events & Browser APIs
@@ -84,6 +84,13 @@ Format files:
 
 ```bash
 npm run format
+```
+
+Inspect client bundles with the Turbopack bundle analyzer (served on
+`http://localhost:4000`):
+
+```bash
+npm run analyze
 ```
 
 ## Adding A Topic

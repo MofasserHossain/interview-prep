@@ -13,7 +13,7 @@ export const topics: Topic[] = [
     trackTitle: "Browser & Web Platform",
     subtopicTitle: "Page Load & Rendering",
     description:
-      "Navigation, DNS, TLS, HTTP responses, MIME types, HTML parsing, CSSOM, render tree, layout, paint, compositing, script loading, and Core Web Vitals.",
+      "Navigation, DNS, TLS, HTTP responses, MIME types, HTML parsing, CSSOM, render tree, parser- and render-blocking CSS and JavaScript, web fonts, layout, paint, compositing, and Core Web Vitals.",
     file: "browser/page-load-rendering.md",
   },
   {
@@ -847,21 +847,87 @@ export const topics: Topic[] = [
     category: "SQL",
     trackSlug: "databases",
     trackTitle: "Databases",
-    subtopicTitle: "Query Optimization",
+    subtopicTitle: "SQL Query Optimization",
     description:
       "EXPLAIN-driven tuning, index design, sargable predicates, join and subquery rewrites, sorting and aggregation cost, pagination at scale, and real slow-query scenarios.",
     file: "databases/sql-query-optimization.md",
   },
   {
+    slug: "sql-practice",
+    title: "SQL Practice Problems",
+    category: "SQL",
+    trackSlug: "databases",
+    trackTitle: "Databases",
+    subtopicTitle: "SQL Practice Problems",
+    description:
+      "Classic SQL interview problems on one shared schema, with verified output: self joins, ranking per group, anti-joins, percent of total, month-over-month growth, running totals, gaps and islands, medians, relational division, overlaps, and hierarchy paths.",
+    file: "databases/sql-practice.md",
+  },
+  {
+    slug: "postgresql-fundamentals",
+    title: "PostgreSQL Essentials",
+    category: "PostgreSQL",
+    trackSlug: "databases",
+    trackTitle: "Databases",
+    subtopicTitle: "PostgreSQL Essentials",
+    description:
+      "What PostgreSQL does differently: transactional DDL, timestamptz, identity columns and UUIDs, jsonb and arrays, ON CONFLICT and MERGE, DISTINCT ON, LATERAL, FILTER and ROLLUP, exclusion constraints, row-level security, full-text search, SKIP LOCKED queues, and isolation levels.",
+    file: "databases/postgresql-fundamentals.md",
+  },
+  {
+    slug: "postgresql-performance",
+    title: "PostgreSQL Internals & Performance",
+    category: "PostgreSQL",
+    trackSlug: "databases",
+    trackTitle: "Databases",
+    subtopicTitle: "PostgreSQL Internals & Performance",
+    description:
+      "MVCC, VACUUM and bloat, wraparound, HOT updates, EXPLAIN ANALYZE, scan and join methods, planner statistics, index types, the lock queue, zero-downtime migrations, pooling, WAL, replication, partitioning, backups, and pg_stat_statements.",
+    file: "databases/postgresql-performance.md",
+  },
+  {
     slug: "mongodb-fundamentals",
-    title: "MongoDB",
+    title: "MongoDB Basics",
     category: "MongoDB",
     trackSlug: "databases",
     trackTitle: "Databases",
-    subtopicTitle: "MongoDB",
+    subtopicTitle: "MongoDB Basics",
     description:
-      "Documents and collections, find versus findOne, explain plans, index types and the ESR rule, slow queries on large collections, aggregation optimization, embedding versus referencing, replica sets, and sharding.",
-    file: "databases/mongodb.md",
+      "Documents and BSON types, ObjectId, CRUD, query operators, nested documents and arrays, projection, cursors, update and array operators, upserts, bulk writes, counting, schema validation, embedding versus referencing, Mongoose, and Node.js connections.",
+    file: "databases/mongodb-basics.md",
+  },
+  {
+    slug: "mongodb-aggregation",
+    title: "MongoDB Aggregation Pipeline",
+    category: "MongoDB",
+    trackSlug: "databases",
+    trackTitle: "Databases",
+    subtopicTitle: "MongoDB Aggregation",
+    description:
+      "Every major pipeline stage with input data, pipeline, and verified output: $match, $project, $group and accumulators, $unwind, $lookup, $graphLookup, $facet, $bucket, $unionWith, window functions, $densify and $fill, $merge, expression operators, optimization, and practice problems.",
+    file: "databases/mongodb-aggregation.md",
+  },
+  {
+    slug: "mongodb-indexing-performance",
+    title: "MongoDB Indexing & Performance",
+    category: "MongoDB",
+    trackSlug: "databases",
+    trackTitle: "Databases",
+    subtopicTitle: "MongoDB Indexing & Performance",
+    description:
+      "Index internals and types, reading explain, the ESR rule, sort direction, multikey and covered queries, partial and unique indexes, regex and text search, pagination at scale, the query planner, production index builds, the working set, and the profiler.",
+    file: "databases/mongodb-indexing-performance.md",
+  },
+  {
+    slug: "mongodb-advanced",
+    title: "MongoDB Advanced",
+    category: "MongoDB",
+    trackSlug: "databases",
+    trackTitle: "Databases",
+    subtopicTitle: "MongoDB Advanced",
+    description:
+      "Replica sets and elections, the oplog, read and write concerns, causal consistency, transactions, sharding and shard keys, change streams, schema design patterns, trees, multi-tenancy, time series, schema evolution, security and NoSQL injection, and backups.",
+    file: "databases/mongodb-advanced.md",
   },
 
   // System Design
@@ -919,6 +985,17 @@ export const topics: Topic[] = [
     description:
       "MQTT brokers, topics, QoS levels, retained messages, last will, persistent sessions, shared subscriptions, flow control, security, and IoT architecture.",
     file: "system-design/mqtt-iot-messaging.md",
+  },
+  {
+    slug: "nodejs-microservices-case-study",
+    title: "Node.js Microservices Case Study",
+    category: "Microservices",
+    trackSlug: "system-design",
+    trackTitle: "System Design",
+    subtopicTitle: "Microservices Case Study",
+    description:
+      "A Node.js API gateway, four services and RabbitMQ traced end to end: dataflows, edge auth, events, amqplib code line by line, reliability gaps, and a code review.",
+    file: "system-design/nodejs-microservices-case-study.md",
   },
 
   // DevOps & Infrastructure

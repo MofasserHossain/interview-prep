@@ -1,25 +1,25 @@
-import { ArrowLeft, ArrowRight, FileText } from "lucide-react";
-import Link from "next/link";
-import { DocumentSection } from "@/components/content/document-section";
-import type { TopicSummary } from "@/lib/tracks";
-import type { Question } from "@/lib/types";
+import { FileText } from "lucide-react";
+import type { ReactNode } from "react";
 
+/**
+ * The article frame shared by topic pages and search results: the heading,
+ * the rendered sections, and optional pagination. With no sections it shows
+ * the empty search state instead.
+ */
 export function DocumentDetail({
-  activeTopic,
-  nextTopic,
-  onNavigate,
-  previousTopic,
+  description,
+  pagination,
   query,
-  questions,
+  sections,
+  title,
 }: {
-  activeTopic?: TopicSummary;
-  nextTopic?: TopicSummary;
-  onNavigate: () => void;
-  previousTopic?: TopicSummary;
+  description: string;
+  pagination?: ReactNode;
   query: string;
-  questions: Question[];
+  sections: ReactNode[];
+  title: string;
 }) {
-  if (!questions.length) {
+  if (!sections.length) {
     return (
       <article className="detail-panel empty-state">
         <FileText size={34} />
@@ -27,14 +27,6 @@ export function DocumentDetail({
       </article>
     );
   }
-
-  const firstQuestion = questions[0];
-  const title = activeTopic
-    ? activeTopic.subtopicTitle
-    : query.trim()
-      ? "Search results"
-      : firstQuestion.subtopicTitle;
-  const description = activeTopic?.description ?? "Sections matching the current search query.";
 
   return (
     <article className="detail-panel">
@@ -48,39 +40,9 @@ export function DocumentDetail({
         </div>
       </header>
 
-      <div className="answer-body document-body">
-        {questions.map((section) => (
-          <DocumentSection key={section.id} section={section} />
-        ))}
-      </div>
+      <div className="answer-body document-body">{sections}</div>
 
-      {activeTopic ? (
-        <nav className="doc-pagination" aria-label="Previous and next documents">
-          {previousTopic ? (
-            <Link href={`/topics/${previousTopic.slug}`} onClick={onNavigate}>
-              <ArrowLeft size={17} />
-              <div>
-                <span>Previous</span>
-                <strong>{previousTopic.subtopicTitle}</strong>
-              </div>
-            </Link>
-          ) : (
-            <span />
-          )}
-
-          {nextTopic ? (
-            <Link className="next" href={`/topics/${nextTopic.slug}`} onClick={onNavigate}>
-              <div>
-                <span>Next</span>
-                <strong>{nextTopic.subtopicTitle}</strong>
-              </div>
-              <ArrowRight size={17} />
-            </Link>
-          ) : (
-            <span />
-          )}
-        </nav>
-      ) : null}
+      {pagination}
     </article>
   );
 }
