@@ -31,6 +31,10 @@
   and DOM/events/browser APIs
 - System Design messaging topics cover Kafka, RabbitMQ, and MQTT with broker,
   queue, stream, delivery, retry, and operations concepts
+- System Design case studies walk through twenty end-to-end practice problems:
+  Jira-style trackers, real-time collaboration, notifications, search, API
+  gateways, auth, workflow automation, logging, rate limiting, URL shortening,
+  distributed messaging, chat, job scheduling, and object-oriented warmups
 - JavaScript submenus split into language fundamentals, modules/import/export,
   promises and async, event loop/runtime, `this` and functions, prototypes and
   objects, map/object/set, loops/array methods, scope/hoisting/closures,
@@ -45,8 +49,7 @@
 4. Web security as its own topic, plus framework-agnostic testing fundamentals
    (React testing and accessibility now live in the React track)
 5. AI backend engineering and LLM application architecture
-6. Advanced system design case studies
-7. Cloud-native deployment and incident response scenarios
+6. Cloud-native deployment and incident response scenarios
 
 ## Later App Features
 

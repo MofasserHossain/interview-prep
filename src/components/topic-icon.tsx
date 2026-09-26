@@ -133,6 +133,7 @@ const topicIcons = {
   "nextjs-optimizations": Gauge,
   "ai-frontend-engineering": BotMessageSquare,
   "system-design-microservices": Workflow,
+  "system-design-case-studies": Network,
   "kafka-event-streaming": Workflow,
   "rabbitmq-message-broker": Workflow,
   "mqtt-iot-messaging": Router,

@@ -954,6 +954,17 @@ export const topics: Topic[] = [
     file: "system-design/microservices.md",
   },
   {
+    slug: "system-design-case-studies",
+    title: "System Design Case Studies",
+    category: "System Design",
+    trackSlug: "system-design",
+    trackTitle: "System Design",
+    subtopicTitle: "Case Studies & Practice Problems",
+    description:
+      "End-to-end walkthroughs of twenty classic prompts: Jira-style trackers, real-time collaboration, notifications, knowledge base search, API gateway, auth, workflow automation, logging, rate limiting, URL shortener, distributed messaging, chat, job scheduler, parking lot, and snake game.",
+    file: "system-design/case-studies.md",
+  },
+  {
     slug: "kafka-event-streaming",
     title: "Kafka Event Streaming",
     category: "Kafka",
