@@ -1,9 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
-import { topics, getDifficulty } from "@/lib/topics";
-import type { InterviewData, Question, Topic } from "@/lib/types";
+import { topics } from "@/lib/topics";
+import type { Question, SearchIndex, Topic, TopicSummary } from "@/lib/types";
 
-const contentDirectory = path.join(process.cwd(), "content", "interview");
+const contentDirectory = path.join(process.cwd(), "content");
+
+const skippedSections = new Set(["sources used"]);
 
 const keywordTags = [
   "actions",
@@ -169,26 +171,133 @@ const keywordTags = [
   "webpack",
   "weakmap",
   "websocket",
+  "execution context",
+  "lexical environment",
+  "environment record",
+  "scope chain",
+  "critical rendering path",
+  "render tree",
+  "cssom",
+  "reflow",
+  "repaint",
+  "mime type",
+  "preload",
+  "core web vitals",
+  "dom",
+  "event delegation",
+  "event bubbling",
+  "box model",
+  "stacking context",
+  "specificity",
+  "flexbox",
+  "css grid",
+  "media query",
+  "cascade",
+  "css",
+  "sql",
+  "join",
+  "primary key",
+  "foreign key",
+  "normalization",
+  "composite index",
+  "covering index",
+  "b-tree",
+  "cardinality",
+  "query plan",
+  "execution plan",
+  "isolation level",
+  "deadlock",
+  "pagination",
+  "nestjs",
+  "dependency injection",
+  "interceptor",
+  "guard",
+  "backpressure",
+  "worker thread",
+  "cluster",
+  "buffer",
+  "server component",
+  "app router",
+  "cache components",
+  "server actions",
+  "proxy",
 ];
 
-export function getInterviewData(): InterviewData {
-  const questions = topics.flatMap((topic) => parseTopic(topic));
-  const summaries = topics.map((topic) => {
-    const topicQuestions = questions.filter((question) => question.topicSlug === topic.slug);
+/**
+ * The Markdown file's real modification time, used for `lastModified` in the
+ * sitemap and `dateModified` in structured data. Build time would mark every
+ * page as freshly changed on every deploy, which is a false signal.
+ */
+export function getTopicLastModified(file: string): Date {
+  try {
+    return fs.statSync(path.join(contentDirectory, file)).mtime;
+  } catch {
+    return new Date();
+  }
+}
 
-    return {
-      ...topic,
-      questionCount: topicQuestions.length,
-      readingMinutes: topicQuestions.reduce(
-        (total, question) => total + question.readingMinutes,
-        0,
-      ),
-    };
-  });
+const topicsBySlug = new Map(topics.map((topic) => [topic.slug, topic]));
 
+/** The registry entry for a slug. Reads no Markdown. */
+export function findTopic(slug: string): Topic | undefined {
+  return topicsBySlug.get(slug);
+}
+
+// Parsed sections per topic, keyed by the file's mtime. A build parses each
+// file once per worker instead of once per page, metadata call and image, and
+// `next dev` re-parses a file only after it is edited.
+const sectionCache = new Map<string, { mtimeMs: number; sections: Question[] }>();
+
+export function getTopicSections(topic: Topic): Question[] {
+  const { mtimeMs } = fs.statSync(path.join(contentDirectory, topic.file));
+  const cached = sectionCache.get(topic.slug);
+
+  if (cached?.mtimeMs === mtimeMs) {
+    return cached.sections;
+  }
+
+  const sections = parseTopic(topic);
+  sectionCache.set(topic.slug, { mtimeMs, sections });
+
+  return sections;
+}
+
+export function getTopicSummary(topic: Topic): TopicSummary {
+  let questionCount = 0;
+  let readingMinutes = 0;
+
+  for (const section of getTopicSections(topic)) {
+    if (section.kind === "question") questionCount += 1;
+    readingMinutes += section.readingMinutes;
+  }
+
+  return Object.assign({}, topic, { questionCount, readingMinutes });
+}
+
+export function getTopicSummaries(): TopicSummary[] {
+  return topics.map((topic) => getTopicSummary(topic));
+}
+
+/** Every topic's sections, in registry order. */
+export function getAllSections(): Question[] {
+  return topics.flatMap((topic) => getTopicSections(topic));
+}
+
+export function getSearchIndex(): SearchIndex {
   return {
-    topics: summaries,
-    questions,
+    topics: topics.map(({ description, slug, subtopicTitle, trackTitle }) => ({
+      description,
+      slug,
+      title: subtopicTitle,
+      track: trackTitle,
+    })),
+    sections: topics.flatMap((topic, topicIndex) =>
+      getTopicSections(topic).map(({ id, question }) => ({
+        id,
+        title: question,
+        topic: topicIndex,
+      })),
+    ),
   };
 }
 
@@ -196,40 +305,69 @@ function parseTopic(topic: Topic): Question[] {
   const filePath = path.join(contentDirectory, topic.file);
   const markdown = fs.readFileSync(filePath, "utf8");
   const headings = [...markdown.matchAll(/^##\s+(.+)$/gm)];
-  const questions: Question[] = [];
+  const sections: Question[] = [];
 
   headings.forEach((heading, index) => {
     const title = heading[1].trim();
-    const questionMatch = title.match(/^(\d+)\.\s+(.+)$/);
-
-    if (!questionMatch) return;
-
-    const number = Number(questionMatch[1]);
-    const question = normalizeQuestionTitle(questionMatch[2].trim());
     const start = heading.index! + heading[0].length;
     const nextHeading = headings[index + 1];
     const end = nextHeading?.index ?? markdown.length;
     const answer = cleanAnswer(markdown.slice(start, end));
+    const questionMatch = title.match(/^(\d+)\.\s+(.+)$/);
 
-    questions.push({
-      id: `${topic.slug}-${String(number).padStart(3, "0")}`,
-      topicSlug: topic.slug,
-      topicTitle: topic.title,
-      trackSlug: topic.trackSlug,
-      trackTitle: topic.trackTitle,
-      subtopicTitle: topic.subtopicTitle,
-      category: topic.category,
-      difficulty: getDifficulty(topic.slug, number),
-      number,
-      question,
-      answer,
-      excerpt: getExcerpt(answer),
-      tags: getTags(`${question} ${answer}`, topic),
-      readingMinutes: getReadingMinutes(answer),
-    });
+    if (!questionMatch) {
+      if (skippedSections.has(title.toLowerCase())) return;
+
+      sections.push(
+        buildSection(topic, {
+          answer,
+          id: `${topic.slug}-prose-${slugifyTitle(title)}`,
+          kind: "prose",
+          number: 0,
+          question: title,
+        }),
+      );
+
+      return;
+    }
+
+    const number = Number(questionMatch[1]);
+
+    sections.push(
+      buildSection(topic, {
+        answer,
+        id: `${topic.slug}-${String(number).padStart(3, "0")}`,
+        kind: "question",
+        number,
+        question: normalizeQuestionTitle(questionMatch[2].trim()),
+      }),
+    );
   });
 
-  return questions;
+  return sections;
+}
+
+type SectionSeed = Pick<Question, "answer" | "id" | "kind" | "number" | "question">;
+
+function buildSection(topic: Topic, seed: SectionSeed): Question {
+  return {
+    ...seed,
+    topicSlug: topic.slug,
+    topicTitle: topic.title,
+    trackSlug: topic.trackSlug,
+    trackTitle: topic.trackTitle,
+    subtopicTitle: topic.subtopicTitle,
+    category: topic.category,
+    tags: getTags(`${seed.question} ${seed.answer}`, topic),
+    readingMinutes: getReadingMinutes(seed.answer),
+  };
+}
+
+function slugifyTitle(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 function cleanAnswer(value: string) {
@@ -237,15 +375,6 @@ function cleanAnswer(value: string) {
     .replace(/\n-{3,}\s*$/g, "")
     .replace(/\n##\s+Sources Used[\s\S]*$/g, "")
     .trim();
-}
-
-function getExcerpt(answer: string) {
-  return answer
-    .replace(/```[\s\S]*?```/g, " ")
-    .replace(/[#>*_`-]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 190);
 }
 
 function getTags(text: string, topic: Topic) {
@@ -285,6 +414,8 @@ function normalizeQuestionWord(value: string) {
 
   const [, prefix, word, suffix] = match;
   if (!word) return value.toLowerCase();
+  // Code spans keep their exact spelling: `jsonb` must not become `Jsonb`.
+  if (prefix.includes("`") || suffix.includes("`")) return value;
   const preservedWord = getPreservedWord(word);
 
   if (preservedWord) {

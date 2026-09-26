@@ -10,7 +10,7 @@
     "es2022": true,
     "node": true
   },
-  "ignorePatterns": [".next/**", "**/dist/**", "**/node_modules/**", "content/interview/**"],
+  "ignorePatterns": [".next/**", "**/dist/**", "**/node_modules/**", "content/**"],
   "plugins": [
     "import",
     "jsx-a11y",

@@ -1,4 +1,4 @@
-export type Difficulty = "beginner" | "intermediate" | "senior" | "mixed";
+type SectionKind = "question" | "prose";
 
 export type Topic = {
   slug: string;
@@ -13,27 +13,33 @@ export type Topic = {
 
 export type Question = {
   id: string;
+  kind: SectionKind;
   topicSlug: string;
   topicTitle: string;
   trackSlug: string;
   trackTitle: string;
   subtopicTitle: string;
   category: string;
-  difficulty: Difficulty;
   number: number;
   question: string;
   answer: string;
-  excerpt: string;
   tags: string[];
   readingMinutes: number;
 };
 
-type TopicSummary = Topic & {
+export type TopicSummary = Topic & {
   questionCount: number;
   readingMinutes: number;
 };
 
-export type InterviewData = {
-  topics: TopicSummary[];
-  questions: Question[];
+/** What the table of contents and scroll tracking need from a section. */
+export type TocEntry = Pick<Question, "id" | "kind" | "question">;
+
+/**
+ * The search index the browser downloads when the search opens: topic and
+ * section titles only, no answer text. `topic` indexes into `topics`.
+ */
+export type SearchIndex = {
+  topics: { description: string; slug: string; title: string; track: string }[];
+  sections: { id: string; title: string; topic: number }[];
 };

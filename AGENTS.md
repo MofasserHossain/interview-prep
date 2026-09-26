@@ -16,23 +16,45 @@ across many domains:
 - .NET, C#, Python, backend frameworks
 - mobile development, React Native, cross-platform app architecture
 
-The content source is Markdown under `content/interview/`. The Next.js app
+The content source is Markdown under `content/`, one folder per sidebar
+track (`content/javascript/`, `content/nextjs/`, …). The Next.js app
 parses those docs and turns numbered `##` sections into questions.
 
 ## Architecture
 
-- `src/app/` contains the Next.js App Router shell.
-- `src/components/` contains reusable UI and feature components.
-- `src/components/ui/` is managed by shadcn. Keep local wrappers compatible with
-  shadcn conventions.
-- `content/interview/` contains topic Markdown files.
+- `src/app/` contains the Next.js App Router shell. `src/app/(docs)/layout.tsx`
+  renders the sidebar once for every docs page, and `(docs)/page.tsx` and
+  `(docs)/topics/[topicSlug]/page.tsx` render their content on the server.
+- `src/components/` holds one component per file; the client pieces of one
+  feature may share a file, as in `sidebar-nav.tsx`. `topic-sidebar.tsx` is the
+  server-rendered sidebar. `docs-workspace.tsx` is the column beside it: the
+  breadcrumb, the `docs-search.tsx` search button and dialog, the page content,
+  and the footer. `document-detail.tsx`, `question-toc.tsx`,
+  `topic-overview.tsx`, `topic-icon.tsx`, and the renderers in
+  `src/components/content/` are the pieces they compose.
+- Keep `"use client"` to components that need state or browser APIs. Markdown
+  renders only on the server, so the Markdown renderer, the topic registry, and
+  topic icons stay out of the browser bundle.
+- Pass a client component only the data it renders. Everything in its props is
+  serialized into the page HTML and into every link prefetch of that page.
+- `src/lib/tracks.ts` groups topics into sidebar tracks. `src/lib/react-text.ts`
+  holds ReactNode text helpers shared by the markdown and code renderers.
+- `content/<track>/` contains topic Markdown files, grouped by sidebar track.
 - `docs/` contains project guidance, authoring rules, and topic planning.
-- `src/lib/content.ts` parses Markdown into app data.
+- `src/lib/content.ts` parses Markdown into app data, one topic file at a time,
+  cached by file mtime. Look a topic up with `findTopic(slug)` and parse only
+  the files a page needs, rather than loading every topic to find one.
+- Search matches topic and section titles, not answer text. `getSearchIndex`
+  in `src/lib/content.ts` builds the prerendered `/search-index` JSON, and
+  `src/lib/search.ts` fetches it when the search dialog first opens and ranks
+  the matches. The dialog opens from the header button, ⌘K / Ctrl+K, or `/`;
+  a result opens its topic page scrolled to the section.
 - `src/lib/topics.ts` is the topic registry. Add new content files there.
 
 ## Adding A New Topic
 
-1. Create a Markdown file in `content/interview/`.
+1. Create a Markdown file in `content/<track>/`, reusing an existing track
+   folder or adding one for a new track.
 2. Use this shape:
 
    ```md
@@ -50,11 +72,39 @@ parses those docs and turns numbered `##` sections into questions.
    ```
 
 3. Register the file in `src/lib/topics.ts`.
-4. Assign a clear category, slug, description, and accent color.
+4. Assign a clear category, slug, description, and track metadata.
 5. Run `npm run check` and `npm run build`.
 
 Do not hard-code questions inside React components. Content belongs in
 Markdown unless the feature is truly app behavior.
+
+## Adding A Study Callout Type
+
+Callouts like `Benefits:` or `Interview Note:` are data, not code. Add one entry
+to `studyBlockDefinitions` in `src/lib/study-blocks.ts`:
+
+```ts
+{ match: "gotcha", title: "Gotcha", variant: "important" }
+```
+
+`match` is the lowercased paragraph text (a trailing `:` is optional in the
+Markdown). Use `aliases` for alternate spellings. `variant` must be one of
+`StudyBlockVariant`, and each variant needs a `.study-section-label.<variant>`
+rule in `src/app/globals.css`.
+
+## Adding A Document Section Type
+
+Sections come from `##` headings: numbered ones become `question`, everything
+else becomes `prose`. To add a third kind:
+
+1. Add it to `SectionKind` in `src/lib/types.ts`.
+2. Emit it from `parseTopic` in `src/lib/content.ts`.
+3. Add a renderer in `src/components/content/` taking `SectionRendererProps`.
+4. Register it in `sectionRenderers` in `content/document-section.tsx`.
+
+Step 4 is compiler-enforced: `sectionRenderers` is typed
+`Record<Question["kind"], ComponentType<SectionRendererProps>>`, so a missing
+renderer fails `npm run typecheck`.
 
 ## Content Quality
 
@@ -73,7 +123,9 @@ only when they clarify the concept.
 
 - Build the actual question-bank workflow first, not a marketing landing page.
 - Keep the interface dense, scannable, and useful for repeated study.
-- Use shadcn/Tailwind-compatible patterns for new UI.
+- Styling is hand-written CSS in `src/app/globals.css` using semantic class
+  names. There is no Tailwind or shadcn in this project; do not add utility
+  classes.
 - Use lucide icons for actions and navigation.
 - Keep cards to individual items, panels, and study surfaces.
 - Preserve mobile usability. Text must not overlap or overflow controls.
@@ -90,6 +142,10 @@ npm run build
 ```
 
 Use `npm run format` for code formatting and `npm run format:check` in review.
+
+Use `npm run analyze` (Next.js's Turbopack bundle analyzer) to inspect client
+bundles; `npm run analyze -- --output` writes the report to
+`.next/diagnostics/analyze` instead of serving it.
 
 ## Editing Rules
 
