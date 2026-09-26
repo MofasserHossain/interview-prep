@@ -123,6 +123,7 @@ const topicIcons = {
   "machine-coding": CodeXml,
   "ai-frontend-engineering": BotMessageSquare,
   "system-design-microservices": Workflow,
+  "system-design-case-studies": Workflow,
   "kafka-event-streaming": Workflow,
   "rabbitmq-message-broker": Workflow,
   "mqtt-iot-messaging": Router,
@@ -974,44 +975,59 @@ function TopicIcon({
   );
 }
 
+type CapitalizeResult = {
+  node: ReactNode;
+  // True once the first readable text or inline code has been reached.
+  done: boolean;
+  changed: boolean;
+};
+
 function capitalizeFirstReadableText(value: ReactNode) {
-  return capitalizeFirstReadableTextOnce(value)[0];
+  return capitalizeFirstReadableTextOnce(value).node;
 }
 
-function capitalizeFirstReadableTextOnce(value: ReactNode): [ReactNode, boolean] {
+function capitalizeFirstReadableTextOnce(value: ReactNode): CapitalizeResult {
   if (typeof value === "string") {
-    return capitalizeTextStart(value);
+    if (!value.trim()) {
+      return { node: value, done: false, changed: false };
+    }
+
+    const [node, changed] = capitalizeTextStart(value);
+
+    return { node, done: true, changed };
   }
 
   if (Array.isArray(value)) {
+    let done = false;
     let changed = false;
     const children = value.map((child) => {
-      if (changed) return child;
+      if (done) return child;
 
-      const [nextChild, didChange] = capitalizeFirstReadableTextOnce(child);
-      changed = didChange;
+      const result = capitalizeFirstReadableTextOnce(child);
+      done = result.done;
+      changed = result.changed;
 
-      return nextChild;
+      return result.node;
     });
 
-    return [children, changed];
+    return { node: changed ? children : value, done, changed };
   }
 
   if (isValidElement<{ children?: ReactNode }>(value)) {
     if (isCodeLikeElement(value)) {
-      return [value, false];
+      return { node: value, done: true, changed: false };
     }
 
-    const [children, changed] = capitalizeFirstReadableTextOnce(value.props.children);
+    const result = capitalizeFirstReadableTextOnce(value.props.children);
 
-    if (!changed) {
-      return [value, false];
+    if (!result.changed) {
+      return { node: value, done: result.done, changed: false };
     }
 
-    return [cloneElement(value, undefined, children), true];
+    return { node: cloneElement(value, undefined, result.node), done: true, changed: true };
   }
 
-  return [value, false];
+  return { node: value, done: false, changed: false };
 }
 
 function capitalizeTextStart(value: string): [string, boolean] {
@@ -1029,8 +1045,21 @@ function capitalizeTextStart(value: string): [string, boolean] {
   ];
 }
 
+const codeLikeTags = new Set(["code", "kbd", "pre", "samp"]);
+
 function isCodeLikeElement(value: ReactElement) {
-  return typeof value.type === "string" && ["code", "kbd", "pre", "samp"].includes(value.type);
+  const tagName = typeof value.type === "string" ? value.type : getMarkdownTagName(value);
+
+  return tagName !== undefined && codeLikeTags.has(tagName);
+}
+
+// react-markdown renders custom components (such as the inline `code`
+// renderer above) with a function type, so the hast node carries the tag.
+function getMarkdownTagName(value: ReactElement) {
+  const props = value.props as { node?: { tagName?: unknown } } | null;
+  const tagName = props?.node?.tagName;
+
+  return typeof tagName === "string" ? tagName : undefined;
 }
 
 function getCodeLanguage(className?: string) {

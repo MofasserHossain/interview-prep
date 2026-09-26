@@ -299,6 +299,17 @@ export const topics: Topic[] = [
     file: "system-design-microservices-guide.md",
   },
   {
+    slug: "system-design-case-studies",
+    title: "System Design Case Studies",
+    category: "System Design",
+    trackSlug: "system-design",
+    trackTitle: "System Design",
+    subtopicTitle: "Case Studies & Practice Problems",
+    description:
+      "End-to-end walkthroughs of twenty classic prompts: Jira-style trackers, real-time collaboration, notifications, knowledge base search, API gateway, auth, workflow automation, logging, rate limiting, URL shortener, distributed messaging, chat, job scheduler, parking lot, and snake game.",
+    file: "system-design-case-studies-guide.md",
+  },
+  {
     slug: "kafka-event-streaming",
     title: "Kafka Event Streaming",
     category: "Kafka",
@@ -575,6 +586,15 @@ export function getDifficulty(topicSlug: string, number: number): Difficulty {
   if (topicSlug === "design-patterns") {
     if (number <= 7) return "beginner";
     if (number <= 15) return "intermediate";
+    return "senior";
+  }
+
+  if (topicSlug === "system-design-case-studies") {
+    const warmups = new Set([11, 12, 13, 14, 16]);
+    const coreDesigns = new Set([3, 5, 8, 10, 15, 17, 19, 20]);
+
+    if (warmups.has(number)) return "beginner";
+    if (coreDesigns.has(number)) return "intermediate";
     return "senior";
   }
 
