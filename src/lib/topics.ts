@@ -645,6 +645,17 @@ export const topics: Topic[] = [
     file: "react-native/deep-linking-notifications.md",
   },
   {
+    slug: "react-native-push-notifications-at-scale",
+    title: "React Native Push Notifications At Scale",
+    category: "React Native",
+    trackSlug: "react-native",
+    trackTitle: "React Native",
+    subtopicTitle: "Push Notifications At Scale",
+    description:
+      "FCM fan-out to millions of devices, registration tokens, topics vs tokens, segmenting by plan or region with atomic topics, condition expressions, server-owned subscriptions, multicast batching, queue-backed sending, token registry hygiene, broadcast throttling and time zones, and payload design.",
+    file: "react-native/push-notifications-at-scale.md",
+  },
+  {
     slug: "react-native-builds-releases",
     title: "React Native Builds & Releases",
     category: "React Native",
