@@ -29,6 +29,10 @@
   the docs vendored in `node_modules/next/dist/docs/`
 - Browser & Web Platform track covering page load and rendering, CSS and layout,
   and DOM/events/browser APIs
+- React Native track covering fundamentals, networking and auth, lists and
+  performance, old vs new architecture, production, deep linking and
+  notifications, push notifications at scale with FCM, builds and releases,
+  and senior scenarios
 - System Design messaging topics cover Kafka, RabbitMQ, and MQTT with broker,
   queue, stream, delivery, retry, and operations concepts
 - System Design case studies walk through twenty end-to-end practice problems:
