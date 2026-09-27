@@ -1,5 +1,6 @@
 import {
   Accessibility,
+  BellRing,
   BotMessageSquare,
   Boxes,
   BrainCircuit,
@@ -154,6 +155,7 @@ const topicIcons = {
   "react-native-architecture": Layers3,
   "react-native-production": Container,
   "react-native-deep-linking-notifications": Router,
+  "react-native-push-notifications-at-scale": BellRing,
   "react-native-builds-releases": Boxes,
   "react-native-senior-scenarios": Workflow,
   "frontend-architecture-micro-frontends": Layers3,
