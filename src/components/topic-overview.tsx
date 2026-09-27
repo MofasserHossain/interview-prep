@@ -21,18 +21,16 @@ export function TopicOverview({ tracks }: { tracks: TrackSummary[] }) {
             <section className="docs-index-section" id={track.slug} key={track.slug}>
               <div className="docs-index-section-heading">
                 <TrackIcon slug={track.slug} />
-                <div>
-                  <h2>{track.title}</h2>
-                  <p>
-                    {track.topics.length} documents / {track.questionCount} sections
-                  </p>
-                </div>
+                <h2>{track.title}</h2>
+                <p>
+                  {track.topics.length} documents / {track.questionCount} sections
+                </p>
               </div>
 
               <div className="docs-link-list">
                 {track.topics.map((topic) => (
                   <Link className="docs-link-row" href={`/topics/${topic.slug}`} key={topic.slug}>
-                    <TopicIcon slug={topic.slug} />
+                    <TopicIcon size={15} slug={topic.slug} />
                     <span className="docs-link-copy">
                       <strong>{topic.subtopicTitle}</strong>
                       <small>{topic.description}</small>
