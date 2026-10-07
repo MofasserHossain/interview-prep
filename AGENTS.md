@@ -50,6 +50,13 @@ parses those docs and turns numbered `##` sections into questions.
   the matches. The dialog opens from the header button, ⌘K / Ctrl+K, or `/`;
   a result opens its topic page scrolled to the section.
 - `src/lib/topics.ts` is the topic registry. Add new content files there.
+- Practice mode hides each question's answer until the reader reveals it.
+  `src/lib/practice-mode.ts` saves the choice in localStorage and mirrors it
+  onto `<html data-practice>`. Its `practiceModeScript` runs in the root
+  layout's `<head>`, so a saved choice applies before the first paint. CSS
+  does the hiding. `src/components/practice-mode.tsx` holds the header toggle
+  and the `PracticeAnswer` wrapper that `QuestionSection` puts around each
+  answer. Prose sections are never hidden.
 
 ## Adding A New Topic
 
