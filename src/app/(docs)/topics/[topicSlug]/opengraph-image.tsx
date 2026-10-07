@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import { ImageResponse } from "next/og";
 import { findTopic, getTopicSummary } from "@/lib/content";
 import { brand, logoPaths, logoStroke, siteName } from "@/lib/site";
@@ -41,7 +42,15 @@ export default async function TopicOpengraphImage({
 }) {
   const { topicSlug } = await params;
   const registered = findTopic(topicSlug);
-  const topic = registered ? getTopicSummary(registered) : undefined;
+
+  // Next.js renders these images on first request rather than at build time,
+  // so `dynamicParams = false` would 404 every topic. An unknown slug returns
+  // a 404 here instead of rendering and caching a generic image for each URL.
+  if (!registered) {
+    notFound();
+  }
+
+  const topic = getTopicSummary(registered);
 
   return new ImageResponse(
     <div
@@ -74,7 +83,7 @@ export default async function TopicOpengraphImage({
           </svg>
         </div>
         <div style={{ display: "flex", fontSize: 27, color: brand.muted, letterSpacing: -0.3 }}>
-          {topic ? topic.trackTitle : siteName}
+          {topic.trackTitle}
         </div>
       </div>
 
@@ -89,7 +98,7 @@ export default async function TopicOpengraphImage({
             lineHeight: 1.08,
           }}
         >
-          {topic?.subtopicTitle ?? siteName}
+          {topic.subtopicTitle}
         </div>
         <div
           style={{
@@ -100,7 +109,7 @@ export default async function TopicOpengraphImage({
             maxWidth: 960,
           }}
         >
-          {topic?.description ?? ""}
+          {topic.description}
         </div>
       </div>
 
@@ -113,9 +122,9 @@ export default async function TopicOpengraphImage({
           color: brand.muted,
         }}
       >
-        <div style={{ display: "flex" }}>{topic?.questionCount ?? 0} questions</div>
+        <div style={{ display: "flex" }}>{topic.questionCount} questions</div>
         <div style={{ display: "flex" }}>·</div>
-        <div style={{ display: "flex" }}>{topic?.readingMinutes ?? 0} min read</div>
+        <div style={{ display: "flex" }}>{topic.readingMinutes} min read</div>
         <div style={{ display: "flex" }}>·</div>
         <div style={{ display: "flex" }}>{siteName}</div>
       </div>
