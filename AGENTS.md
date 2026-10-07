@@ -143,6 +143,10 @@ npm run build
 
 Use `npm run format` for code formatting and `npm run format:check` in review.
 
+CI (`.github/workflows/ci.yml`) runs these gates and `npm run format:check` on
+every pull request and on pushes to `main`. Branch protection on `main`
+requires its `Quality gates` check to pass before a merge.
+
 Use `npm run analyze` (Next.js's Turbopack bundle analyzer) to inspect client
 bundles; `npm run analyze -- --output` writes the report to
 `.next/diagnostics/analyze` instead of serving it.
@@ -154,6 +158,8 @@ bundles; `npm run analyze -- --output` writes the report to
 - Keep new abstractions small and tied to real app needs.
 - If adding generated indexes later, document the generation command here.
 - Do not commit secrets or local `.env` files.
+- Use npm. `package-lock.json` is the only lockfile; do not add a `yarn.lock`
+  or another package manager's lockfile.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

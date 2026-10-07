@@ -1,0 +1,31 @@
+version: 2
+updates:
+  # Minor and patch releases arrive as three grouped pull requests a week at
+  # most. Major releases come one per pull request. Security fixes are not
+  # grouped or delayed: Dependabot opens them as soon as an advisory lands.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      # A dependency joins the first group it matches, so Next.js and React
+      # move together before the dependency-type groups below.
+      next-and-react:
+        patterns:
+          - next
+          - react
+          - react-dom
+          - "@types/react"
+          - "@types/react-dom"
+        update-types: [minor, patch]
+      runtime:
+        dependency-type: production
+        update-types: [minor, patch]
+      tooling:
+        dependency-type: development
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
