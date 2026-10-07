@@ -4,8 +4,7 @@
 
 - Markdown-powered interview docs library
 - Sidebar menu and submenu navigation
-- Difficulty filters
-- Full-text search over questions and answers
+- Search dialog (⌘K / Ctrl+K or `/`) that finds topics and questions by title
 - Reading-focused answer view with code-block rendering
 - Backend submenus for fundamentals and API/database performance
 - Databases track covering database fundamentals, SQL fundamentals,
