@@ -11,7 +11,7 @@
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
     "knip": "knip",
-    "lint": "oxlint .",
+    "lint": "oxlint --deny-warnings .",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

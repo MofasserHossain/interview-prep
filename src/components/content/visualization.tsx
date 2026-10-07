@@ -56,6 +56,9 @@ export function Visualization({ source }: { source: string }) {
         {spec.items.map((item, index) => (
           <li
             className={item.active ? "viz-item is-active" : "viz-item"}
+            // The items come from Markdown in a fixed order and labels can
+            // repeat, so the position is part of each item's identity.
+            // oxlint-disable-next-line react/no-array-index-key
             key={`${index}-${item.label}`}
           >
             <span aria-hidden="true" className="viz-rail">

@@ -23,7 +23,7 @@
   ],
   "rules": {
     "import/no-unassigned-import": "off",
-    "no-console": "warn",
+    "no-console": ["warn", { "allow": ["error"] }],
     "react/jsx-key": "error",
     "react/react-in-jsx-scope": "off",
     "react-hooks/exhaustive-deps": "warn",
