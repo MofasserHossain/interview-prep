@@ -3,7 +3,15 @@
 import { CornerDownLeft, FileText, Hash, Search, SearchX, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import {
+  useEffect,
+  useEffectEvent,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import type { KeyboardEvent, ReactNode } from "react";
 import { getSearchTerms, searchDocs } from "@/lib/search";
 import { useModalDialog } from "@/lib/use-modal-dialog";
@@ -294,13 +302,9 @@ function SearchOption({
 
 /** Opens the dialog on ⌘K / Ctrl+K, or on "/" outside a text field. */
 function useSearchShortcut(onOpen: () => void) {
-  // The listener is registered once, so it reads the current callback from a
-  // ref rather than re-subscribing on every render.
-  const openRef = useRef(onOpen);
-
-  useEffect(() => {
-    openRef.current = onOpen;
-  });
+  // An Effect Event always calls the latest `onOpen`, so the listener is
+  // registered once rather than on every render.
+  const openSearch = useEffectEvent(onOpen);
 
   useEffect(() => {
     function openOnShortcut(event: globalThis.KeyboardEvent) {
@@ -314,7 +318,7 @@ function useSearchShortcut(onOpen: () => void) {
 
       if (commandK || slash) {
         event.preventDefault();
-        openRef.current();
+        openSearch();
       }
     }
 
