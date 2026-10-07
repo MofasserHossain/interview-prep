@@ -22,7 +22,13 @@ export function DocsWorkspace({
         <div className="topbar">
           <nav className="workspace-path" aria-label="Current docs path">
             {headerPath.map((segment, index) => (
-              <span className="workspace-path-segment" key={`${index}-${segment}`}>
+              <span
+                className="workspace-path-segment"
+                // A segment is identified by its depth, and a track and topic
+                // can share a title.
+                // oxlint-disable-next-line react/no-array-index-key
+                key={`${index}-${segment}`}
+              >
                 {index === 0 ? <Link href="/">{segment}</Link> : segment}
               </span>
             ))}

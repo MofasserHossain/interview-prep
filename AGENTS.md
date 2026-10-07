@@ -147,6 +147,10 @@ CI (`.github/workflows/ci.yml`) runs these gates and `npm run format:check` on
 every pull request and on pushes to `main`. Branch protection on `main`
 requires its `Quality gates` check to pass before a merge.
 
+`npm run lint` fails on warnings as well as errors. When a rule is wrong for
+one line, add an `oxlint-disable-next-line` comment with a comment above it
+saying why, as in `src/components/content/code-block.tsx`.
+
 Use `npm run analyze` (Next.js's Turbopack bundle analyzer) to inspect client
 bundles; `npm run analyze -- --output` writes the report to
 `.next/diagnostics/analyze` instead of serving it.

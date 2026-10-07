@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useEffectEvent, useRef } from "react";
 
 type ModalDialogOptions = {
   /** Called after the dialog opens, for focus or selection. */
@@ -19,15 +19,10 @@ type ModalDialogOptions = {
  */
 export function useModalDialog({ onDismiss, onOpen, open }: ModalDialogOptions) {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  // The listeners are registered once, so they read the current callbacks from
-  // a ref rather than re-subscribing whenever the caller re-renders.
-  const handlers = useRef({ onDismiss, onOpen });
-
-  // Declared before the effects that read it, so it is current by the time
-  // they run. Assigning during render would be unsafe.
-  useEffect(() => {
-    handlers.current = { onDismiss, onOpen };
-  });
+  // Effect Events always call the caller's latest callbacks, so the listeners
+  // below are registered once rather than whenever the caller re-renders.
+  const dismiss = useEffectEvent(onDismiss);
+  const afterOpen = useEffectEvent(() => onOpen?.());
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -38,7 +33,7 @@ export function useModalDialog({ onDismiss, onOpen, open }: ModalDialogOptions) 
     // closed dialog would fire a second `close` event.
     if (open && !dialog.open) {
       dialog.showModal();
-      handlers.current.onOpen?.();
+      afterOpen();
     } else if (!open && dialog.open) {
       dialog.close();
     }
@@ -50,11 +45,11 @@ export function useModalDialog({ onDismiss, onOpen, open }: ModalDialogOptions) 
     if (!dialog) return;
 
     function closeOnBackdropClick(event: MouseEvent) {
-      if (event.target === dialog) handlers.current.onDismiss();
+      if (event.target === dialog) dismiss();
     }
 
     function syncOnClose() {
-      handlers.current.onDismiss();
+      dismiss();
     }
 
     dialog.addEventListener("click", closeOnBackdropClick);

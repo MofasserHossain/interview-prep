@@ -113,7 +113,13 @@ export function CodeBlock({ children }: { children: ReactNode }) {
       <pre className="code-panel-pre">
         <code className={className}>
           {lines.map((line, index) => (
-            <span className="code-line" key={`${index}-${line}`}>
+            <span
+              className="code-line"
+              // Lines never reorder, and repeated lines such as `}` need their
+              // position to keep their keys unique.
+              // oxlint-disable-next-line react/no-array-index-key
+              key={`${index}-${line}`}
+            >
               {showLineNumbers ? (
                 <span className="code-line-number">
                   {String(index + 1).padStart(lineNumberWidth, " ")}
