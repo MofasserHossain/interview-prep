@@ -341,18 +341,26 @@ upgrading to 16 silently loses lint enforcement in CI if nobody notices.
 
 ## 10. How Do You Analyze And Reduce Bundle Size?
 
+Start with the bundle analyzer built into Next.js, which works with Turbopack, the
+default bundler since Next.js 16:
+
 ```bash
-npm install --save-dev @next/bundle-analyzer
-ANALYZE=true npm run build
+# Interactive view of every client and server module
+npx next analyze
+
+# Or save it to .next/diagnostics/analyze to compare later
+npx next analyze --output
 ```
 
-```ts
-import bundleAnalyzer from "@next/bundle-analyzer";
+Filter by route, click a module to see its size and the import chain that pulled
+it in, and save the output before and after a change to compare them. The command
+is `next analyze` from 16.4; earlier 16.x releases call it
+`next experimental-analyze`.
 
-const withBundleAnalyzer = bundleAnalyzer({ enabled: process.env.ANALYZE === "true" });
+Interview trap:
 
-export default withBundleAnalyzer(nextConfig);
-```
+`@next/bundle-analyzer` is the webpack plugin. It still works for
+`next build --webpack`, but on the default Turbopack build it does nothing.
 
 The highest-leverage fixes, in order:
 
@@ -519,7 +527,7 @@ Useful signals, and where to find each:
 | Server or Client Component? | React DevTools component badges |
 | What crossed the boundary? | the RSC payload in the network tab |
 | Why is this slow? | an OpenTelemetry trace, then the profiler |
-| What is in the bundle? | `@next/bundle-analyzer` |
+| What is in the bundle? | `next analyze`, the Turbopack bundle analyzer |
 
 ```ts
 const nextConfig: NextConfig = {
