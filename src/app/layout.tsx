@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { Geist } from "next/font/google";
+import { practiceModeScript } from "@/lib/practice-mode";
 import { brand, siteDescription, siteKeywords, siteName, siteUrl } from "@/lib/site";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
@@ -72,7 +73,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={geist.variable}>
+    // The head script sets `data-practice` on <html> before React hydrates, so
+    // React must accept that attribute rather than flag a mismatch.
+    <html lang="en" className={geist.variable} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: practiceModeScript }} />
+      </head>
       <body>
         {children}
         <script

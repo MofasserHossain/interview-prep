@@ -1878,6 +1878,75 @@ html:has(.search-dialog[open]) {
   margin-left: 0;
 }
 
+/*
+ * Practice mode. `<html data-practice="on">` is set before the first paint by
+ * the root layout's head script, so these rules apply before hydration. Only
+ * question answers hide; prose sections stay readable.
+ */
+.article-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin-top: 18px;
+}
+
+.practice-toggle,
+.answer-reveal {
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.86rem;
+  font-weight: 560;
+}
+
+.practice-toggle {
+  display: inline-flex;
+}
+
+.practice-toggle:hover,
+.answer-reveal:hover {
+  border-color: var(--border-strong);
+}
+
+/* Styled from <html>, not aria-pressed, so it is right before hydration too. */
+[data-practice="on"] .practice-toggle {
+  border-color: var(--surface-strong);
+  background: var(--surface-strong);
+  color: var(--primary-foreground);
+}
+
+.practice-hint {
+  display: none;
+  color: var(--text-muted);
+  font-size: 0.86rem;
+}
+
+[data-practice="on"] .practice-hint {
+  display: inline;
+}
+
+.answer-reveal {
+  display: none;
+}
+
+[data-practice="on"] .answer-reveal {
+  display: inline-flex;
+}
+
+[data-practice="on"] .practice-answer[data-revealed] > .answer-reveal {
+  margin-bottom: 18px;
+}
+
+[data-practice="on"] .practice-answer:not([data-revealed]) > .practice-answer-body {
+  display: none;
+}
+
 .answer-body {
   color: var(--text);
   font-size: 1rem;
