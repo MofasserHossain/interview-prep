@@ -483,11 +483,11 @@ not in `after()`.
 
 ## 13. How Do You Reduce Bundle Size?
 
-**Measure first:**
+**Measure first** with the bundle analyzer built into Next.js. It works with
+Turbopack; `@next/bundle-analyzer` only covers webpack builds:
 
 ```bash
-npm install --save-dev @next/bundle-analyzer
-ANALYZE=true npm run build
+npx next analyze
 ```
 
 **Optimize barrel imports.** A package with an index re-exporting hundreds of
