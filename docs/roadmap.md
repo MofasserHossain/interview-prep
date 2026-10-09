@@ -21,11 +21,12 @@
   optimization, data fetching and server state, forms and validation, testing,
   accessibility, senior scenarios, a senior drill round, and machine-coding
   practice
-- Next.js track with 13 subtopics covering the App Router, routing, Server and
+- Next.js track with 14 subtopics covering the App Router, routing, Server and
   Client Components, data and forms, rendering and Cache Components, error
   handling, metadata, styling, optimization, security, Proxy and observability,
-  deployment, and tooling — written against the installed Next.js 16 by reading
-  the docs vendored in `node_modules/next/dist/docs/`
+  deployment, tooling, and what's new in Next.js 16.4 — written against the
+  installed Next.js 16 by reading the docs vendored in
+  `node_modules/next/dist/docs/`
 - Browser & Web Platform track covering page load and rendering, CSS and layout,
   and DOM/events/browser APIs
 - React Native track covering fundamentals, networking and auth, lists and

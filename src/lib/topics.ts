@@ -541,6 +541,17 @@ export const topics: Topic[] = [
       "Build output, standalone and static export, Docker, build-time versus runtime env vars, version skew and deploymentId, multi-instance self-hosting, shared caches, reverse proxies, and rollback.",
     file: "nextjs/deployment-production.md",
   },
+  {
+    slug: "nextjs-whats-new-16-4",
+    title: "What's New In Next.js 16.4",
+    category: "Next.js",
+    trackSlug: "nextjs",
+    trackTitle: "Next.js",
+    subtopicTitle: "What's New In 16.4",
+    description:
+      "Cache Components as the recommended model, prefetch() and navigation(), ensureStatic, Turbopack and bundle changes, the Rust React Compiler, React 19.3, agent upgrades, the bundle analyzer, and what to adopt.",
+    file: "nextjs/whats-new-16-4.md",
+  },
 
   // Frontend Architecture
   {
