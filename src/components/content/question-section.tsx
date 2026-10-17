@@ -1,5 +1,4 @@
 import { SectionBody } from "@/components/content/section-body";
-import { PracticeAnswer } from "@/components/practice-mode";
 import type { SectionRendererProps } from "@/components/content/types";
 
 export function QuestionSection({ section }: SectionRendererProps) {
@@ -11,9 +10,7 @@ export function QuestionSection({ section }: SectionRendererProps) {
         </span>
         <h2>{section.question}</h2>
       </div>
-      <PracticeAnswer>
-        <SectionBody markdown={section.answer} />
-      </PracticeAnswer>
+      <SectionBody markdown={section.answer} />
     </section>
   );
 }
