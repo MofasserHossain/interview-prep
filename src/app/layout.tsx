@@ -73,7 +73,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={geist.variable}>
-      <body>
+      {/* Extensions such as Grammarly add body attributes before hydration. */}
+      <body suppressHydrationWarning>
         {children}
         <script
           type="application/ld+json"

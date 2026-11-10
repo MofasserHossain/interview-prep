@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { DocsSearch } from "@/components/docs-search";
+import { SidebarTrigger } from "@/components/sidebar-panel";
 import { SiteFooter } from "@/components/site-footer";
 import { WorkspaceErrorBoundary } from "@/components/workspace-error-boundary";
 
@@ -20,19 +21,22 @@ export function DocsWorkspace({
     <section className="workspace">
       <header className="workspace-header">
         <div className="topbar">
-          <nav className="workspace-path" aria-label="Current docs path">
-            {headerPath.map((segment, index) => (
-              <span
-                className="workspace-path-segment"
-                // A segment is identified by its depth, and a track and topic
-                // can share a title.
-                // oxlint-disable-next-line react/no-array-index-key
-                key={`${index}-${segment}`}
-              >
-                {index === 0 ? <Link href="/">{segment}</Link> : segment}
-              </span>
-            ))}
-          </nav>
+          <div className="workspace-navigation">
+            <SidebarTrigger />
+            <nav className="workspace-path" aria-label="Current docs path">
+              {headerPath.map((segment, index) => (
+                <span
+                  className="workspace-path-segment"
+                  // A segment is identified by its depth, and a track and topic
+                  // can share a title.
+                  // oxlint-disable-next-line react/no-array-index-key
+                  key={`${index}-${segment}`}
+                >
+                  {index === 0 ? <Link href="/">{segment}</Link> : segment}
+                </span>
+              ))}
+            </nav>
+          </div>
 
           <DocsSearch />
         </div>
