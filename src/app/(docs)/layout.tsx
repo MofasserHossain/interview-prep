@@ -1,3 +1,4 @@
+import { SidebarPanel, SidebarProvider } from "@/components/sidebar-panel";
 import { TopicSidebar } from "@/components/topic-sidebar";
 import { topics } from "@/lib/topics";
 import { groupTopicsByTrack } from "@/lib/tracks";
@@ -13,9 +14,13 @@ export default function DocsLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <main className="app-shell">
-      <TopicSidebar tracks={groupTopicsByTrack(topics)} />
-      {children}
-    </main>
+    <SidebarProvider>
+      <main className="app-shell">
+        <SidebarPanel>
+          <TopicSidebar tracks={groupTopicsByTrack(topics)} />
+        </SidebarPanel>
+        {children}
+      </main>
+    </SidebarProvider>
   );
 }
