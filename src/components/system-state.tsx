@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { AlertTriangle, BookOpen, Home, RefreshCcw, SearchX } from "lucide-react";
@@ -37,10 +38,10 @@ export function HomeAction() {
 
 export function RetryAction({ onRetry }: { onRetry: () => void }) {
   return (
-    <button className="state-primary-action" onClick={onRetry} type="button">
+    <Button variant="unstyled" className="state-primary-action" onClick={onRetry} type="button">
       <RefreshCcw size={16} />
       Try Again
-    </button>
+    </Button>
   );
 }
 

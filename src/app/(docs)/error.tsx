@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { AlertTriangle, RefreshCcw } from "lucide-react";
 import Link from "next/link";
 import { useEffect } from "react";
@@ -18,8 +19,8 @@ export default function Error({ error, retry }: ErrorProps) {
 
   return (
     <section className="workspace">
-      <header className="workspace-header">
-        <div className="topbar">
+      <header className="flex min-h-18 items-center border-b border-border bg-background px-8 max-mobile:px-3.5">
+        <div className="w-full min-w-0">
           <nav className="workspace-path" aria-label="Current docs path">
             <span className="workspace-path-segment">
               <Link href="/">Docs</Link>
@@ -42,10 +43,15 @@ export default function Error({ error, retry }: ErrorProps) {
           </p>
           {error.message ? <code>{error.message}</code> : null}
           <div className="error-actions">
-            <button className="state-primary-action" onClick={retry} type="button">
+            <Button
+              variant="unstyled"
+              className="state-primary-action"
+              onClick={retry}
+              type="button"
+            >
               <RefreshCcw size={16} />
               Try Again
-            </button>
+            </Button>
             <Link className="state-secondary-action" href="/">
               Docs Index
             </Link>

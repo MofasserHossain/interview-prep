@@ -123,9 +123,18 @@ only when they clarify the concept.
 
 - Build the actual question-bank workflow first, not a marketing landing page.
 - Keep the interface dense, scannable, and useful for repeated study.
-- Styling is hand-written CSS in `src/app/globals.css` using semantic class
-  names. There is no Tailwind or shadcn in this project; do not add utility
-  classes.
+- Styling uses Tailwind CSS v4 and shadcn/ui with Base UI primitives
+  (`base-nova` in `components.json`). Shared controls live in `src/components/ui/`.
+  Prefer standard Tailwind utilities (`w-6.5`, not `w-[26px]`); use arbitrary
+  values only for layouts or values without an equivalent utility. The `mobile`
+  and `tablet` breakpoints are 620px and 900px.
+- Keep shared document, syntax, callout, and visualization styles in the
+  Tailwind component layer of `src/app/globals.css`, using `@apply` for utilities.
+  Theme tokens are shared with shadcn. Preserve the flat white appearance;
+  dark mode and theme switching are deferred.
+- Use the shared Base UI Button for actions (the `unstyled` variant preserves
+  study-specific component styles), Dialog for search, and Sheet for mobile
+  navigation. Keep Markdown and static document layouts server-rendered.
 - Use lucide icons for actions and navigation.
 - Keep cards to individual items, panels, and study surfaces.
 - Preserve mobile usability. Text must not overlap or overflow controls.

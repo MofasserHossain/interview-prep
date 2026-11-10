@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import type { TocEntry } from "@/lib/types";
 import { useActiveSection } from "@/lib/use-active-section";
 
@@ -42,7 +43,8 @@ export function QuestionToc({ questions }: { questions: TocEntry[] }) {
             return (
               <div className={groupActive ? "toc-group active" : "toc-group"} key={group.title}>
                 {group.overview ? (
-                  <button
+                  <Button
+                    variant="unstyled"
                     className={
                       selectedQuestionId === group.overview.id
                         ? "toc-group-button active"
@@ -54,7 +56,7 @@ export function QuestionToc({ questions }: { questions: TocEntry[] }) {
                   >
                     <strong>{group.title}</strong>
                     <small>{group.children.length} sections</small>
-                  </button>
+                  </Button>
                 ) : (
                   <div className="toc-group-label">
                     <strong>{group.title}</strong>
@@ -107,7 +109,8 @@ function TocButton({
   selected: boolean;
 }) {
   return (
-    <button
+    <Button
+      variant="unstyled"
       className={[selected ? "active" : "", child ? "toc-child-button" : ""]
         .filter(Boolean)
         .join(" ")}
@@ -116,7 +119,7 @@ function TocButton({
       type="button"
     >
       <strong>{question.question}</strong>
-    </button>
+    </Button>
   );
 }
 

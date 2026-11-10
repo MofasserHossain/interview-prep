@@ -1,19 +1,13 @@
 "use client";
 
-import { PanelLeft, X } from "lucide-react";
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { PanelLeft } from "lucide-react";
+import { createContext, useContext, useMemo, useState, useSyncExternalStore } from "react";
 import type { ReactNode } from "react";
-import { useModalDialog } from "@/lib/use-modal-dialog";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 
 const SidebarContext = createContext({ open: false, setOpen: (_open: boolean) => {} });
-const mobileQuery = "(max-width: 900px)";
+const mobileQuery = "(width < 56.25rem)";
 
 function subscribe(onChange: () => void) {
   const query = window.matchMedia(mobileQuery);
@@ -30,8 +24,10 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
 export function SidebarTrigger() {
   const { open, setOpen } = useContext(SidebarContext);
   return (
-    <button
-      className="sidebar-toggle"
+    <Button
+      variant="ghost"
+      size="icon"
+      className="hidden size-10 rounded-md border border-border max-tablet:inline-flex"
       type="button"
       aria-label="Open navigation"
       aria-expanded={open}
@@ -39,7 +35,7 @@ export function SidebarTrigger() {
       onClick={() => setOpen(true)}
     >
       <PanelLeft size={20} />
-    </button>
+    </Button>
   );
 }
 
@@ -56,41 +52,19 @@ export function SidebarPanel({ children }: { children: ReactNode }) {
 
 function MobileSidebar({ children }: { children: ReactNode }) {
   const { open, setOpen } = useContext(SidebarContext);
-  const dialogRef = useModalDialog({ open, onDismiss: () => setOpen(false) });
-
-  useEffect(() => {
-    if (!open) return;
-    const dialog = dialogRef.current;
-    function closeOnNavigation(event: MouseEvent) {
-      if (event.target instanceof Element && event.target.closest("a[href]")) setOpen(false);
-    }
-    dialog?.addEventListener("click", closeOnNavigation);
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      dialog?.removeEventListener("click", closeOnNavigation);
-      document.body.style.overflow = previous;
-    };
-  }, [dialogRef, open, setOpen]);
-
   return (
-    <dialog
-      ref={dialogRef}
-      id="mobile-sidebar"
-      className="sidebar-dialog"
-      aria-label="Docs navigation"
-    >
-      <div className="sidebar-sheet">
-        <button
-          className="sidebar-close"
-          type="button"
-          aria-label="Close navigation"
-          onClick={() => setOpen(false)}
-        >
-          <X size={20} />
-        </button>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetContent
+        side="left"
+        id="mobile-sidebar"
+        className="sidebar-sheet w-[min(320px,calc(100vw-48px))]! gap-0 bg-background p-0"
+        onClick={(event) => {
+          if (event.target instanceof Element && event.target.closest("a[href]")) setOpen(false);
+        }}
+      >
+        <SheetTitle className="sr-only">Docs navigation</SheetTitle>
         {children}
-      </div>
-    </dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

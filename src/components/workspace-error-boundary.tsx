@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { AlertTriangle, RefreshCcw } from "lucide-react";
 import { Component as ReactComponent } from "react";
 import type { ReactNode } from "react";
@@ -64,10 +65,10 @@ function DocumentErrorPanel({ error, onRetry }: { error: Error; onRetry: () => v
         from the sidebar.
       </p>
       {error.message ? <code>{error.message}</code> : null}
-      <button className="state-primary-action" onClick={onRetry} type="button">
+      <Button variant="unstyled" className="state-primary-action" onClick={onRetry} type="button">
         <RefreshCcw size={16} />
         Try Again
-      </button>
+      </Button>
     </article>
   );
 }
