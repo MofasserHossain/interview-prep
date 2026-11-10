@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -26,7 +27,8 @@ export function SidebarTrack({
         .filter(Boolean)
         .join(" ")}
     >
-      <button
+      <Button
+        variant="unstyled"
         aria-expanded={isExpanded}
         className={isActiveTrack ? "menu-row active" : "menu-row"}
         onClick={() => setExpanded((current) => !current)}
@@ -36,7 +38,7 @@ export function SidebarTrack({
         <span className="menu-chevron" aria-hidden="true">
           {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
         </span>
-      </button>
+      </Button>
 
       <div className="submenu-list">{children}</div>
     </div>

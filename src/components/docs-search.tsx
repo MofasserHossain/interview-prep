@@ -14,7 +14,8 @@ import {
 } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
 import { getSearchTerms, searchDocs } from "@/lib/search";
-import { useModalDialog } from "@/lib/use-modal-dialog";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useSearchIndex } from "@/lib/use-search-index";
 
 /**
@@ -34,11 +35,6 @@ export function DocsSearch() {
 
   const { failed, index } = useSearchIndex(open);
   const shortcut = useShortcutLabel();
-  const dialogRef = useModalDialog({
-    onDismiss: () => setOpen(false),
-    onOpen: () => inputRef.current?.select(),
-    open,
-  });
 
   useSearchShortcut(() => setOpen(true));
 
@@ -119,7 +115,8 @@ export function DocsSearch() {
 
   return (
     <>
-      <button
+      <Button
+        variant="outline"
         aria-haspopup="dialog"
         className="search-field search-trigger"
         onClick={() => setOpen(true)}
@@ -128,128 +125,141 @@ export function DocsSearch() {
         <Search size={18} />
         <span className="search-trigger-label">Search docs</span>
         {shortcut ? <kbd>{shortcut}</kbd> : null}
-      </button>
+      </Button>
 
-      <dialog aria-label="Search docs" className="search-dialog" ref={dialogRef}>
-        <div className="search-panel">
-          <div className="search-panel-header">
-            <Search aria-hidden="true" size={20} />
-            <input
-              aria-activedescendant={active >= 0 ? `${listboxId}-${active}` : undefined}
-              aria-autocomplete="list"
-              aria-controls={showResults ? listboxId : undefined}
-              aria-expanded={showResults}
-              aria-label="Search topics and sections"
-              autoComplete="off"
-              enterKeyHint="go"
-              onChange={(event) => {
-                setQuery(event.target.value);
-                setActiveIndex(0);
-              }}
-              onKeyDown={onKeyDown}
-              placeholder="Search topics and interview questions"
-              ref={inputRef}
-              role="combobox"
-              spellCheck={false}
-              value={query}
-            />
-            <button
-              aria-label="Close search"
-              className="search-close"
-              onClick={() => setOpen(false)}
-              title="Close (Esc)"
-              type="button"
-            >
-              <X size={18} />
-            </button>
-          </div>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent
+          className="search-dialog top-[10vh] flex max-h-[min(76dvh,640px)] w-[min(680px,calc(100vw-32px))] max-w-none translate-y-0 gap-0 overflow-hidden p-0 sm:max-w-none"
+          showCloseButton={false}
+          initialFocus={() => {
+            inputRef.current?.select();
+            return inputRef.current;
+          }}
+        >
+          <DialogTitle className="sr-only">Search docs</DialogTitle>
+          <div className="search-panel">
+            <div className="search-panel-header">
+              <Search aria-hidden="true" size={20} />
+              <input
+                aria-activedescendant={active >= 0 ? `${listboxId}-${active}` : undefined}
+                aria-autocomplete="list"
+                aria-controls={showResults ? listboxId : undefined}
+                aria-expanded={showResults}
+                aria-label="Search topics and sections"
+                autoComplete="off"
+                enterKeyHint="go"
+                onChange={(event) => {
+                  setQuery(event.target.value);
+                  setActiveIndex(0);
+                }}
+                onKeyDown={onKeyDown}
+                placeholder="Search topics and interview questions"
+                ref={inputRef}
+                role="combobox"
+                spellCheck={false}
+                value={query}
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Close search"
+                className="search-close"
+                onClick={() => setOpen(false)}
+                title="Close (Esc)"
+                type="button"
+              >
+                <X size={18} />
+              </Button>
+            </div>
 
-          {showResults ? (
-            <div
-              aria-label="Search results"
-              className="search-results"
-              id={listboxId}
-              // Keeps focus in the input while the pointer is on the list, so
-              // the arrow keys keep working after a click or a scrollbar drag.
-              onMouseDown={(event) => event.preventDefault()}
-              // Grouped, highlighted results need a custom listbox; a native
-              // <select> or <datalist> cannot render them.
-              // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
-              role="listbox"
-              tabIndex={-1}
-            >
-              {rows.map(({ group, sections, topic }) => (
-                <div className="search-group" key={group.topic.slug} role="presentation">
-                  <SearchOption
-                    className="search-option search-option-topic"
-                    content={
-                      <>
-                        <strong>{highlight(group.topic.title, terms)}</strong>
-                        <small>
-                          {group.topic.track} · {sectionCounts.get(group.topic.slug) ?? 0} sections
-                        </small>
-                      </>
-                    }
-                    href={topic.href}
-                    icon={<FileText size={16} />}
-                    id={`${listboxId}-${topic.position}`}
-                    isActive={topic.position === active}
-                    onHighlight={() => highlightOption(topic.position)}
-                    onSelect={finish}
-                  />
-                  {sections.map(({ href, position, section }) => (
+            {showResults ? (
+              <div
+                aria-label="Search results"
+                className="search-results"
+                id={listboxId}
+                // Keeps focus in the input while the pointer is on the list, so
+                // the arrow keys keep working after a click or a scrollbar drag.
+                onMouseDown={(event) => event.preventDefault()}
+                // Grouped, highlighted results need a custom listbox; a native
+                // <select> or <datalist> cannot render them.
+                // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
+                role="listbox"
+                tabIndex={-1}
+              >
+                {rows.map(({ group, sections, topic }) => (
+                  <div className="search-group" key={group.topic.slug} role="presentation">
                     <SearchOption
-                      className="search-option search-option-section"
-                      content={<span>{highlight(section.title.replaceAll("`", ""), terms)}</span>}
-                      href={href}
-                      icon={<Hash size={14} />}
-                      id={`${listboxId}-${position}`}
-                      isActive={position === active}
-                      key={href}
-                      onHighlight={() => highlightOption(position)}
+                      className="search-option search-option-topic"
+                      content={
+                        <>
+                          <strong>{highlight(group.topic.title, terms)}</strong>
+                          <small>
+                            {group.topic.track} · {sectionCounts.get(group.topic.slug) ?? 0}{" "}
+                            sections
+                          </small>
+                        </>
+                      }
+                      href={topic.href}
+                      icon={<FileText size={16} />}
+                      id={`${listboxId}-${topic.position}`}
+                      isActive={topic.position === active}
+                      onHighlight={() => highlightOption(topic.position)}
                       onSelect={finish}
                     />
-                  ))}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <output className="search-empty">
-              {trimmedQuery && index ? <SearchX size={28} /> : <Search size={28} />}
-              <strong>
-                {!trimmedQuery
-                  ? "Search the docs"
-                  : !index
-                    ? failed
-                      ? "Search is unavailable right now"
-                      : "Loading search…"
-                    : `No results for “${trimmedQuery}”`}
-              </strong>
-              <span>
-                {!trimmedQuery
-                  ? index
-                    ? `Find any of ${index.topics.length} topics and ${index.sections.length.toLocaleString("en")} interview questions by title.`
-                    : "Find topics and interview questions by title."
-                  : index
-                    ? "Try a shorter or different keyword."
-                    : null}
-              </span>
-            </output>
-          )}
+                    {sections.map(({ href, position, section }) => (
+                      <SearchOption
+                        className="search-option search-option-section"
+                        content={<span>{highlight(section.title.replaceAll("`", ""), terms)}</span>}
+                        href={href}
+                        icon={<Hash size={14} />}
+                        id={`${listboxId}-${position}`}
+                        isActive={position === active}
+                        key={href}
+                        onHighlight={() => highlightOption(position)}
+                        onSelect={finish}
+                      />
+                    ))}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <output className="search-empty">
+                {trimmedQuery && index ? <SearchX size={28} /> : <Search size={28} />}
+                <strong>
+                  {!trimmedQuery
+                    ? "Search the docs"
+                    : !index
+                      ? failed
+                        ? "Search is unavailable right now"
+                        : "Loading search…"
+                      : `No results for “${trimmedQuery}”`}
+                </strong>
+                <span>
+                  {!trimmedQuery
+                    ? index
+                      ? `Find any of ${index.topics.length} topics and ${index.sections.length.toLocaleString("en")} interview questions by title.`
+                      : "Find topics and interview questions by title."
+                    : index
+                      ? "Try a shorter or different keyword."
+                      : null}
+                </span>
+              </output>
+            )}
 
-          <div className="search-panel-footer">
-            <span className="search-keys">
-              <kbd>↑</kbd>
-              <kbd>↓</kbd> to move <kbd>↵</kbd> to open <kbd>esc</kbd> to close
-            </span>
-            {showResults ? (
-              <span>
-                {hrefs.length} {hrefs.length === 1 ? "result" : "results"}
+            <div className="search-panel-footer">
+              <span className="search-keys">
+                <kbd>↑</kbd>
+                <kbd>↓</kbd> to move <kbd>↵</kbd> to open <kbd>esc</kbd> to close
               </span>
-            ) : null}
+              {showResults ? (
+                <span>
+                  {hrefs.length} {hrefs.length === 1 ? "result" : "results"}
+                </span>
+              ) : null}
+            </div>
           </div>
-        </div>
-      </dialog>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

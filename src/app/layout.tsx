@@ -4,7 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { Geist } from "next/font/google";
 import { brand, siteDescription, siteKeywords, siteName, siteUrl } from "@/lib/site";
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
+const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
 
 export const metadata: Metadata = {
   // Resolves every relative URL below, and the generated Open Graph images.

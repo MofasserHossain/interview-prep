@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { Check, Clipboard, CodeXml, Terminal } from "lucide-react";
 import { Children, isValidElement, useState } from "react";
 import type { ReactElement, ReactNode } from "react";
@@ -99,7 +100,8 @@ export function CodeBlock({ children }: { children: ReactNode }) {
           <span>{isOutput ? "Output" : "Code"}</span>
           {showLanguageLabel ? <span className="code-language">{languageLabel}</span> : null}
         </div>
-        <button
+        <Button
+          variant="unstyled"
           aria-label={copied ? "Copied code" : "Copy code"}
           className="code-copy-button"
           onClick={() => void copyCode()}
@@ -107,7 +109,7 @@ export function CodeBlock({ children }: { children: ReactNode }) {
         >
           {copied ? <Check size={14} /> : <Clipboard size={14} />}
           <span>{copied ? "Copied" : "Copy"}</span>
-        </button>
+        </Button>
       </div>
 
       <pre className="code-panel-pre">
